@@ -10,7 +10,7 @@ package config
 
 object BuildTimeConfig {
     //const val APPLICATION_ID = "io.element.android.x"
-    const val APPLICATION_NAME = "Schildi" // SC: should be overriden by our variants... so use something which will make apparent if that's not happening, where it comes from
+    const val APPLICATION_NAME = "MatriceChat" // SC: should be overriden by our variants... so use something which will make apparent if that's not happening, where it comes from
     val METADATA_HOST_REVERSED: String? = null
     val OAUTH_CLIENT_URL_PATH: String? = "apps/android"
     val URL_WEBSITE: String? = null

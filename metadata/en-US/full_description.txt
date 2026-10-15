@@ -1,6 +1,6 @@
-SchildiChat Next is a Matrix client based on the Element X app, with various tweaks and additional features.
+MatriceChat is a Matrix client based on SchildiChat Next and Element X, with additional features.
 
 The Matrix protocol is a decentralized approach to modern messaging, allowing you to select a server provider of your choice (or even self-host your own server), enabling you to communicate with end-to-end encryption, shared message history across multiple devices, and more.
 
-SchildiChat is open source: https://github.com/SchildiChat/schildichat-android-next
+MatriceChat is open source: https://github.com/tass-suderman/matricechat
 More information about the Matrix protocol: https://matrix.org/

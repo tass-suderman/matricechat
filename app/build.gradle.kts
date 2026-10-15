@@ -42,8 +42,8 @@ android {
     namespace = "io.element.android.x"
 
     defaultConfig {
-        //applicationId = BuildTimeConfig.APPLICATION_ID
-        applicationId = "chat.schildi.android"
+        // applicationId = BuildTimeConfig.APPLICATION_ID
+        applicationId = "chat.matrice.android"
         versionCode = 1250
         versionName = "0.11.7-ex_26_9_4"
         targetSdk = Versions.TARGET_SDK
@@ -183,7 +183,7 @@ android {
     productFlavors {
         create("gplay") {
             dimension = "store"
-            //isDefault = true
+            // isDefault = true
             buildConfigFieldStr("SHORT_FLAVOR_DESCRIPTION", "G")
             buildConfigFieldStr("FLAVOR_DESCRIPTION", "GooglePlay")
         }
@@ -220,40 +220,40 @@ android {
         // Common upstream overrides across all sc variants - only one flavor for this dimension to ensure it's picked up!
         create("sc") {
             dimension = "package"
-            versionCode = 1250
+            versionCode = project.findProperty("matriceVersionCode")?.toString()?.toInt() ?: 1250
             versionName = "0.11.7-ex_26_9_4"
             isDefault = true
         }
         // SC variants for different release tracks. Cannot do actual release types for those since fdroid build tools always want `release` builds.
         create("default") {
             dimension = "sc-variant"
-            applicationId = "chat.schildi.android"
+            applicationId = "chat.matrice.android"
             isDefault = true
-            resValue("string", "sc_app_name", "SchildiChat Next")
-            resValue("string", "sc_app_name_launcher", "SchildiNext")
+            resValue("string", "sc_app_name", "MatriceChat")
+            resValue("string", "sc_app_name_launcher", "MatriceChat")
         }
         create("beta") {
             dimension = "sc-variant"
-            applicationId = "chat.schildi.next"
-            resValue("string", "sc_app_name", "SchildiChat Next (Beta)")
-            resValue("string", "sc_app_name_launcher", "SchildiNext β")
+            applicationId = "chat.matrice.android.beta"
+            resValue("string", "sc_app_name", "MatriceChat (Beta)")
+            resValue("string", "sc_app_name_launcher", "MatriceChat β")
         }
         create("internal") {
             dimension = "sc-variant"
-            applicationId = "chat.schildi.next.internal"
-            resValue("string", "sc_app_name", "SchildiChat Next (Internal)")
-            resValue("string", "sc_app_name_launcher", "SchildiNext[i]")
+            applicationId = "chat.matrice.android.internal"
+            resValue("string", "sc_app_name", "MatriceChat (Internal)")
+            resValue("string", "sc_app_name_launcher", "MatriceChat[i]")
         }
     }
     // Build types to override some more upstream values
     buildTypes {
         named("debug") {
-            resValue("string", "app_name", "SchildiChat Next dbg")
+            resValue("string", "app_name", "MatriceChat dbg")
             buildConfigField("String", "SC_VERSION_MAIN", "\"$scVersionMain\"")
             buildConfigField("String", "SC_VERSION_ELEMENT", "\"${Versions.VERSION_NAME}\"")
         }
         named("release") {
-            resValue("string", "app_name", "SchildiChat Next")
+            resValue("string", "app_name", "MatriceChat")
             buildConfigField("String", "SC_VERSION_MAIN", "\"$scVersionMain\"")
             buildConfigField("String", "SC_VERSION_ELEMENT", "\"${Versions.VERSION_NAME}\"")
         }

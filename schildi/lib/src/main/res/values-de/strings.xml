@@ -15,7 +15,7 @@
     <string name="sc_client_generated_unread_counts_summary">Berechne die Anzahl ungelesener Nachrichten auf dem Gerät, anstatt den vom Server gemeldeten Werten zu vertrauen</string>
     <string name="sc_pref_category_general_appearance">Erscheinungsbild</string>
     <string name="sc_pref_screen_experimental_title">Experimentell</string>
-    <string name="sc_onboarding_welcome_title">Willkommen bei SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Willkommen bei MatriceChat</string>
     <string name="sc_space_unread_counts_mode_hide">Verstecken</string>
     <string name="sc_pref_sc_layout_title">SC Layout</string>
     <string name="sc_pref_sc_floating_date_title">Schwebendes Datum</string>

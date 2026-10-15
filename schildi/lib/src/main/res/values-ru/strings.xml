@@ -27,7 +27,7 @@
     <string name="sc_compact_root_spaces_title">Компактные корневые пространства</string>
     <string name="sc_pref_sc_layout_title">SC компановка</string>
     <string name="sc_space_swipe_title">Свайп, чтобы переключаться между пространствами</string>
-    <string name="sc_onboarding_welcome_title">Добро пожаловать в SchildiChat</string>
+    <string name="sc_onboarding_welcome_title">Добро пожаловать в MatriceChat</string>
     <string name="sc_pref_sc_themes_summary">Отключите, чтобы использовать тему из Element.</string>
     <string name="sc_space_unread_counts_mode_title">Общее количество непрочитанных</string>
     <string name="sc_pref_sc_timeline_layout_title">SC компановка беседы</string>

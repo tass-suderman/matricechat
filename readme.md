@@ -1,46 +1,18 @@
-[![Translation status](https://weblate.spiritcroc.de/widget/schildichat/schildichat-android-next/svg-badge.svg)](https://weblate.spiritcroc.de/projects/schildichat/schildichat-android-next/)
-[![SchildiChat-Android Matrix room #android:schildi.chat](https://img.shields.io/matrix/android:schildi.chat.svg?label=%23android:schildi.chat&logo=matrix&server_fqdn=matrix.org)](https://matrix.to/#/#android:schildi.chat)
+# MatriceChat
 
-# SchildiChat Android Next
-
-Matrix client based on [Element Android X](https://github.com/element-hq/element-x-android)
-in the tradition of the original [SchildiChat for Android](https://github.com/SchildiChat/SchildiChat-android)
-which was based on the now deprecated Element Android codebase.
-
-Similarly to Element X, this SchildiChat Android rewrite should still be considered beta,
-as it lacks some functionality which one might expect from a fully-featured chat app, compared to the old SchildiChat implementation.
-
-An overview over changes compared to Element X can be found [here](FEATURES.md).
-
-<a href="https://f-droid.org/packages/chat.schildi.android" alt="Get it on F-Droid" target="_blank"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="80"></a>
-<a href="https://play.google.com/store/apps/details?id=chat.schildi.android" alt="Get it on Google Play" target="_blank"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" height="80"></a>
-
-**Note for F-Droid**: You can get faster updates directly from the developer by adding the [SpiritCroc F-Droid
-repository](https://schildi.chat/android/next/install-from-sc-fdroid). These builds usually match the releases in the
-official F-Droid repository thanks to [reproducible builds](https://f-droid.org/en/docs/Inclusion_How-To/#reproducible-builds),
-but get built directly on app update and do not need to go through a possibly lengthy build process on the F-Droid servers.
-
-**Beta builds** for testing pre-release versions are available from the [SpiritCroc testing F-Droid
-repository](https://s2.spiritcroc.de/testing/fdroid/repo/?fingerprint=52d03f2fab785573bb295c7ab270695e3a1bdd2adc6a6de8713250b33f231225)
-under a different package name, and can thus be installed next to the stable release.
+MatriceChat is a Matrix client based on [SchildiChat Next](https://github.com/SchildiChat/schildichat-android-next) and [Element X](https://github.com/element-hq/element-x-android).
+Install the universal APK from the latest `Build Android APK` GitHub Actions run. Its package ID is `chat.matrice.android`, so it can be installed beside SchildiChat Next.
 
 
-#### Current state of development
+## MatriceChat features
 
-Since Android support has landed in [SchildiChat Revenge](https://github.com/SchildiChat/schildi-revenge), Next is no longer my main focus for Android.  
-This means, for now Next will still receive updates (including upstream merges / Element X updates), but likely will not gain any significant new Schildi-specific features.
+- Enable personal packs and global room packs in FluffyChat; their emoji and stickers are then available in every MatriceChat conversation.
+- Type `:smi` to search emoji by shortcode or name, or use the smiley beside the message field. The picker has Emoji and Stickers tabs and focuses search automatically.
+- Selecting a sticker sends it immediately, including the current reply target. Custom emoji can also be used as reactions.
+- Mark an image or video as a spoiler with the visibility button in the attachment preview. Incoming tagged media stays hidden until you reveal it.
+- Feature switches are under **Turtle tweaks → Conversation screen**. Global wallpaper and light/dark colors, including alpha, are under **Turtle tweaks → General**.
 
-
-## Translations
-
-If you want to translate SchildiChat, visit [our weblate](https://weblate.spiritcroc.de/projects/schildichat/schildichat-android-next/).  
-Translations that concern upstream Element code are best contributed directly to Element, who currently manage translations on [localazy](https://localazy.com/p/element).
-
-
-## Screenshots
-
-<img src="https://raw.githubusercontent.com/SchildiChat/schildichat-android-next/main/metadata/en-US/images/phoneScreenshots/1_en-US.png" height="500"/> <img src="https://raw.githubusercontent.com/SchildiChat/schildichat-android-next/main/metadata/en-US/images/phoneScreenshots/2_en-US.png" height="500"/><img src="https://raw.githubusercontent.com/SchildiChat/schildichat-android-next/main/metadata/en-US/images/phoneScreenshots/3_en-US.png" height="500"/>
-
+The feature switches are enabled by default. Pack creation and management remain in FluffyChat.
 
 ## Building
 
@@ -89,3 +61,9 @@ In particular (may change a bit while the project is still in alpha):
 - Don't worry too much about code style if violating it can ease upstream merges
     - When putting upstream code into a new block (e.g., putting it in an `if`-statement), don't indent the upstream code, but rather add comments like
         `// Wrong indention for merge-ability - start` and `// Wrong indention for merge-ability - end`
+
+### Settings backup
+
+Use **Settings → Settings backup** to export or import local settings, wallpaper and custom sounds. See [the backup guide](docs/settings-backup.md).
+
+Wallpaper opacity is adjustable from 0–100% under **Turtle tweaks → General → Appearance** and is included in settings backups.
