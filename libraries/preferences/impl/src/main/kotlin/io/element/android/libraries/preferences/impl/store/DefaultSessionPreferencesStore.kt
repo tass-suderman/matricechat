@@ -15,7 +15,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
-import io.element.android.libraries.androidutils.file.safeDelete
 import io.element.android.libraries.androidutils.hash.hash
 import io.element.android.libraries.core.data.tryOrNull
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
@@ -31,6 +30,7 @@ class DefaultSessionPreferencesStore(
     context: Context,
     sessionId: SessionId,
     @SessionCoroutineScope sessionCoroutineScope: CoroutineScope,
+    sharedDataStore: androidx.datastore.core.DataStore<Preferences>? = null,
 ) : SessionPreferencesStore {
     companion object {
         fun storeFile(context: Context, sessionId: SessionId): File {
@@ -49,7 +49,7 @@ class DefaultSessionPreferencesStore(
     private val compressMediaPreset = stringPreferencesKey("compressMediaPreset")
 
     private val dataStoreFile = storeFile(context, sessionId)
-    private val store = PreferenceDataStoreFactory.create(
+    private val store = sharedDataStore ?: PreferenceDataStoreFactory.create(
         scope = sessionCoroutineScope,
         migrations = listOf(
             SessionPreferencesStoreMigration(
@@ -95,7 +95,7 @@ class DefaultSessionPreferencesStore(
         .map { tryOrNull { VideoCompressionPreset.valueOf(it) } ?: VideoCompressionPreset.STANDARD }
 
     override suspend fun clear() {
-        dataStoreFile.safeDelete()
+        store.edit { it.clear() }
     }
 
     private suspend fun <T> update(key: Preferences.Key<T>, value: T) {

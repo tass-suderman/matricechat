@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_settings_backup_title">Settings backup</string>
+    <string name="screen_settings_backup_export">Export settings</string>
+    <string name="screen_settings_backup_import">Import settings</string>
+    <string name="screen_settings_backup_summary">Save local app and account preferences, colours, wallpaper and custom sounds to a file. Sign-ins, encryption keys, device PINs and Android permissions are not included. Matrix account settings sync again when you sign in.</string>
+    <string name="screen_settings_backup_import_confirmation">Imported values replace matching settings. Settings missing from an older backup keep their current values. Restart the app after importing to apply everything. Set up your device PIN and Android permissions separately.</string>
+    <string name="screen_settings_backup_exported">Settings exported successfully.</string>
+    <string name="screen_settings_backup_imported">Settings imported. Restart the app to apply everything.</string>
+    <string name="error_settings_backup">Could not complete the settings backup operation. Check that the file is a valid settings backup, its wallpaper and sounds are available, and there is enough free space.</string>
+</resources>

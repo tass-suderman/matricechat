@@ -47,9 +47,9 @@ import chat.schildi.lib.preferences.ScBoolPref
 import chat.schildi.lib.preferences.ScColorPref
 import chat.schildi.lib.preferences.ScDisclaimerPref
 import chat.schildi.lib.preferences.ScIntPref
-import chat.schildi.lib.preferences.ScPrefCategory
 import chat.schildi.lib.preferences.ScListPref
 import chat.schildi.lib.preferences.ScPref
+import chat.schildi.lib.preferences.ScPrefCategory
 import chat.schildi.lib.preferences.ScPrefCategoryCollapsed
 import chat.schildi.lib.preferences.ScPrefScreen
 import chat.schildi.lib.preferences.enabledState
@@ -69,12 +69,22 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
-fun <T>ScPref<T>.AutoRendered(initial: Any, onChange: (Any) -> Unit) {
+fun <T> ScPref<T>.AutoRendered(initial: Any, onChange: (Any) -> Unit) {
     when (this) {
         is ScBoolPref -> return Rendered(initial, onChange)
-        is ScIntPref -> return Rendered(initial, onChange)
+        is ScIntPref -> {
+            if (sKey == chat.schildi.lib.preferences.ScPrefs.CHAT_WALLPAPER_OPACITY.sKey) {
+                return WallpaperOpacityPreference(
+                    value = (initial as? Int ?: defaultValue).coerceIn(0, 100),
+                    enabled = LocalScPreferencesStore.current.enabledState(this).value,
+                    onChange = onChange,
+                )
+            }
+            return Rendered(initial, onChange)
+        }
         is ScListPref -> return Rendered(initial, onChange)
         is ScColorPref -> return Rendered(initial, onChange)
+        is chat.schildi.lib.preferences.ScWallpaperPref -> return WallpaperPreference(initial as? String ?: "", onChange)
         else -> {
             Timber.e("Not supported to render ScPref ${this.javaClass} for $sKey")
         }
@@ -297,7 +307,7 @@ fun ScIntPref.Rendered(initial: Any, onChange: (Any) -> Unit) {
 }
 
 @Composable
-fun <T>ScListPref<T>.Rendered(initial: Any, onChange: (Any) -> Unit) {
+fun <T> ScListPref<T>.Rendered(initial: Any, onChange: (Any) -> Unit) {
     val v = ensureType(initial)
     if (v == null) {
         Timber.e("Invalid initial value $initial")
@@ -333,7 +343,7 @@ fun <T>ScListPref<T>.Rendered(initial: Any, onChange: (Any) -> Unit) {
             }.toImmutableList(),
             onSelectOption = { index ->
                 if (index != selectedIndex) {
-                    itemKeys[index]?.let {  k ->
+                    itemKeys[index]?.let { k ->
                         onChange(k)
                     }
                 }
@@ -372,10 +382,11 @@ fun ScColorPref.Rendered(initial: Any, onChange: (Any) -> Unit) {
     PreferenceColorPreview(
         title = stringResource(id = titleRes),
         currentValue = currentValue,
-        subtitle = summaryRes?.let { stringResource(id = it, currentValueHex) } ?: if (userValue == null)
+        subtitle = summaryRes?.let { stringResource(id = it, currentValueHex) } ?: if (userValue == null) {
             stringResource(chat.schildi.lib.R.string.sc_color_pref_follow_theme_default)
-        else
-            stringResource(chat.schildi.lib.R.string.sc_color_pref_custom_color, currentValueHex),
+        } else {
+            stringResource(chat.schildi.lib.R.string.sc_color_pref_custom_color, currentValueHex)
+        },
         onClick = { if (enabled) openDialog.value = true },
         enabled = enabled,
     )

@@ -36,6 +36,7 @@ class PreferencesRootNode(
     private val presenter: PreferencesRootPresenter,
     private val emojiPickerRenderer: EmojiPickerRenderer,
     private val directLogoutView: DirectLogoutView,
+    private val settingsBackupService: io.element.android.libraries.preferences.api.SettingsBackupService,
 ) : Node(buildContext, plugins = plugins) {
     interface Callback : PreferencesAccountCallback, Plugin {
         fun navigateToAddAccount()
@@ -74,6 +75,9 @@ class PreferencesRootNode(
         PreferencesRootView(
             state = state,
             emojiPickerRenderer = emojiPickerRenderer,
+            settingsBackupSection = {
+                io.element.android.features.preferences.impl.backup.SettingsBackupSection(settingsBackupService)
+            },
             modifier = modifier,
             onBackClick = this::navigateUp,
             onAddAccountClick = callback::navigateToAddAccount,

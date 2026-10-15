@@ -23,6 +23,7 @@ dependencies {
     implementation(projects.schildi.lib)
     api(projects.libraries.preferences.api)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.serialization.json)
     implementation(projects.libraries.androidutils)
     implementation(projects.libraries.di)
     implementation(projects.libraries.core)

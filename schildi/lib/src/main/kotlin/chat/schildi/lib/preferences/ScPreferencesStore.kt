@@ -32,6 +32,9 @@ import kotlin.coroutines.EmptyCoroutineContext
 private val Context.scPrefDataStore: DataStore<Preferences> by preferencesDataStore(name = "schildinext-preferences")
 
 interface ScPreferencesStore {
+    /** Raw overrides for portable settings backup, including values of currently disabled preferences. */
+    val backupDataStore: DataStore<Preferences> get() = error("Raw preferences are unavailable in this fake")
+
     suspend fun <T>setSetting(scPref: ScPref<T>, value: T)
     suspend fun <T>setSettingTypesafe(scPref: ScPref<T>, value: Any?)
     fun <T> settingFlow(scPref: ScPref<T>): Flow<T>
@@ -59,6 +62,7 @@ class DefaultScPreferencesStore(
     @ApplicationContext context: Context,
 ) : ScPreferencesStore {
     private val store = context.scPrefDataStore
+    override val backupDataStore: DataStore<Preferences> get() = store
 
     // When listening to the settings flow, we want an appropriate initial value
     private val settingsCache = mutableMapOf<String, Any>()

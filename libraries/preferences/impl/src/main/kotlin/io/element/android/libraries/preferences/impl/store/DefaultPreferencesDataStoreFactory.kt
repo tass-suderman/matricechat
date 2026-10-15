@@ -31,6 +31,16 @@ class DefaultPreferencesDataStoreFactory(
         val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
             name = name,
             corruptionHandler = DefaultPreferencesCorruptionHandlerFactory.replaceWithEmpty(),
+            produceMigrations = {
+                if (name.matches(Regex("session_[a-f0-9]{16}_preferences"))) {
+                    listOf(SessionPreferencesStoreMigration(
+                        androidx.datastore.preferences.core.booleanPreferencesKey("sharePresence"),
+                        androidx.datastore.preferences.core.booleanPreferencesKey("sendPublicReadReceipts"),
+                    ))
+                } else {
+                    emptyList()
+                }
+            },
         )
     }
 

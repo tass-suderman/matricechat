@@ -27,6 +27,7 @@ sealed interface AbstractScPref : Parcelable {
 sealed interface ScPref<T> : AbstractScPref {
     val sKey: String
     val defaultValue: T
+
     // Value when the preference is disabled via dependencies. If null, return the actual value anyway. Subclasses should default this to defaultValue.
     val disabledValue: T?
     val authorsChoice: T?
@@ -101,7 +102,7 @@ data class ScBoolPref(
     override val authorsChoice: Boolean? = null,
     override val upstreamChoice: Boolean? = null,
     override val dependencies: List<ScPrefDependency> = emptyList(),
-): ScPref<Boolean> {
+) : ScPref<Boolean> {
     @IgnoredOnParcel override val key = booleanPreferencesKey(sKey)
     override fun ensureType(value: Any?): Boolean? {
         if (value !is Boolean?) {
@@ -126,7 +127,7 @@ data class ScIntPref(
     override val dependencies: List<ScPrefDependency> = emptyList(),
     val minValue: Int = Int.MIN_VALUE,
     val maxValue: Int = Int.MAX_VALUE,
-): ScPref<Int> {
+) : ScPref<Int> {
     @IgnoredOnParcel override val key = intPreferencesKey(sKey)
     override fun ensureType(value: Any?): Int? {
         if (value !is Int?) {
@@ -138,11 +139,11 @@ data class ScIntPref(
 }
 
 @Parcelize
-sealed interface ScListPref<T>: ScPref<T> {
+sealed interface ScListPref<T> : ScPref<T> {
     val itemKeys: Array<T>
-    @get: ArrayRes
+    @get:ArrayRes
     val itemNames: Int
-    @get: ArrayRes
+    @get:ArrayRes
     val itemSummaries: Int?
 }
 
@@ -163,7 +164,7 @@ data class ScStringListPref(
     override val authorsChoice: String? = null,
     override val upstreamChoice: String? = null,
     override val dependencies: List<ScPrefDependency> = emptyList(),
-): ScListPref<String> {
+) : ScListPref<String> {
     @IgnoredOnParcel override val key = stringPreferencesKey(sKey)
     override fun ensureType(value: Any?): String? {
         if (value !is String?) {
@@ -186,7 +187,7 @@ data class ScColorPref(
     override val authorsChoice: Int? = null,
     override val upstreamChoice: Int? = null,
     override val dependencies: List<ScPrefDependency> = emptyList(),
-): ScPref<Int> {
+) : ScPref<Int> {
     @IgnoredOnParcel override val key = intPreferencesKey(sKey)
     override fun ensureType(value: Any?): Int? {
         if (value !is Int) {
@@ -244,3 +245,18 @@ data class ScUpstreamFeatureFlagAliasPref(
     }
 }
  */
+
+@Parcelize
+data class ScWallpaperPref(
+    override val sKey: String,
+    override val titleRes: Int,
+    override val summaryRes: Int? = null,
+) : ScPref<String> {
+    @IgnoredOnParcel override val defaultValue = ""
+    @IgnoredOnParcel override val disabledValue: String? = null
+    @IgnoredOnParcel override val authorsChoice: String? = null
+    @IgnoredOnParcel override val upstreamChoice: String? = null
+    @IgnoredOnParcel override val dependencies: List<ScPrefDependency> = emptyList()
+    @IgnoredOnParcel override val key = stringPreferencesKey(sKey)
+    override fun ensureType(value: Any?): String? = value as? String
+}

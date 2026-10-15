@@ -75,7 +75,17 @@ fun resolveColorRenderedThemeDefault(key: String): Color? {
         ScPrefs.BUBBLE_BG_DARK_OUTGOING.sKey -> resolveColorPrefInTheme(darkTheme = true) {
             ScTheme.exposures.bubbleBgOutgoing ?: ElementTheme.colors.messageFromMeBackground
         }
-        else -> null
+        else -> resolveColorPrefInTheme(darkTheme = key.endsWith("_DARK")) {
+            when (key.substringBeforeLast("_")) {
+                "CANVAS" -> ElementTheme.colors.bgCanvasDefault
+                "SURFACE" -> ElementTheme.colors.bgSubtleSecondary
+                "TEXT" -> ElementTheme.colors.textPrimary
+                "ACCENT" -> ElementTheme.colors.iconAccentPrimary
+                "ICON" -> ElementTheme.colors.iconPrimary
+                "BORDER" -> ElementTheme.colors.borderInteractivePrimary
+                else -> null
+            }
+        }
     }
 }
 
@@ -204,11 +214,12 @@ fun ColorPickerAlertDialog(initialValue: Color, defaultValue: Int, dismiss: () -
                 Row(Modifier.fillMaxWidth()) {
                     TextField(
                         value = textValue,
+                        label = { Text(stringResource(chat.schildi.lib.R.string.screen_settings_color_hex_argb)) },
                         onValueChange = {
                             // Remove everything that's not allowed hex
                             val sanitizedString = it.sanitizeHex()
                             // Force sanitized string to be displayed
-                            textValue = "#${sanitizedString}"
+                            textValue = "#$sanitizedString"
                             try {
                                 val intValue = Integer.parseUnsignedInt(sanitizedString, 16).let {
                                     if (sanitizedString.length <= 6) {
@@ -222,7 +233,8 @@ fun ColorPickerAlertDialog(initialValue: Color, defaultValue: Int, dismiss: () -
                                     pickerColor = Color(intValue)
                                     refreshPickerKey++
                                 }
-                            } catch (ignored: Throwable) {}
+                            } catch (ignored: Throwable) {
+                                }
                         },
                         modifier = Modifier.weight(1f, fill = true),
                         singleLine = true,

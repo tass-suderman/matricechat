@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_custom_emoji">Custom emoji</string>
+    <string name="screen_settings_custom_emoji_summary">Use your personal and globally active FluffyChat emoji packs in any chat.</string>
+    <string name="screen_settings_emoji_autocomplete_title">Emoji autocomplete</string>
+    <string name="screen_settings_emoji_autocomplete_summary">Suggest emoji when typing a colon and part of an emoji name.</string>
+    <string name="common_custom_stickers">Custom stickers</string>
+    <string name="screen_settings_custom_stickers_summary">Use personal and globally enabled FluffyChat sticker packs in every chat</string>
+    <string name="screen_settings_composer_emoji_picker_title">Emoji and sticker menu</string>
+    <string name="screen_settings_composer_emoji_picker_summary">Show the emoji and sticker button beside the message field</string>
+    <string name="screen_settings_custom_colors_title">Custom colors</string>
+    <string name="screen_settings_custom_colors_summary">Apply the global light and dark color palettes, including bubble colors</string>
+    <string name="screen_settings_color_background">Background color</string>
+    <string name="screen_settings_color_surface">Surface color</string>
+    <string name="screen_settings_color_text">Text color</string>
+    <string name="screen_settings_color_accent">Accent color</string>
+    <string name="screen_settings_color_icons">Icons color</string>
+    <string name="screen_settings_color_borders">Borders color</string>
+    <string name="screen_settings_color_hex_argb">Hex ARGB (#AARRGGBB)</string>
+    <string name="screen_settings_chat_wallpaper_enabled">Show chat wallpaper</string>
+    <string name="screen_settings_chat_wallpaper_title">Chat wallpaper</string>
+    <string name="screen_settings_chat_wallpaper_summary">Choose one image for every chat</string>
+    <string name="screen_settings_chat_wallpaper_selected">Wallpaper selected</string>
+    <string name="error_chat_wallpaper_load">Could not load this image. Choose another image and try again.</string>
+    <string name="screen_settings_media_spoilers_title">Media spoilers</string>
+    <string name="screen_settings_media_spoilers_summary">Hide tagged images and videos until tapped, and allow marking attachments as spoilers</string>
+    <string name="action_reveal_media_spoiler">Reveal spoiler</string>
+    <string name="action_mark_media_spoiler">Mark as spoiler</string>
+    <string name="common_media_spoiler">Spoiler</string>
+    <string name="a11y_presence_online">Online</string>
+    <string name="a11y_presence_unavailable">Unavailable</string>
+    <string name="a11y_presence_offline">Offline</string>
+    <string name="screen_settings_chat_wallpaper_opacity_title">Wallpaper opacity</string>
+    <string name="screen_settings_chat_wallpaper_opacity_summary">Opacity: %1$d%%</string>
+</resources>

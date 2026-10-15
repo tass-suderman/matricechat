@@ -17,6 +17,7 @@ import org.junit.Test
 
 class DefaultAppPreferencesStoreTest {
     private val buildMeta = BuildMeta(
+        scBuildMeta = io.element.android.libraries.core.meta.ScBuildMeta("test", "test", null),
         buildType = BuildType.DEBUG,
         isDebuggable = true,
         applicationName = "Element X",

@@ -21,6 +21,7 @@ import chat.schildi.lib.preferences.value
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.theme.Theme
 import io.element.android.compound.theme.isDark
+import io.element.android.compound.theme.toMaterialColorScheme
 import io.element.android.compound.tokens.sc.ElTypographyTokens
 import io.element.android.compound.tokens.sc.ExposedTypographyTokens
 
@@ -49,7 +50,7 @@ object ScTheme {
 
     @Composable
     private fun getUserThemedColor(lightPref: ScColorPref, darkPref: ScColorPref): Color? =
-        (if (ElementTheme.isLightTheme) lightPref else darkPref).userColor()
+        if (ScPrefs.CUSTOM_COLORS.value()) (if (ElementTheme.isLightTheme) lightPref else darkPref).userColor() else null
 }
 
 // Element defaults to light compound colors, so follow that as fallback default for exposures as well
@@ -66,7 +67,7 @@ fun ScTheme(
     theme: Theme = if (isSystemInDarkTheme()) Theme.Dark else Theme.Light,
     applySystemBarsUpdate: Boolean = true,
     lightStatusBar: Boolean = !theme.isDark(),
-    dynamicColor: Boolean = false, /* true to enable MaterialYou */
+    dynamicColor: Boolean = false, // true to enable MaterialYou
     useElTypography: Boolean = ScPrefs.EL_TYPOGRAPHY.value(),
     content: @Composable () -> Unit,
 ) {
@@ -76,11 +77,34 @@ fun ScTheme(
     val useElTheme = ScPrefs.EL_THEME.value()
     val useBlackTheme = ScPrefs.BLACK_THEME.value()
 
+    val customColorsEnabled = ScPrefs.CUSTOM_COLORS.value()
+    val surface = if (customColorsEnabled) (if (darkTheme) ScPrefs.SURFACE_DARK else ScPrefs.SURFACE_LIGHT).userColor() else null
+    val text = if (customColorsEnabled) (if (darkTheme) ScPrefs.TEXT_DARK else ScPrefs.TEXT_LIGHT).userColor() else null
+    val accent = if (customColorsEnabled) (if (darkTheme) ScPrefs.ACCENT_DARK else ScPrefs.ACCENT_LIGHT).userColor() else null
+    val baseExposures = getThemeExposures(darkTheme, useElTheme, useBlackTheme)
     val currentExposures = remember {
         // EleLight is default
         elementLightScExposures.copy()
-    }.apply { updateColorsFrom(getThemeExposures(darkTheme, useElTheme, useBlackTheme)) }
+    }.apply {
+        updateColorsFrom(baseExposures.copy(
+        appBarBg = surface ?: baseExposures.appBarBg,
+        spaceBarBg = surface ?: baseExposures.spaceBarBg,
+        composerBlockBg = surface ?: baseExposures.composerBlockBg,
+        composerBlockFg = text ?: baseExposures.composerBlockFg,
+        tertiaryFgNoAlpha = text ?: baseExposures.tertiaryFgNoAlpha,
+        greenFg = accent ?: baseExposures.greenFg,
+        unreadBadgeColor = accent ?: baseExposures.unreadBadgeColor,
+    ))
+    }
 
+    val lightColors = (if (useElTheme) elColorsLight else sclSemanticColors).withCustomColors()
+    val darkColors = (if (useElTheme) {
+        elColorsDark
+    } else if (useBlackTheme) {
+        scbSemanticColors
+    } else {
+        scdSemanticColors
+    }).withCustomColors()
     CompositionLocalProvider(
         LocalScExposures provides currentExposures
     ) {
@@ -89,10 +113,10 @@ fun ScTheme(
             applySystemBarsUpdate = applySystemBarsUpdate,
             lightStatusBar = lightStatusBar,
             dynamicColor = dynamicColor,
-            compoundLight = if (useElTheme) elColorsLight else sclSemanticColors,
-            compoundDark = if (useElTheme) elColorsDark else if (useBlackTheme) scbSemanticColors else scdSemanticColors,
-            materialColorsLight = if (useElTheme) elMaterialColorSchemeLight else sclMaterialColorScheme,
-            materialColorsDark = if (useElTheme) elMaterialColorSchemeDark else if (useBlackTheme) scbMaterialColorScheme else scdMaterialColorScheme,
+            compoundLight = lightColors,
+            compoundDark = darkColors,
+            materialColorsLight = lightColors.toMaterialColorScheme(),
+            materialColorsDark = darkColors.toMaterialColorScheme(),
             typography = typography,
             typographyTokens = typographyTokens,
             content = content,

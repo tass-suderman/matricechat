@@ -103,6 +103,7 @@ fun PreferencesRootView(
     onSignOutClick: () -> Unit,
     onDeactivateClick: () -> Unit,
     modifier: Modifier = Modifier,
+    settingsBackupSection: @Composable () -> Unit = {},
 ) {
     val snackbarHostState = rememberSnackbarHostState(snackbarMessage = state.snackbarMessage)
 
@@ -163,6 +164,8 @@ fun PreferencesRootView(
                 leadingContent = ListItemContent.Icon(IconSource.Vector(Icons.Outlined.PrecisionManufacturing)),
                 onClick = { navigateToScTweaks(null) },
             )
+
+            settingsBackupSection()
 
             // General section
             GeneralSection(

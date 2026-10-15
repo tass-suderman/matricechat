@@ -24,6 +24,54 @@ object ScPrefs {
     val SC_RESTORE_UPSTREAM = ScActionablePref("SC_RESTORE_UPSTREAM", R.string.sc_pref_restore_element, dependencies = SC_DANGER_ZONE.asDependencies())
     val SC_RESTORE_AUTHORS_CHOICE = ScActionablePref("SC_RESTORE_AUTHORS_CHOICE", R.string.sc_pref_restore_authors_choice, dependencies = SC_DANGER_ZONE.asDependencies())
 
+    val CHAT_WALLPAPER_ENABLED = ScBoolPref("CHAT_WALLPAPER_ENABLED", true, R.string.screen_settings_chat_wallpaper_enabled)
+
+    val CHAT_WALLPAPER_OPACITY = ScIntPref(
+        "CHAT_WALLPAPER_OPACITY", 100, R.string.screen_settings_chat_wallpaper_opacity_title,
+        R.string.screen_settings_chat_wallpaper_opacity_summary, minValue = 0, maxValue = 100,
+        dependencies = CHAT_WALLPAPER_ENABLED.asDependencies(),
+    )
+
+    val CHAT_WALLPAPER = ScWallpaperPref("CHAT_WALLPAPER", R.string.screen_settings_chat_wallpaper_title, R.string.screen_settings_chat_wallpaper_summary)
+
+    val EMOJI_AUTOCOMPLETE =
+        ScBoolPref("EMOJI_AUTOCOMPLETE", true, R.string.screen_settings_emoji_autocomplete_title, R.string.screen_settings_emoji_autocomplete_summary)
+
+    val MEDIA_SPOILERS = ScBoolPref("MEDIA_SPOILERS", true, R.string.screen_settings_media_spoilers_title, R.string.screen_settings_media_spoilers_summary)
+
+    val CUSTOM_STICKERS = ScBoolPref("CUSTOM_STICKERS", true, R.string.common_custom_stickers, R.string.screen_settings_custom_stickers_summary)
+
+    val COMPOSER_EMOJI_PICKER =
+        ScBoolPref("COMPOSER_EMOJI_PICKER", true, R.string.screen_settings_composer_emoji_picker_title, R.string.screen_settings_composer_emoji_picker_summary)
+
+    val CUSTOM_EMOJI = ScBoolPref("CUSTOM_EMOJI", true, R.string.common_custom_emoji, R.string.screen_settings_custom_emoji_summary)
+
+    val CUSTOM_COLORS = ScBoolPref("CUSTOM_COLORS", true, R.string.screen_settings_custom_colors_title, R.string.screen_settings_custom_colors_summary)
+
+    val CANVAS_LIGHT = ScColorPref("CANVAS_LIGHT", R.string.screen_settings_color_background)
+
+    val SURFACE_LIGHT = ScColorPref("SURFACE_LIGHT", R.string.screen_settings_color_surface)
+
+    val TEXT_LIGHT = ScColorPref("TEXT_LIGHT", R.string.screen_settings_color_text)
+
+    val ACCENT_LIGHT = ScColorPref("ACCENT_LIGHT", R.string.screen_settings_color_accent)
+
+    val ICON_LIGHT = ScColorPref("ICON_LIGHT", R.string.screen_settings_color_icons)
+
+    val BORDER_LIGHT = ScColorPref("BORDER_LIGHT", R.string.screen_settings_color_borders)
+
+    val CANVAS_DARK = ScColorPref("CANVAS_DARK", R.string.screen_settings_color_background)
+
+    val SURFACE_DARK = ScColorPref("SURFACE_DARK", R.string.screen_settings_color_surface)
+
+    val TEXT_DARK = ScColorPref("TEXT_DARK", R.string.screen_settings_color_text)
+
+    val ACCENT_DARK = ScColorPref("ACCENT_DARK", R.string.screen_settings_color_accent)
+
+    val ICON_DARK = ScColorPref("ICON_DARK", R.string.screen_settings_color_icons)
+
+    val BORDER_DARK = ScColorPref("BORDER_DARK", R.string.screen_settings_color_borders)
+
     // Appearance
     val BLACK_THEME = ScBoolPref("BLACK_THEME", false, R.string.sc_pref_black_theme_title, R.string.sc_pref_black_theme_summary, dependencies = listOf(ScPrefNotDependency(EL_THEME.toDependency())))
     val EL_TYPOGRAPHY = ScBoolPref("EL_TYPOGRAPHY", false, R.string.sc_pref_el_typography_title, R.string.sc_pref_el_typography_summary, upstreamChoice = true)
@@ -143,11 +191,24 @@ object ScPrefs {
     val scTweaksAdvancedTheming = ScPrefCollection(
         R.string.sc_pref_screen_advanced_theming_summary,
         listOf(
+            CUSTOM_COLORS,
             ScPrefCategory(R.string.sc_theme_category_light, null, listOf(
+                CANVAS_LIGHT,
+                SURFACE_LIGHT,
+                TEXT_LIGHT,
+                ACCENT_LIGHT,
+                ICON_LIGHT,
+                BORDER_LIGHT,
                 BUBBLE_BG_LIGHT_INCOMING,
                 BUBBLE_BG_LIGHT_OUTGOING,
             )),
             ScPrefCategory(R.string.sc_theme_category_dark, null, listOf(
+                CANVAS_DARK,
+                SURFACE_DARK,
+                TEXT_DARK,
+                ACCENT_DARK,
+                ICON_DARK,
+                BORDER_DARK,
                 BUBBLE_BG_DARK_INCOMING,
                 BUBBLE_BG_DARK_OUTGOING,
             )),
@@ -157,6 +218,9 @@ object ScPrefs {
     val scTweaks = ScPrefScreen(R.string.sc_pref_tweaks_title, null, listOf<AbstractScPref>(
         ScPrefScreen(R.string.sc_pref_category_general, R.string.sc_pref_category_general_summary, listOf(
             ScPrefCategory(R.string.sc_pref_category_general_appearance, null, listOf(
+                CHAT_WALLPAPER_ENABLED,
+                CHAT_WALLPAPER,
+                CHAT_WALLPAPER_OPACITY,
                 BLACK_THEME,
                 EL_TYPOGRAPHY,
                 TWO_INITIALS_AVATAR_FALLBACK,
@@ -233,6 +297,11 @@ object ScPrefs {
                 FULLY_EXPAND_MESSAGE_MENU,
             )),
             ScPrefCategory(R.string.sc_pref_category_reactions, null, listOf(
+                CUSTOM_EMOJI,
+                CUSTOM_STICKERS,
+                MEDIA_SPOILERS,
+                COMPOSER_EMOJI_PICKER,
+                EMOJI_AUTOCOMPLETE,
                 PREFER_FREEFORM_REACTIONS,
                 PREFER_FULLSCREEN_REACTION_SHEET,
                 ALWAYS_SHOW_REACTION_SEARCH_BAR,

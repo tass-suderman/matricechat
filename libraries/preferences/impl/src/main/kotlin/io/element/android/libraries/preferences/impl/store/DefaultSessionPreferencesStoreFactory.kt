@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap
 class DefaultSessionPreferencesStoreFactory(
     @ApplicationContext private val context: Context,
     sessionObserver: SessionObserver,
+    private val preferenceDataStoreFactory: io.element.android.libraries.preferences.api.store.PreferenceDataStoreFactory,
 ) : SessionPreferencesStoreFactory {
     private val cache = ConcurrentHashMap<SessionId, DefaultSessionPreferencesStore>()
 
@@ -33,13 +34,24 @@ class DefaultSessionPreferencesStoreFactory(
         sessionObserver.addListener(object : SessionListener {
             override suspend fun onSessionDeleted(userId: String, wasLastSession: Boolean) {
                 val sessionPreferences = cache.remove(SessionId(userId))
-                sessionPreferences?.clear()
+                if (sessionPreferences != null) {
+                    sessionPreferences.clear()
+                } else {
+                    preferenceDataStoreFactory.create(
+                        DefaultSessionPreferencesStore.storeFile(context, SessionId(userId)).name.removeSuffix(".preferences_pb"),
+                    ).updateData { androidx.datastore.preferences.core.emptyPreferences() }
+                }
             }
         })
     }
 
     override fun get(sessionId: SessionId, sessionCoroutineScope: CoroutineScope): SessionPreferencesStore = cache.getOrPut(sessionId) {
-        DefaultSessionPreferencesStore(context, sessionId, sessionCoroutineScope)
+        DefaultSessionPreferencesStore(
+            context, sessionId, sessionCoroutineScope,
+            sharedDataStore = preferenceDataStoreFactory.create(
+                DefaultSessionPreferencesStore.storeFile(context, sessionId).name.removeSuffix(".preferences_pb"),
+            ),
+        )
     }
 
     override fun remove(sessionId: SessionId) {
