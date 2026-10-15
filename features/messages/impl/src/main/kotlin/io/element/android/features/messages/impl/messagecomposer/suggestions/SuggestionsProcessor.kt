@@ -44,6 +44,7 @@ class SuggestionsProcessor(
         currentUserId: UserId,
         canSendRoomMention: suspend () -> Boolean,
         isInThread: Boolean,
+        emojiSuggestions: List<ResolvedSuggestion.Emoji> = emptyList(),
     ): List<ResolvedSuggestion> {
         suggestion ?: return emptyList()
         return when (suggestion.type) {
@@ -84,7 +85,18 @@ class SuggestionsProcessor(
                     emptyList()
                 }
             }
-            SuggestionType.Emoji,
+            SuggestionType.Emoji -> {
+                if (suggestion.text.endsWith(":")) {
+                    emptyList()
+                } else {
+                    val query = suggestion.text.lowercase()
+                    emojiSuggestions.filter { emoji ->
+                        emoji.shortcode.contains(query, ignoreCase = true) ||
+                            emoji.name.contains(query, ignoreCase = true) ||
+                            emoji.aliases.any { it.contains(query, ignoreCase = true) }
+                    }.sortedBy { !it.shortcode.startsWith(query, ignoreCase = true) }.take(30)
+                }
+            }
             is SuggestionType.Custom -> {
                 // Clear suggestions
                 emptyList()

@@ -11,38 +11,38 @@ package io.element.android.libraries.emoji.impl.picker
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import chat.schildi.lib.preferences.ScPrefs
-import chat.schildi.lib.preferences.value
 import io.element.android.emojibasebindings.Emoji
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.text.toSp
 import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.IconSource
-import io.element.android.libraries.designsystem.theme.components.SearchBar
+import io.element.android.libraries.designsystem.theme.components.SearchBarResultState
+import io.element.android.libraries.emoji.api.packs.CustomImage
 import io.element.android.libraries.emoji.impl.R
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
@@ -58,86 +58,106 @@ internal fun EmojiPickerView(
     selectedEmojis: ImmutableSet<String>,
     modifier: Modifier = Modifier,
     contentDescription: @Composable (emoji: Emoji, isSelected: Boolean) -> String = { emoji, _ -> emoji.unicode },
+    onSelectCustomImage: ((CustomImage) -> Unit)? = null,
+    onSelectSticker: ((CustomImage) -> Unit)? = null,
+    autoFocusSearch: Boolean = false,
 ) {
     val coroutineScope = rememberCoroutineScope()
-
-    val pagerState = rememberPagerState(
-        pageCount = state.scEmojiPickerSize().let {{ it }},
-        initialPage = if (ScPrefs.PREFER_FREEFORM_REACTIONS.value()) state.pageFreeformReactionIndex() else 0,
-    )
-
+    val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    val composerPicker = onSelectSticker != null || onSelectCustomImage != null
+    val canPickStickers = state.stickersEnabled && onSelectSticker != null
+    var stickerTab by remember { mutableStateOf(false) }
+    val pageCount = state.categories.size + (if (state.customImagesEnabled) 1 else 0) + (if (composerPicker) 0 else 1)
+    val pagerState = rememberPagerState(pageCount = { pageCount })
     var skinPickerEmoji by remember { mutableStateOf<Emoji?>(null) }
-
-    Column(modifier) {
-        ScEmojiPickerSearchBar(
-            modifier = Modifier.padding(bottom = if (state.isSearchActive) 0.dp else 10.dp),
-            queryState = state.searchQuery,
-            resultState = state.searchResults,
-            active = state.isSearchActive,
-            onActiveChange = { state.eventSink(EmojiPickerEvent.ToggleSearchActive(it)) },
-            windowInsets = WindowInsets(0, 0, 0, 0),
-            placeHolderTitle = stringResource(R.string.emoji_picker_search_placeholder),
-        ) { emojis ->
-            EmojiResults(
-                emojis = emojis,
-                isEmojiSelected = { selectedEmojis.contains(it.unicode) },
-                onSelectEmoji = onSelectEmoji,
-                onLongPress = { skinPickerEmoji = it },
-                skinPickerEmoji = skinPickerEmoji,
-                onDismissSkinPicker = { skinPickerEmoji = null },
-                selectedEmojis = selectedEmojis,
-                contentDescription = contentDescription,
-            )
+    val query = state.searchQuery.text.toString().trim().trim(':')
+    fun selectCustom(url: String) {
+        val image = state.customImages.firstOrNull { it.url == url }
+        if (image != null && onSelectCustomImage != null) onSelectCustomImage(image) else onSelectCustomEmoji(url)
+    }
+    LaunchedEffect(Unit) { state.eventSink(EmojiPickerEvent.RefreshCustomImages) }
+    LaunchedEffect(autoFocusSearch) {
+        if (autoFocusSearch) {
+            focusRequester.requestFocus()
+            androidx.compose.runtime.withFrameNanos { }
+            keyboard?.show()
         }
-
-        if (!state.isSearchActive) {
-            SecondaryTabRow(
-                selectedTabIndex = pagerState.currentPage,
-            ) {
-                state.categories.forEachIndexed { index, category ->
-                    Tab(
-                        icon = {
-                            when (category.icon) {
-                                is IconSource.Resource -> Icon(
-                                    resourceId = category.icon.id,
-                                    contentDescription = stringResource(id = category.titleId)
-                                )
-                                is IconSource.Vector -> Icon(
-                                    imageVector = category.icon.vector,
-                                    contentDescription = stringResource(id = category.titleId)
-                                )
-                            }
-                        },
-                        selected = pagerState.currentPage.removeScPickerOffset() == index,
-                        onClick = {
-                            coroutineScope.launch { pagerState.animateScrollToPage(index.addScPickerOffset()) }
-                        }
-                    )
+    }
+    Column(modifier) {
+        io.element.android.libraries.designsystem.theme.components.TextField(
+            value = state.searchQuery.text.toString(),
+            onValueChange = { state.searchQuery.setTextAndPlaceCursorAtEnd(it) },
+            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            singleLine = true,
+            placeholder = stringResource(R.string.emoji_picker_search_placeholder),
+        )
+        if (composerPicker) {
+            SecondaryTabRow(selectedTabIndex = if (stickerTab && canPickStickers) 1 else 0) {
+                Tab(selected = !stickerTab || !canPickStickers, onClick = { stickerTab = false }, text = {
+                    io.element.android.libraries.designsystem.theme.components.Text(stringResource(R.string.screen_emoji_picker_emoji_tab))
+                })
+                if (canPickStickers) {
+                    Tab(selected = stickerTab, onClick = { stickerTab = true }, text = {
+                        io.element.android.libraries.designsystem.theme.components.Text(stringResource(R.string.screen_emoji_picker_sticker_tab))
+                    })
                 }
-                ScEmojiPickerTabsEnd(state, pagerState) { state.eventSink(EmojiPickerEvent.ToggleSearchActive(true)) }
             }
-
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxWidth(),
-            ) { scIndex ->
-                val index = scIndex.removeScPickerOffset()
-                if (scEmojiPickerPage(
-                        state,
-                        scIndex,
-                        pagerState.currentPage,
-                        onSelectCustomEmoji
-                ) {
-                    state.eventSink(EmojiPickerEvent.ToggleSearchActive(true))
-                    pagerState.requestScrollToPage(0)
-                }) {
-                    return@HorizontalPager
+        }
+        if (stickerTab && canPickStickers) {
+            val stickers = state.stickers.filter { it.matches(query) }
+            CustomEmojiGrid(stickers, state.customImagesError, { url ->
+                stickers.firstOrNull { it.url == url }?.let { onSelectSticker?.invoke(it) }
+            }, isLoading = state.customImagesLoading)
+        } else {
+            if (pageCount > 0) {
+                androidx.compose.material3.SecondaryScrollableTabRow(selectedTabIndex = pagerState.currentPage) {
+                    state.categories.forEachIndexed { index, category ->
+                        Tab(
+                            icon = {
+                                when (val icon = category.icon) {
+                                    is IconSource.Resource -> Icon(icon.id, stringResource(category.titleId))
+                                    is IconSource.Vector -> Icon(icon.vector, stringResource(category.titleId))
+                                }
+                            },
+                            selected = pagerState.currentPage == index,
+                            onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
+                        )
+                    }
+                    if (!composerPicker) {
+                        Tab(
+                            text = {
+                                io.element.android.libraries.designsystem.theme.components.Text(
+                                stringResource(chat.schildi.lib.R.string.sc_freeform_reaction)
+                            )
+                            },
+                            selected = pagerState.currentPage == state.categories.size,
+                            onClick = { coroutineScope.launch { pagerState.animateScrollToPage(state.categories.size) } },
+                        )
+                    }
+                    if (state.customImagesEnabled) {
+                        val index = state.categories.size + if (composerPicker) 0 else 1
+                        Tab(
+                            icon = {
+                                Icon(
+                                    io.element.android.compound.tokens.generated.CompoundIcons.Sticker(),
+                                stringResource(chat.schildi.lib.R.string.common_custom_emoji)
+                                )
+                            },
+                            selected = pagerState.currentPage == index,
+                            onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
+                        )
+                    }
                 }
-
-                val emojis = state.categories[index].emojis
+            }
+            if (query.isNotEmpty()) {
+                val emojis =
+                    (state.searchResults as? SearchBarResultState.Results<ImmutableList<Emoji>>)?.results ?: kotlinx.collections.immutable.persistentListOf()
                 EmojiResults(
                     emojis = emojis,
-                    isEmojiSelected = { selectedEmojis.contains(it.unicode) },
+                    customImages = state.customImages.filter { it.matches(query) },
+                    onSelectCustomEmoji = ::selectCustom,
+                    isEmojiSelected = { it.unicode in selectedEmojis },
                     onSelectEmoji = onSelectEmoji,
                     onLongPress = { skinPickerEmoji = it },
                     skinPickerEmoji = skinPickerEmoji,
@@ -145,10 +165,35 @@ internal fun EmojiPickerView(
                     selectedEmojis = selectedEmojis,
                     contentDescription = contentDescription,
                 )
+            } else if (pageCount > 0) {
+                HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { index ->
+                    when {
+                        index < state.categories.size -> EmojiResults(
+                            emojis = state.categories[index].emojis,
+                            isEmojiSelected = { it.unicode in selectedEmojis },
+                            onSelectEmoji = onSelectEmoji,
+                            onLongPress = { skinPickerEmoji = it },
+                            skinPickerEmoji = skinPickerEmoji,
+                            onDismissSkinPicker = { skinPickerEmoji = null },
+                            selectedEmojis = selectedEmojis,
+                            contentDescription = contentDescription,
+                        )
+                        !composerPicker && index == state.categories.size -> FreeformReactionView(onSelectCustomEmoji)
+                        else -> CustomEmojiGrid(
+                            state.customImages,
+                            state.customImagesError,
+                            ::selectCustom,
+                            selectedEmojis,
+                            state.customImagesLoading
+                        )
+                    }
+                }
             }
         }
     }
 }
+
+private fun CustomImage.matches(query: String) = shortcode.contains(query, ignoreCase = true) || name.contains(query, ignoreCase = true)
 
 @Composable
 private fun EmojiResults(
@@ -160,6 +205,8 @@ private fun EmojiResults(
     onDismissSkinPicker: () -> Unit,
     selectedEmojis: ImmutableSet<String>,
     contentDescription: @Composable (emoji: Emoji, isSelected: Boolean) -> String,
+    customImages: List<CustomImage> = emptyList(),
+    onSelectCustomEmoji: (String) -> Unit = {},
 ) {
     LazyVerticalGrid(
         modifier = Modifier.fillMaxSize(),
@@ -168,6 +215,7 @@ private fun EmojiResults(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
+        items(customImages) { image -> CustomEmojiItem(image, image.url in selectedEmojis, onSelectCustomEmoji) }
         items(emojis, key = { it.unicode }) { item ->
             EmojiItem(
                 modifier = Modifier.aspectRatio(1f),

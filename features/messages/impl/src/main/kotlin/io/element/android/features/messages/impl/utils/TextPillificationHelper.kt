@@ -8,6 +8,7 @@
 
 package io.element.android.features.messages.impl.utils
 
+import android.text.Annotation
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -25,6 +26,7 @@ import io.element.android.libraries.matrix.api.permalink.PermalinkBuilder
 import io.element.android.libraries.matrix.api.permalink.PermalinkParser
 import io.element.android.libraries.textcomposer.mentions.MentionSpanProvider
 import io.element.android.libraries.textcomposer.mentions.getMentionSpans
+import io.element.android.libraries.textcomposer.model.CUSTOM_EMOJI_ANNOTATION
 import io.element.android.wysiwyg.view.spans.CodeBlockSpan
 import io.element.android.wysiwyg.view.spans.InlineCodeSpan
 
@@ -43,10 +45,23 @@ class DefaultTextPillificationHelper(
     @Suppress("LoopWithTooManyJumpStatements")
     override fun pillify(text: CharSequence, pillifyPermalinks: Boolean): CharSequence {
         return SpannableStringBuilder(text).apply {
+            restoreCustomEmoji(this)
             pillifyMatrixPatterns(this)
             if (pillifyPermalinks) {
                 pillifyPermalinks(this)
             }
+        }
+    }
+
+    private fun restoreCustomEmoji(text: SpannableStringBuilder) {
+        val pattern = Regex("""\[((?:\\.|[^\]])*)]\((?:<(mxc://[^<>\s]+)>|(mxc://[^)\s]+))\)""")
+        pattern.findAll(text).toList().asReversed().forEach { match ->
+            if (!text.canPillify(match.range.first, match.range.last + 1)) return@forEach
+            val label = match.groupValues[1].replace(Regex("""\\(.)"""), "$1")
+            if (!label.startsWith(":") || !label.endsWith(":")) return@forEach
+            val url = match.groupValues[2].ifEmpty { match.groupValues[3] }
+            text.replace(match.range.first, match.range.last + 1, label)
+            text.setSpan(Annotation(CUSTOM_EMOJI_ANNOTATION, url), match.range.first, match.range.first + label.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
     }
 
@@ -119,6 +134,7 @@ class DefaultTextPillificationHelper(
 
     private fun Spanned.canPillify(start: Int, end: Int): Boolean {
         if (getMentionSpans(start, end).isNotEmpty()) return false
+        if (getSpans<Annotation>(start, end).any { it.key == CUSTOM_EMOJI_ANNOTATION }) return false
         if (getSpans<CodeBlockSpan>(start, end).isNotEmpty()) return false
         if (getSpans<InlineCodeSpan>(start, end).isNotEmpty()) return false
         return true

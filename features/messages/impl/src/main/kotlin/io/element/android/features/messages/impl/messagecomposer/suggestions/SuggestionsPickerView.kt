@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -21,8 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.features.messages.impl.R
 import io.element.android.libraries.designsystem.components.avatar.Avatar
@@ -39,10 +42,12 @@ import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.getBestName
 import io.element.android.libraries.matrix.ui.components.DisplayNameWithStatus
+import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.matrix.ui.model.getAvatarData
 import io.element.android.libraries.slashcommands.api.SlashCommandSuggestion
 import io.element.android.libraries.textcomposer.mentions.ResolvedSuggestion
@@ -69,6 +74,7 @@ fun SuggestionsPickerView(
                     is ResolvedSuggestion.Member -> suggestion.roomMember.userId.value
                     is ResolvedSuggestion.Alias -> suggestion.roomId.value
                     is ResolvedSuggestion.Command -> suggestion.command.command
+                    is ResolvedSuggestion.Emoji -> "emoji:${suggestion.imageUrl ?: suggestion.unicode}:${suggestion.shortcode}"
                 }
             }
         ) {
@@ -98,7 +104,7 @@ private fun SuggestionItemView(
 ) {
     Row(
         modifier = modifier
-            .clickable { onSelectSuggestion(suggestion) }
+            .clickable(role = Role.Button) { onSelectSuggestion(suggestion) }
             .padding(horizontal = 16.dp),
     ) {
         val avatarSize = AvatarSize.Suggestion
@@ -106,19 +112,22 @@ private fun SuggestionItemView(
             is ResolvedSuggestion.AtRoom -> roomAvatar?.copy(size = avatarSize) ?: AvatarData(roomId, roomName, null, avatarSize)
             is ResolvedSuggestion.Member -> suggestion.roomMember.getAvatarData(avatarSize)
             is ResolvedSuggestion.Alias -> suggestion.getAvatarData(avatarSize)
-            is ResolvedSuggestion.Command -> null
+            is ResolvedSuggestion.Command,
+            is ResolvedSuggestion.Emoji -> null
         }
         val avatarType = when (suggestion) {
             is ResolvedSuggestion.Alias -> Room()
             ResolvedSuggestion.AtRoom,
             is ResolvedSuggestion.Member -> AvatarType.User
-            is ResolvedSuggestion.Command -> null
+            is ResolvedSuggestion.Command,
+            is ResolvedSuggestion.Emoji -> null
         }
         val title: String? = when (suggestion) {
             is ResolvedSuggestion.AtRoom -> stringResource(R.string.screen_room_mentions_at_room_title)
             is ResolvedSuggestion.Member -> suggestion.roomMember.getBestName()
             is ResolvedSuggestion.Alias -> suggestion.roomName
             is ResolvedSuggestion.Command -> suggestion.command.command
+            is ResolvedSuggestion.Emoji -> suggestion.name
         }
         val status = when (suggestion) {
             is ResolvedSuggestion.Member -> suggestion.roomMember.displayedStatus
@@ -129,12 +138,30 @@ private fun SuggestionItemView(
             is ResolvedSuggestion.Member,
             is ResolvedSuggestion.Alias -> null
             is ResolvedSuggestion.Command -> suggestion.command.parameters
+            is ResolvedSuggestion.Emoji -> null
         }
         val subtitle = when (suggestion) {
             is ResolvedSuggestion.AtRoom -> "@room"
             is ResolvedSuggestion.Member -> suggestion.roomMember.userId.value
             is ResolvedSuggestion.Alias -> suggestion.roomAlias.value
             is ResolvedSuggestion.Command -> suggestion.command.description
+            is ResolvedSuggestion.Emoji -> ":${suggestion.shortcode}:"
+        }
+        if (suggestion is ResolvedSuggestion.Emoji) {
+            val imageUrl = suggestion.imageUrl
+            if (imageUrl != null) {
+                AsyncImage(
+                    model = MediaRequestData(MediaSource(imageUrl), MediaRequestData.Kind.Content),
+                    contentDescription = suggestion.name,
+                    modifier = Modifier.padding(vertical = 8.dp).padding(end = 16.dp).size(40.dp),
+                )
+            } else {
+                Text(
+                    text = suggestion.unicode.orEmpty(),
+                    style = ElementTheme.typography.fontHeadingLgRegular,
+                    modifier = Modifier.padding(vertical = 8.dp).padding(end = 16.dp),
+                )
+            }
         }
         if (avatarData != null && avatarType != null) {
             Avatar(
@@ -205,6 +232,8 @@ internal fun SuggestionsPickerViewPreview() {
             roomName = "Room",
             roomAvatarData = anAvatarData(),
             suggestions = persistentListOf(
+                ResolvedSuggestion.Emoji("Smiling face", "smile", unicode = "😄"),
+                ResolvedSuggestion.Emoji("Turtle", "turtle", imageUrl = "mxc://example.org/turtle"),
                 ResolvedSuggestion.AtRoom,
                 ResolvedSuggestion.Member(roomMember),
                 ResolvedSuggestion.Member(roomMember.copy(userId = UserId("@bob:server.org"), displayName = USER_NAME_BOB)),

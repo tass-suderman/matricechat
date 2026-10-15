@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_emoji_picker_no_custom_emoji">No custom emoji. Add a personal pack or enable a room pack globally in FluffyChat.</string>
+    <string name="error_custom_emoji_load">Unable to load custom emoji. Reopen the picker to try again.</string>
+    <string name="screen_emoji_picker_emoji_tab">Emoji</string>
+    <string name="screen_emoji_picker_sticker_tab">Stickers</string>
+</resources>

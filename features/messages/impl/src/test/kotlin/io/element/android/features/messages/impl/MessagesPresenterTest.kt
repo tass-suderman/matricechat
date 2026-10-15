@@ -135,6 +135,25 @@ class MessagesPresenterTest {
     val warmUpRule = WarmUpRule()
 
     @Test
+    fun `DM header resolves presence after members load`() = runTest {
+        val baseRoom = FakeBaseRoom(
+            sessionId = A_SESSION_ID,
+            initialRoomInfo = aRoomInfo(isDm = true, heroes = persistentListOf()),
+        )
+        val presenter = createMessagesPresenter(
+            joinedRoom = FakeJoinedRoom(baseRoom = baseRoom, typingNoticeResult = { Result.success(Unit) }),
+        )
+        presenter.testWithLifecycleOwner {
+            assertThat(consumeItemsUntilTimeout().last().roomAvatar.presenceUserId).isNull()
+            baseRoom.givenRoomMembersState(RoomMembersState.Ready(persistentListOf(
+                aRoomMember(userId = A_SESSION_ID),
+                aRoomMember(userId = A_USER_ID_2),
+            )))
+            assertThat(consumeItemsUntilTimeout().last().roomAvatar.presenceUserId).isEqualTo(A_USER_ID_2.value)
+        }
+    }
+
+    @Test
     fun `present - initial state`() = runTest {
         val presenter = createMessagesPresenter()
         presenter.testWithLifecycleOwner {
@@ -395,7 +414,8 @@ class MessagesPresenterTest {
                     thumbnailHeight = null,
                     aspectRatio = 1.0f,
                     fileExtension = "jpg",
-                    formattedFileSize = "4MB"
+                    formattedFileSize = "4MB",
+                    formattedCaptionSc = null
                 )
             )
             initialState.eventSink(MessagesEvent.HandleAction(TimelineItemAction.Reply, mediaMessage))
@@ -437,7 +457,8 @@ class MessagesPresenterTest {
                     thumbnailHeight = 20,
                     aspectRatio = 1.0f,
                     fileExtension = "mp4",
-                    formattedFileSize = "50MB"
+                    formattedFileSize = "50MB",
+                    formattedCaptionSc = null
                 )
             )
             initialState.eventSink(MessagesEvent.HandleAction(TimelineItemAction.Reply, mediaMessage))
@@ -473,6 +494,7 @@ class MessagesPresenterTest {
                     formattedFileSize = "10 MB",
                     mimeType = MimeTypes.Pdf,
                     fileExtension = "pdf",
+                    formattedCaptionSc = null
                 )
             )
             initialState.eventSink(MessagesEvent.HandleAction(TimelineItemAction.Reply, mediaMessage))
@@ -1376,7 +1398,15 @@ class MessagesPresenterTest {
         )
         presenter.testWithLifecycleOwner {
             val initialState = awaitItem()
-            initialState.eventSink(MessagesEvent.MarkAsFullyReadAndExit)
+            initialState.eventSink(MessagesEvent.MarkAsFullyReadAndExit(
+                io.element.android.features.messages.impl.timeline.ScReadState(
+                    androidx.compose.runtime.mutableIntStateOf(-1),
+                    androidx.compose.runtime.mutableStateOf(null),
+                    androidx.compose.runtime.mutableStateOf(AN_EVENT_ID),
+                    androidx.compose.runtime.mutableStateOf(true),
+                    androidx.compose.runtime.mutableStateOf(null),
+                )
+            ))
 
             runCurrent()
 
@@ -1400,7 +1430,15 @@ class MessagesPresenterTest {
         )
         presenter.testWithLifecycleOwner {
             val initialState = awaitItem()
-            initialState.eventSink(MessagesEvent.MarkAsFullyReadAndExit)
+            initialState.eventSink(MessagesEvent.MarkAsFullyReadAndExit(
+                io.element.android.features.messages.impl.timeline.ScReadState(
+                    androidx.compose.runtime.mutableIntStateOf(-1),
+                    androidx.compose.runtime.mutableStateOf(null),
+                    androidx.compose.runtime.mutableStateOf(AN_EVENT_ID),
+                    androidx.compose.runtime.mutableStateOf(true),
+                    androidx.compose.runtime.mutableStateOf(null),
+                )
+            ))
 
             runCurrent()
 
@@ -1540,6 +1578,7 @@ class MessagesPresenterTest {
         markAsFullyRead: MarkAsFullyRead = FakeMarkAsFullyRead(),
         liveLocationShareManager: FakeActiveLiveLocationShareManager = FakeActiveLiveLocationShareManager(),
     ): MessagesPresenter {
+        joinedRoom.baseRoom.givenUpdateMembersResult {}
         return MessagesPresenter(
             navigator = navigator,
             room = joinedRoom,
@@ -1575,6 +1614,8 @@ class MessagesPresenterTest {
             markAsFullyRead = markAsFullyRead,
             liveLocationShareManager = liveLocationShareManager,
             sessionCoroutineScope = backgroundScope,
+            sessionPreferencesStore = io.element.android.libraries.preferences.test.InMemorySessionPreferencesStore(),
+            scPreferencesStore = chat.schildi.lib.preferences.PreviewScPreferencesStore
         )
     }
 }

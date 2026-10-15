@@ -23,6 +23,15 @@ internal class DefaultEmojiPickerStatePreviewParam : PreviewParameterProvider<De
     override val values: Sequence<DefaultEmojiPickerState>
         get() = sequenceOf(
             aDefaultEmojiPickerState(),
+            aDefaultEmojiPickerState().copy(customImagesEnabled = true, customImagesLoading = true),
+            aDefaultEmojiPickerState().copy(customImagesEnabled = true, customImagesError = true),
+            aDefaultEmojiPickerState().copy(
+                customImagesEnabled = true,
+                stickersEnabled = true,
+                customImages = persistentListOf(
+                    io.element.android.libraries.emoji.api.packs.CustomImage("turtle", "Turtle", "mxc://example.org/turtle", setOf("emoticon", "sticker"))
+                ),
+            ),
             aDefaultEmojiPickerState(isSearchActive = true),
             aDefaultEmojiPickerState(isSearchActive = true, searchQuery = "smile"),
             aDefaultEmojiPickerState(

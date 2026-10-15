@@ -12,11 +12,15 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalInspectionMode
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.settingState
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
@@ -26,6 +30,8 @@ import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.designsystem.theme.components.IconSource
 import io.element.android.libraries.designsystem.theme.components.SearchBarResultState
 import io.element.android.libraries.di.SessionScope
+import io.element.android.libraries.emoji.api.packs.CustomImage
+import io.element.android.libraries.emoji.api.packs.ImagePackRepository
 import io.element.android.libraries.emoji.api.picker.EmojiPickerPresenter
 import io.element.android.libraries.emoji.api.picker.EmojiPickerState
 import io.element.android.libraries.emoji.api.recentemojis.GetRecentEmojis
@@ -44,6 +50,8 @@ class DefaultEmojiPickerPresenter(
     private val emojibaseProvider: EmojibaseProvider,
     @Assisted private val getRecentEmojis: GetRecentEmojis,
     private val coroutineDispatchers: CoroutineDispatchers,
+    private val imagePackRepository: ImagePackRepository,
+    private val scPreferencesStore: ScPreferencesStore,
 ) : EmojiPickerPresenter {
     @AssistedFactory
     @ContributesBinding(SessionScope::class)
@@ -53,6 +61,34 @@ class DefaultEmojiPickerPresenter(
 
     @Composable
     override fun present(): EmojiPickerState {
+        val customImagesEnabled by scPreferencesStore.settingState(ScPrefs.CUSTOM_EMOJI)
+        val stickersEnabled by scPreferencesStore.settingState(ScPrefs.CUSTOM_STICKERS)
+        var stickers by remember { mutableStateOf<ImmutableList<CustomImage>>(persistentListOf()) }
+        var customImages by remember { mutableStateOf<ImmutableList<CustomImage>>(persistentListOf()) }
+        var customImagesLoading by remember { mutableStateOf(false) }
+        var customImagesError by remember { mutableStateOf(false) }
+        var refreshCustomImages by remember { mutableIntStateOf(0) }
+        LaunchedEffect(customImagesEnabled, stickersEnabled, refreshCustomImages) {
+            if (!customImagesEnabled && !stickersEnabled) {
+                customImages = persistentListOf()
+                stickers = persistentListOf()
+                customImagesError = false
+                return@LaunchedEffect
+            }
+            if (refreshCustomImages == 0) return@LaunchedEffect
+            customImagesLoading = true
+            try {
+                withContext(coroutineDispatchers.computation) { imagePackRepository.getImages() }
+                    .onSuccess { images ->
+                        customImages = images.filter { customImagesEnabled && "emoticon" in it.usage }.toImmutableList()
+                        stickers = images.filter { stickersEnabled && "sticker" in it.usage }.toImmutableList()
+                        customImagesError = false
+                    }
+                    .onFailure { customImagesError = true }
+            } finally {
+                customImagesLoading = false
+            }
+        }
         val queryState = rememberTextFieldState()
         var isSearchActive by remember { mutableStateOf(false) }
         var emojiResults by remember { mutableStateOf<SearchBarResultState<ImmutableList<Emoji>>>(SearchBarResultState.Initial) }
@@ -73,16 +109,13 @@ class DefaultEmojiPickerPresenter(
                 val recentEmojis = recentEmojiUnicodes
                     .mapNotNull { unicode -> store.allEmojis.find { it.unicode == unicode } }
                     .toImmutableList()
-                val categories = if (recentEmojis.isEmpty()) {
-                    baseCategories.toImmutableList()
-                } else {
-                    val recentCategory = EmojiCategory(
-                        titleId = R.string.emoji_picker_category_recent,
-                        icon = IconSource.Resource(io.element.android.compound.R.drawable.ic_compound_history),
-                        emojis = recentEmojis,
-                    )
-                    (listOf(recentCategory) + baseCategories).toImmutableList()
-                }
+                val recentCategory = EmojiCategory(
+                    titleId = R.string.emoji_picker_category_recent,
+                    icon = IconSource.Resource(io.element.android.compound.R.drawable.ic_compound_history),
+                    emojis = recentEmojis,
+                )
+                val categories = (listOf(recentCategory) + baseCategories).toImmutableList()
+
                 EmojiPickerData(
                     categories = categories,
                     allEmojis = store.allEmojis,
@@ -97,7 +130,7 @@ class DefaultEmojiPickerPresenter(
                 return@LaunchedEffect
             }
             delay(100.milliseconds)
-            val lowercaseQuery = searchQuery.lowercase()
+            val lowercaseQuery = searchQuery.trim().trim(':').lowercase()
             val results = withContext(coroutineDispatchers.computation) {
                 data.allEmojis
                     .asSequence()
@@ -114,6 +147,7 @@ class DefaultEmojiPickerPresenter(
         val isInPreview = LocalInspectionMode.current
         fun handleEvent(event: EmojiPickerEvent) {
             when (event) {
+                EmojiPickerEvent.RefreshCustomImages -> refreshCustomImages++
                 is EmojiPickerEvent.ToggleSearchActive -> if (!isInPreview) {
                     isSearchActive = event.isActive
                 }
@@ -121,6 +155,12 @@ class DefaultEmojiPickerPresenter(
         }
 
         return DefaultEmojiPickerState(
+            customImages = if (customImagesEnabled) customImages else persistentListOf(),
+            stickers = if (stickersEnabled) stickers else persistentListOf(),
+            stickersEnabled = stickersEnabled,
+            customImagesEnabled = customImagesEnabled,
+            customImagesError = customImagesError,
+            customImagesLoading = customImagesLoading,
             categories = data.categories,
             searchQuery = queryState,
             isSearchActive = isSearchActive,

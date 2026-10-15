@@ -26,6 +26,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.settingState
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
@@ -48,6 +51,8 @@ import io.element.android.libraries.core.mimetype.MimeTypes
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatcher
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarMessage
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
+import io.element.android.libraries.emoji.api.GetEmojis
+import io.element.android.libraries.emoji.api.packs.ImagePackRepository
 import io.element.android.libraries.featureflag.api.FeatureFlagService
 import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.matrix.api.core.EventId
@@ -102,8 +107,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -139,6 +146,12 @@ class MessageComposerPresenter(
     private val mentionSpanProvider: MentionSpanProvider,
     private val pillificationHelper: TextPillificationHelper,
     private val suggestionsProcessor: SuggestionsProcessor,
+    private val getEmojis: GetEmojis,
+    private val imagePackRepository: ImagePackRepository,
+    emojiPickerPresenterFactory: io.element.android.libraries.emoji.api.picker.EmojiPickerPresenter.Factory,
+    getRecentEmojis: io.element.android.libraries.emoji.api.recentemojis.GetRecentEmojis,
+    private val addRecentEmoji: io.element.android.libraries.emoji.api.recentemojis.AddRecentEmoji,
+    private val scPreferencesStore: ScPreferencesStore,
     private val mediaOptimizationConfigProvider: MediaOptimizationConfigProvider,
     private val notificationConversationService: NotificationConversationService,
     private val slashCommandService: SlashCommandService,
@@ -155,6 +168,7 @@ class MessageComposerPresenter(
         ): MessageComposerPresenter
     }
 
+    private val emojiPickerPresenter = emojiPickerPresenterFactory.create(getRecentEmojis)
     private val isInThread = threadRoot != null
     private val mediaSender = mediaSenderFactory.create(timelineMode = timelineController.mainTimelineMode())
 
@@ -173,6 +187,10 @@ class MessageComposerPresenter(
     @Composable
     override fun present(): MessageComposerState {
         val localCoroutineScope = rememberCoroutineScope()
+        val emojiPickerEnabled by scPreferencesStore.settingState(ScPrefs.COMPOSER_EMOJI_PICKER)
+        var showEmojiPicker by remember { mutableStateOf(false) }
+        var stickerAction by remember { mutableStateOf<AsyncAction<Unit>>(AsyncAction.Uninitialized) }
+        val emojiPickerState = if (showEmojiPicker && emojiPickerEnabled) emojiPickerPresenter.present() else null
 
         val roomInfo by room.roomInfoFlow.collectAsState()
 
@@ -370,6 +388,14 @@ class MessageComposerPresenter(
                     localCoroutineScope.launch {
                         if (showTextFormatting) {
                             when (val suggestion = event.resolvedSuggestion) {
+                                is ResolvedSuggestion.Emoji -> {
+                                    val imageUrl = suggestion.imageUrl
+                                    if (imageUrl != null) {
+                                        richTextEditorState.insertMentionAtSuggestion(suggestion.text, imageUrl)
+                                    } else {
+                                        richTextEditorState.replaceSuggestion(suggestion.text)
+                                    }
+                                }
                                 is ResolvedSuggestion.AtRoom -> {
                                     richTextEditorState.insertAtRoomMentionAtSuggestion()
                                 }
@@ -393,6 +419,40 @@ class MessageComposerPresenter(
                                 mentionSpanProvider = mentionSpanProvider,
                             )
                             suggestionSearchTrigger.value = null
+                        }
+                    }
+                }
+                is MessageComposerEvent.ShowEmojiPicker -> showEmojiPicker = event.show
+                MessageComposerEvent.ClearStickerError -> stickerAction = AsyncAction.Uninitialized
+                is MessageComposerEvent.InsertEmoji -> localCoroutineScope.launch {
+                    val emoji = event.emoji
+                    if (showTextFormatting) {
+                        insertPickerEmoji(richTextEditorState, emoji)
+                    } else {
+                        val selection = markdownTextEditorState.selection
+                        markdownTextEditorState.currentSuggestion = Suggestion(
+                            minOf(selection.first, selection.last),
+                        maxOf(selection.first, selection.last),
+                            SuggestionType.Emoji,
+                        "",
+                        )
+                        markdownTextEditorState.insertSuggestion(emoji, mentionSpanProvider)
+                        suggestionSearchTrigger.value = null
+                    }
+                    emoji.unicode?.let { addRecentEmoji(it) }
+                }
+                is MessageComposerEvent.SendSticker -> {
+                    if (stickerAction !is AsyncAction.Loading && !messageComposerContext.composerMode.isEditing) {
+                        val mode = messageComposerContext.composerMode
+                        stickerAction = AsyncAction.Loading
+                        localCoroutineScope.launch {
+                            room.sendRaw("m.sticker", stickerContent(event.sticker, (mode as? MessageComposerMode.Reply)?.eventId, threadRoot))
+                                .onSuccess {
+                                    stickerAction = AsyncAction.Success(Unit)
+                                    showEmojiPicker = false
+                                    if (messageComposerContext.composerMode == mode) messageComposerContext.composerMode = MessageComposerMode.Normal
+                                }
+                                .onFailure { stickerAction = AsyncAction.Failure(it) }
                         }
                     }
                 }
@@ -425,6 +485,9 @@ class MessageComposerPresenter(
         }
 
         return MessageComposerState(
+            emojiPickerEnabled = emojiPickerEnabled,
+            emojiPickerState = emojiPickerState,
+            stickerAction = stickerAction,
             textEditorState = textEditorState,
             isFullScreen = isFullScreen.value,
             mode = messageComposerContext.composerMode,
@@ -445,7 +508,32 @@ class MessageComposerPresenter(
     private fun ResolveSuggestionsEffect(
         suggestions: SnapshotStateList<ResolvedSuggestion>,
     ) {
-        LaunchedEffect(Unit) {
+        val autocompleteEnabled by scPreferencesStore.settingState(ScPrefs.EMOJI_AUTOCOMPLETE)
+        val customEmojiEnabled by scPreferencesStore.settingState(ScPrefs.CUSTOM_EMOJI)
+        LaunchedEffect(autocompleteEnabled, customEmojiEnabled) {
+            val emojiChoices = MutableStateFlow<List<ResolvedSuggestion.Emoji>>(emptyList())
+            launch {
+                suggestionSearchTrigger.map { it?.type == SuggestionType.Emoji }.distinctUntilChanged().collectLatest { active ->
+                    if (active && autocompleteEnabled) {
+                        val regular = runCatchingExceptions { getEmojis() }.getOrElse { persistentListOf() }.map { emoji ->
+                            ResolvedSuggestion.Emoji(
+                                name = emoji.label,
+                                shortcode = emoji.shortcodes.firstOrNull()?.trim(':') ?: emoji.label.replace(' ', '_'),
+                                unicode = emoji.unicode,
+                                aliases = emoji.shortcodes,
+                            )
+                        }
+                        emojiChoices.value = regular
+                        if (customEmojiEnabled) {
+                            imagePackRepository.getImages().onSuccess { images ->
+                                emojiChoices.value = regular + images.filter { "emoticon" in it.usage }.map { image ->
+                                    ResolvedSuggestion.Emoji(image.name, image.shortcode, imageUrl = image.url)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             val currentUserId = room.sessionId
 
             suspend fun canSendRoomMention(): Boolean {
@@ -474,7 +562,12 @@ class MessageComposerPresenter(
                 .getAllRoomAliasSuggestions()
                 .stateIn(this, SharingStarted.Lazily, emptyList())
 
-            combine(mentionTriggerFlow, room.membersStateFlow, roomAliasSuggestionsFlow) { suggestion, roomMembersState, roomAliasSuggestions ->
+            combine(mentionTriggerFlow, room.membersStateFlow, roomAliasSuggestionsFlow, emojiChoices) {
+                suggestion,
+                roomMembersState,
+                roomAliasSuggestions,
+                emojis
+                ->
                 val result = suggestionsProcessor.process(
                     suggestion = suggestion,
                     roomMembersState = roomMembersState,
@@ -482,6 +575,7 @@ class MessageComposerPresenter(
                     currentUserId = currentUserId,
                     canSendRoomMention = ::canSendRoomMention,
                     isInThread = isInThread,
+                    emojiSuggestions = if (autocompleteEnabled) emojis else emptyList(),
                 )
                 suggestions.clear()
                 suggestions.addAll(result)
@@ -495,7 +589,7 @@ class MessageComposerPresenter(
         richTextEditorState: RichTextEditorState,
         slashCommandAction: MutableState<AsyncAction<Unit>>,
     ) = launch {
-        val message = currentComposerMessage(markdownTextEditorState, richTextEditorState, withMentions = true)
+        val message = formatCustomEmoji(currentComposerMessage(markdownTextEditorState, richTextEditorState, withMentions = true))
         val capturedMode = messageComposerContext.composerMode
 
         val slashCommand = if (capturedMode is MessageComposerMode.Normal) {

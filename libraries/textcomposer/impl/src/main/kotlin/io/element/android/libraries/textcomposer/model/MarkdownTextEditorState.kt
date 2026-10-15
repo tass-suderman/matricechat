@@ -9,6 +9,7 @@
 package io.element.android.libraries.textcomposer.model
 
 import android.os.Parcelable
+import android.text.Annotation
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -33,6 +34,8 @@ import io.element.android.libraries.textcomposer.mentions.ResolvedSuggestion
 import io.element.android.libraries.textcomposer.mentions.getMentionSpans
 import kotlinx.parcelize.Parcelize
 
+const val CUSTOM_EMOJI_ANNOTATION = "tortuechat.custom_emoji"
+
 @Stable
 class MarkdownTextEditorState(
     initialText: String?,
@@ -51,6 +54,24 @@ class MarkdownTextEditorState(
     ) {
         val suggestion = currentSuggestion ?: return
         when (resolvedSuggestion) {
+            is ResolvedSuggestion.Emoji -> {
+                val currentText = SpannableStringBuilder(text.value())
+                val replacement = resolvedSuggestion.text
+                val hasFollowingSpace = suggestion.end < currentText.length && currentText[suggestion.end] == ' '
+                currentText.replace(suggestion.start, suggestion.end, replacement + if (hasFollowingSpace) "" else " ")
+                resolvedSuggestion.imageUrl?.let { url ->
+                    currentText.setSpan(
+                        Annotation(CUSTOM_EMOJI_ANNOTATION, url),
+                        suggestion.start,
+                        suggestion.start + replacement.length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                }
+                text.update(currentText, true)
+                val end = suggestion.start + replacement.length + 1
+                selection = end..end
+                currentSuggestion = null
+            }
             is ResolvedSuggestion.AtRoom -> {
                 val currentText = SpannableStringBuilder(text.value())
                 val mentionSpan = mentionSpanProvider.createEveryoneMentionSpan()
@@ -94,39 +115,30 @@ class MarkdownTextEditorState(
         mentionDisplayName: (UserId) -> String = { it.value }, // SC
     ): String {
         val charSequence = text.value()
-        return if (charSequence is Spanned) {
-            val mentions = charSequence.getMentionSpans()
-            buildString {
-                append(charSequence.toString())
-                if (mentions.isNotEmpty()) {
-                    for (mention in mentions.sortedByDescending { charSequence.getSpanEnd(it) }) {
-                        val start = charSequence.getSpanStart(mention)
-                        val end = charSequence.getSpanEnd(mention)
-                        when (mention.type) {
-                            is MentionType.User -> {
-                                permalinkBuilder.permalinkForUser(mention.type.userId).getOrNull()?.let { link ->
-                                    replace(start, end, "[${mentionDisplayName(mention.type.userId)}]($link)")
-                                }
-                            }
-                            is MentionType.Everyone -> {
-                                replace(start, end, "@room")
-                            }
-                            is MentionType.Room -> {
-                                val roomIdOrAlias = mention.type.roomIdOrAlias
-                                if (roomIdOrAlias is RoomIdOrAlias.Alias) {
-                                    permalinkBuilder.permalinkForRoomAlias(roomIdOrAlias.roomAlias).getOrNull()?.let { link ->
-                                        replace(start, end, "[${roomIdOrAlias.roomAlias}]($link)")
-                                    }
-                                }
-                            }
-                            else -> Unit
-                        }
-                    }
+        if (charSequence !is Spanned) return charSequence.toString()
+        val replacements = charSequence.getMentionSpans().mapNotNull { mention ->
+            val replacement = when (val type = mention.type) {
+                is MentionType.User -> permalinkBuilder.permalinkForUser(type.userId).getOrNull()?.let { link ->
+                    "[${mentionDisplayName(type.userId)}]($link)"
                 }
+                is MentionType.Everyone -> "@room"
+                is MentionType.Room -> (type.roomIdOrAlias as? RoomIdOrAlias.Alias)?.roomAlias?.let { alias ->
+                    permalinkBuilder.permalinkForRoomAlias(alias).getOrNull()?.let { link -> "[$alias]($link)" }
+                }
+                else -> null
             }
-        } else {
-            charSequence.toString()
-        }
+            replacement?.let { Triple(charSequence.getSpanStart(mention), charSequence.getSpanEnd(mention), it) }
+        } + charSequence.getSpans(0, charSequence.length, Annotation::class.java)
+            .filter { it.key == CUSTOM_EMOJI_ANNOTATION }
+            .map { annotation ->
+                val start = charSequence.getSpanStart(annotation)
+                val end = charSequence.getSpanEnd(annotation)
+                val label = charSequence.subSequence(start, end).toString().replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
+                Triple(start, end, "[$label](<${annotation.value}>)")
+            }
+        return StringBuilder(charSequence).apply {
+            replacements.sortedByDescending { it.first }.forEach { (start, end, replacement) -> replace(start, end, replacement) }
+        }.toString()
     }
 
     fun getMentions(): List<IntentionalMention> {

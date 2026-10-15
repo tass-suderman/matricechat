@@ -10,15 +10,22 @@ package io.element.android.libraries.textcomposer.components.markdown
 
 import android.content.ClipData
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
+import android.text.Annotation
 import android.text.Editable
 import android.text.InputType
 import android.text.Selection
+import android.text.Spanned
+import android.text.style.ImageSpan
 import android.view.View
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
@@ -29,20 +36,29 @@ import androidx.core.view.OnReceiveContentListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.setPadding
 import androidx.core.widget.addTextChangedListener
+import coil3.SingletonImageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
+import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.testtags.TestTags
 import io.element.android.libraries.textcomposer.ElementRichTextEditorStyle
 import io.element.android.libraries.textcomposer.mentions.LocalMentionSpanUpdater
 import io.element.android.libraries.textcomposer.mentions.MentionSpan
+import io.element.android.libraries.textcomposer.model.CUSTOM_EMOJI_ANNOTATION
 import io.element.android.libraries.textcomposer.model.MarkdownTextEditorState
 import io.element.android.libraries.textcomposer.model.Suggestion
 import io.element.android.libraries.textcomposer.model.SuggestionType
 import io.element.android.libraries.textcomposer.model.aMarkdownTextEditorState
 import io.element.android.wysiwyg.compose.RichTextEditorStyle
 import io.element.android.wysiwyg.compose.internal.applyStyleInCompose
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.math.roundToInt
 
 @Suppress("ModifierMissing")
 @Composable
@@ -80,6 +96,42 @@ fun MarkdownTextInput(
     }
 
     val mentionSpanUpdater = LocalMentionSpanUpdater.current
+    val coroutineScope = rememberCoroutineScope()
+    val emojiBitmaps = remember { mutableMapOf<String, Bitmap>() }
+    val requestedEmoji = remember { mutableSetOf<String>() }
+
+    fun updateEmojiPreviews(editText: MarkdownEditText) {
+        val text = editText.editableText
+        text.getSpans<CustomEmojiImageSpan>().forEach(text::removeSpan)
+        text.getSpans<Annotation>().filter { it.key == CUSTOM_EMOJI_ANNOTATION }.forEach { annotation ->
+            val start = text.getSpanStart(annotation)
+            val end = text.getSpanEnd(annotation)
+            val label = text.subSequence(start, end).toString()
+            if (!label.startsWith(":") || !label.endsWith(":")) {
+                text.removeSpan(annotation)
+                return@forEach
+            }
+            val bitmap = emojiBitmaps[annotation.value]
+            if (bitmap != null) {
+                val side = (editText.textSize * 1.4f).roundToInt()
+                val drawable = BitmapDrawable(editText.resources, bitmap).apply { setBounds(0, 0, side, side) }
+                text.setSpan(CustomEmojiImageSpan(drawable), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            } else if (requestedEmoji.add(annotation.value)) {
+                coroutineScope.launch {
+                    val request = ImageRequest.Builder(editText.context)
+                        .data(MediaRequestData(MediaSource(annotation.value), MediaRequestData.Kind.Content))
+                        .size(64)
+                        .allowHardware(false)
+                        .build()
+                    SingletonImageLoader.get(editText.context).execute(request).image?.toBitmap()?.let { image ->
+                        emojiBitmaps[annotation.value] = image
+                        updateEmojiPreviews(editText)
+                    }
+                }
+            }
+        }
+        editText.invalidate()
+    }
 
     AndroidView(
         modifier = Modifier
@@ -143,6 +195,7 @@ fun MarkdownTextInput(
                 editText.updateEditableText(text)
                 state.text.update(editText.editableText, false)
             }
+            updateEmojiPreviews(editText)
             val newSelectionStart = state.selection.first
             val newSelectionEnd = state.selection.last
             val currentTextRange = 0..editText.editableText.length
@@ -177,6 +230,9 @@ private fun Editable.checkSuggestionNeeded(): Suggestion? {
     }
     if (startOfWord !in indices) return null
     val firstChar = this[startOfWord]
+
+    if (start != end) return null
+    if (getSpans<Annotation>(startOfWord, startOfWord + 1).any { it.key == CUSTOM_EMOJI_ANNOTATION }) return null
 
     // If a mention span already exists we don't need suggestions
     if (getSpans<MentionSpan>(startOfWord, startOfWord + 1).isNotEmpty()) return null
@@ -222,3 +278,5 @@ internal fun MarkdownTextInputPreview() {
         )
     }
 }
+
+private class CustomEmojiImageSpan(drawable: BitmapDrawable) : ImageSpan(drawable, ALIGN_BOTTOM)

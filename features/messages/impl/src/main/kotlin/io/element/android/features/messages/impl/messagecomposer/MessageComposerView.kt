@@ -11,7 +11,9 @@ package io.element.android.features.messages.impl.messagecomposer
 import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -31,12 +33,14 @@ import io.element.android.libraries.textcomposer.model.VoiceMessagePlayerEvent
 import io.element.android.libraries.textcomposer.model.VoiceMessageRecorderEvent
 import kotlinx.coroutines.launch
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 internal fun MessageComposerView(
     state: MessageComposerState,
     voiceMessageState: VoiceMessageComposerState,
     modifier: Modifier = Modifier,
     scBeforeSend: (() -> Unit)? = null,
+    emojiPickerRenderer: io.element.android.libraries.emoji.api.picker.EmojiPickerRenderer = io.element.android.libraries.emoji.api.picker.NoOpEmojiPickerRenderer,
 ) {
     val view = LocalView.current
     fun sendMessage() {
@@ -121,6 +125,44 @@ internal fun MessageComposerView(
         onError = ::onError,
         onTyping = ::onTyping,
         onSelectRichContent = ::sendUri,
+        onOpenEmojiPicker = if (state.emojiPickerEnabled) ({ state.eventSink(MessageComposerEvent.ShowEmojiPicker(true)) }) else null,
+    )
+
+    val picker = state.emojiPickerState
+    if (picker != null && picker.isReady) {
+        io.element.android.libraries.designsystem.theme.components.ModalBottomSheet(
+            onDismissRequest = { state.eventSink(MessageComposerEvent.ShowEmojiPicker(false)) },
+            modifier = Modifier.imePadding(),
+            scrollable = false,
+        ) {
+            emojiPickerRenderer.Render(
+                state = picker,
+                onSelectEmoji = { emoji ->
+                    state.eventSink(MessageComposerEvent.InsertEmoji(io.element.android.libraries.textcomposer.mentions.ResolvedSuggestion.Emoji(
+                        emoji.label,
+                        emoji.shortcodes.firstOrNull() ?: emoji.label,
+                        unicode = emoji.unicode,
+                    )))
+                },
+                onSelectCustomEmoji = {},
+                selectedEmojis = kotlinx.collections.immutable.persistentSetOf(),
+                modifier = Modifier.fillMaxWidth().height(360.dp),
+                onSelectCustomImage = { image ->
+                    state.eventSink(MessageComposerEvent.InsertEmoji(io.element.android.libraries.textcomposer.mentions.ResolvedSuggestion.Emoji(
+                        image.name,
+                        image.shortcode,
+                        imageUrl = image.url,
+                    )))
+                },
+                onSelectSticker = if (!state.mode.isEditing) ({ image -> state.eventSink(MessageComposerEvent.SendSticker(image)) }) else null,
+                autoFocusSearch = true,
+            )
+        }
+    }
+    AsyncActionView(
+        async = state.stickerAction,
+        onSuccess = {},
+        onErrorDismiss = { state.eventSink(MessageComposerEvent.ClearStickerError) },
     )
 
     AsyncActionView(

@@ -35,6 +35,28 @@ import org.junit.Test
 
 class MarkdownTextEditorStateTest : RobolectricTest() {
     @Test
+    fun `emoji selection replaces only the shortcode and moves the caret`() {
+        val state = aMarkdownTextEditorState(initialText = "Hello :smi world", initialFocus = true).apply {
+            currentSuggestion = Suggestion(6, 10, SuggestionType.Emoji, "smi")
+        }
+        state.insertSuggestion(ResolvedSuggestion.Emoji("Smile", "smile", unicode = "😄"), aMentionSpanProvider())
+        assertThat(state.text.value().toString()).isEqualTo("Hello 😄 world")
+        assertThat(state.selection).isEqualTo(9..9)
+        assertThat(state.currentSuggestion).isNull()
+    }
+
+    @Test
+    fun `custom emoji selection preserves the chosen URL when saving markdown`() {
+        val state = aMarkdownTextEditorState(initialText = ":tur", initialFocus = true).apply {
+            currentSuggestion = Suggestion(0, 4, SuggestionType.Emoji, "tur")
+        }
+        state.insertSuggestion(ResolvedSuggestion.Emoji("Turtle", "turtle", imageUrl = "mxc://other.org/chosen"), aMentionSpanProvider())
+        assertThat(state.text.value().toString()).isEqualTo(":turtle: ")
+        assertThat(state.getMessageMarkdown(FakePermalinkBuilder())).isEqualTo("[:turtle:](<mxc://other.org/chosen>) ")
+        assertThat(state.getMentions()).isEmpty()
+    }
+
+    @Test
     fun `insertMention - room alias - getMentions return empty list`() {
         val state = aMarkdownTextEditorState(initialText = "Hello @", initialFocus = true)
         val suggestion = aRoomAliasSuggestion()

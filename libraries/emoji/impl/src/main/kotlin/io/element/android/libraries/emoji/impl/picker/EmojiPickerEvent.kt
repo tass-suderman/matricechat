@@ -9,5 +9,6 @@
 package io.element.android.libraries.emoji.impl.picker
 
 internal sealed interface EmojiPickerEvent {
+    data object RefreshCustomImages : EmojiPickerEvent
     data class ToggleSearchActive(val isActive: Boolean) : EmojiPickerEvent
 }

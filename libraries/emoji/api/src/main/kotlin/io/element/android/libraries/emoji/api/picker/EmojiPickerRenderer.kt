@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import io.element.android.emojibasebindings.Emoji
+import io.element.android.libraries.emoji.api.packs.CustomImage
 import kotlinx.collections.immutable.ImmutableSet
 
 /**
@@ -37,6 +38,9 @@ interface EmojiPickerRenderer {
         selectedEmojis: ImmutableSet<String>,
         modifier: Modifier = Modifier,
         contentDescription: @Composable (Emoji, Boolean) -> String = { emoji, _ -> emoji.unicode },
+        onSelectCustomImage: ((CustomImage) -> Unit)? = null,
+        onSelectSticker: ((CustomImage) -> Unit)? = null,
+        autoFocusSearch: Boolean = false,
     )
 }
 
@@ -49,5 +53,8 @@ object NoOpEmojiPickerRenderer : EmojiPickerRenderer {
         selectedEmojis: ImmutableSet<String>,
         modifier: Modifier,
         contentDescription: @Composable (Emoji, Boolean) -> String,
+        onSelectCustomImage: ((CustomImage) -> Unit)?,
+        onSelectSticker: ((CustomImage) -> Unit)?,
+        autoFocusSearch: Boolean,
     ) = Unit
 }

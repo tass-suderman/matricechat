@@ -38,6 +38,38 @@ class SuggestionsProcessorTest {
     )
 
     @Test
+    fun `emoji search matches substrings aliases and custom names with prefixes first`() = runTest {
+        val substring = ResolvedSuggestion.Emoji("Face", "big_smile", unicode = "😃")
+        val prefix = ResolvedSuggestion.Emoji("Smile", "smile", unicode = "😄")
+        val custom = ResolvedSuggestion.Emoji("A smiling turtle", "turtle", imageUrl = "mxc://example.org/turtle")
+        val alias = ResolvedSuggestion.Emoji("Happy", "happy", unicode = "🙂", aliases = listOf("smiley"))
+        val result = suggestionsProcessor.process(
+            Suggestion(0, 4, SuggestionType.Emoji, "SMI"),
+            RoomMembersState.Ready(persistentListOf()),
+            emptyList(),
+            A_USER_ID,
+            { false },
+            false,
+            listOf(substring, prefix, custom, alias),
+        )
+        assertThat(result).containsExactly(prefix, substring, custom, alias).inOrder()
+    }
+
+    @Test
+    fun `completed emoji shortcode closes suggestions`() = runTest {
+        val result = suggestionsProcessor.process(
+            Suggestion(0, 7, SuggestionType.Emoji, "smile:"),
+            RoomMembersState.Ready(persistentListOf()),
+            emptyList(),
+            A_USER_ID,
+            { false },
+            false,
+            listOf(ResolvedSuggestion.Emoji("Smile", "smile", unicode = "😄")),
+        )
+        assertThat(result).isEmpty()
+    }
+
+    @Test
     fun `processing null suggestion will return empty suggestion`() = runTest {
         val result = suggestionsProcessor.process(
             suggestion = null,

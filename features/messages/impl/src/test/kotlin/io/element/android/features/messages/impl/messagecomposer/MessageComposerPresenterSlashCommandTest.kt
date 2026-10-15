@@ -324,6 +324,12 @@ class MessageComposerPresenterSlashCommandTest {
         featureFlagService = featureFlagService,
         contentScannerService = { _, _ -> },
         contentValidationCache = InMemoryEventContentValidationCache(),
+        getEmojis = io.element.android.libraries.emoji.api.GetEmojis { kotlinx.collections.immutable.persistentListOf() },
+        imagePackRepository = io.element.android.libraries.emoji.api.packs.ImagePackRepository { Result.success(emptyList()) },
+        emojiPickerPresenterFactory = io.element.android.libraries.emoji.test.fakeEmojiPickerPresenterFactory(),
+        getRecentEmojis = io.element.android.libraries.emoji.api.recentemojis.EmptyGetRecentEmojis,
+        addRecentEmoji = io.element.android.libraries.emoji.api.recentemojis.AddRecentEmoji { Result.success(Unit) },
+        scPreferencesStore = chat.schildi.lib.preferences.PreviewScPreferencesStore
     ).apply {
         isTesting = true
         showTextFormatting = isRichTextEditorEnabled

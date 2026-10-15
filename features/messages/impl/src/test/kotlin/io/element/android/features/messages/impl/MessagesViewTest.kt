@@ -823,6 +823,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setMessagesView(
                             state.eventSink(MessagesEvent.ToggleReaction(emoji.unicode, uniqueId))
                         },
                         emojiPickerRenderer = emojiPickerRenderer,
+                        onSelectCustomEmoji = { _, _ -> }
                     )
                 },
                 onThreadsListClick = onThreadsListClicked,

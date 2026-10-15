@@ -30,4 +30,7 @@ data class MessageComposerState(
     val resolveAtRoomMentionDisplay: () -> TextDisplay,
     val slashCommandAction: AsyncAction<Unit>,
     val eventSink: (MessageComposerEvent) -> Unit,
+    val emojiPickerEnabled: Boolean = true,
+    val emojiPickerState: io.element.android.libraries.emoji.api.picker.EmojiPickerState? = null,
+    val stickerAction: AsyncAction<Unit> = AsyncAction.Uninitialized,
 )

@@ -19,10 +19,14 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEqualTo
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runAndroidComposeUiTest
 import androidx.compose.ui.unit.dp
+import com.google.common.truth.Truth.assertThat
 import io.element.android.emojibasebindings.Emoji
 import io.element.android.libraries.designsystem.theme.components.SearchBarResultState
+import io.element.android.libraries.emoji.api.packs.CustomImage
 import io.element.android.tests.testutils.robolectric.RobolectricTest
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
@@ -32,6 +36,45 @@ import org.robolectric.annotation.Config
 private val PICKER_HEIGHT = 600.dp
 
 class EmojiPickerViewTest : RobolectricTest() {
+    @Test
+    fun `composer sticker selection invokes the send callback`() = runAndroidComposeUiTest<ComponentActivity> {
+        val sticker = CustomImage("turtle", "Turtle", "mxc://example.org/turtle", setOf("sticker"))
+        val selected = mutableListOf<CustomImage>()
+        setContent {
+            Box(Modifier.size(400.dp, PICKER_HEIGHT)) {
+                EmojiPickerView(
+                    state = aDefaultEmojiPickerState().copy(stickersEnabled = true, stickers = persistentListOf(sticker)),
+                    onSelectEmoji = {},
+                    onSelectCustomEmoji = {},
+                    selectedEmojis = persistentSetOf(),
+                    onSelectCustomImage = {},
+                    onSelectSticker = { selected.add(it) },
+                )
+            }
+        }
+        onNodeWithText("Stickers").performClick()
+        onNodeWithText("turtle").performClick()
+        assertThat(selected).containsExactly(sticker)
+    }
+
+    @Test
+    fun `message editing hides the unavailable sticker action`() = runAndroidComposeUiTest<ComponentActivity> {
+        setContent {
+            Box(Modifier.size(400.dp, PICKER_HEIGHT)) {
+                EmojiPickerView(
+                    state = aDefaultEmojiPickerState().copy(stickersEnabled = true),
+                    onSelectEmoji = {},
+                    onSelectCustomEmoji = {},
+                    selectedEmojis = persistentSetOf(),
+                    onSelectCustomImage = {},
+                    onSelectSticker = null,
+                )
+            }
+        }
+        onNodeWithText("Stickers").assertDoesNotExist()
+        onNodeWithText("Emoji").assertExists()
+    }
+
     @Config(qualifiers = "w400dp-h800dp")
     @Test
     fun `the search results reach the bottom of the picker`() = runAndroidComposeUiTest<ComponentActivity> {
@@ -64,6 +107,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setEmojiPickerView() {
                     ),
                 ),
                 onSelectEmoji = {},
+                onSelectCustomEmoji = {},
                 selectedEmojis = persistentSetOf(),
                 modifier = Modifier.fillMaxSize(),
             )

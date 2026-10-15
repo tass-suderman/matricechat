@@ -77,6 +77,7 @@ dependencies {
     implementation(projects.services.appnavstate.api)
     implementation(projects.services.toolbox.api)
     implementation(libs.coil.compose)
+    implementation(libs.serialization.json)
     implementation(libs.datetime)
     implementation(libs.jsoup)
     implementation(libs.androidx.constraintlayout)

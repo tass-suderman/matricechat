@@ -16,6 +16,7 @@ import app.cash.molecule.RecompositionMode
 import app.cash.molecule.moleculeFlow
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
 import com.google.common.truth.Truth.assertThat
 import im.vector.app.features.analytics.plan.Composer
 import im.vector.app.features.analytics.plan.Interaction
@@ -34,6 +35,8 @@ import io.element.android.features.messages.impl.utils.TextPillificationHelper
 import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.core.mimetype.MimeTypes
 import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatcher
+import io.element.android.libraries.emoji.api.GetEmojis
+import io.element.android.libraries.emoji.api.packs.ImagePackRepository
 import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
 import io.element.android.libraries.matrix.api.core.EventId
@@ -140,6 +143,39 @@ class MessageComposerPresenterTest : RobolectricTest() {
     private val localMediaFactory = FakeLocalMediaFactory(mockMediaUrl)
     private val analyticsService = FakeAnalyticsService()
     private val notificationConversationService = FakeNotificationConversationService()
+
+    @Test
+    fun `sticker sends immediately as a reply and preserves the typed draft`() = runTest {
+        val sent = mutableListOf<Pair<String, String>>()
+        val room = FakeJoinedRoom(
+            baseRoom = FakeBaseRoom(sendRawResult = { type, content ->
+                sent.add(type to content)
+                Result.success(Unit)
+            }),
+            typingNoticeResult = { Result.success(Unit) },
+        )
+        createPresenter(room = room, isRichTextEditorEnabled = false).test {
+            var state = awaitFirstItem()
+            val reply = aReplyMode()
+            state.eventSink(MessageComposerEvent.SetMode(reply))
+            state = awaitItem()
+            state.textEditorState.setMarkdown("Keep this draft")
+            state.eventSink(MessageComposerEvent.SendSticker(io.element.android.libraries.emoji.api.packs.CustomImage(
+                "turtle",
+                "Turtle",
+                "mxc://example.org/turtle",
+                setOf("sticker"),
+            )))
+            do {
+                state = awaitItem()
+            } while (state.stickerAction !is AsyncAction.Success)
+            assertThat(sent).hasSize(1)
+            assertThat(sent.single().first).isEqualTo("m.sticker")
+            assertThat(sent.single().second).contains(reply.eventId.value)
+            assertThat(state.mode).isEqualTo(MessageComposerMode.Normal)
+            assertThat(state.textEditorState.messageMarkdown(FakePermalinkBuilder())).isEqualTo("Keep this draft")
+        }
+    }
 
     @Test
     fun `present - initial state`() = runTest {
@@ -1717,6 +1753,12 @@ class MessageComposerPresenterTest : RobolectricTest() {
         mentionSpanProvider = mentionSpanProvider,
         pillificationHelper = textPillificationHelper,
         suggestionsProcessor = SuggestionsProcessor(slashCommandService = slashCommandService),
+        getEmojis = GetEmojis { persistentListOf() },
+        imagePackRepository = ImagePackRepository { Result.success(emptyList()) },
+        scPreferencesStore = PreviewScPreferencesStore,
+        emojiPickerPresenterFactory = io.element.android.libraries.emoji.test.fakeEmojiPickerPresenterFactory(),
+        getRecentEmojis = io.element.android.libraries.emoji.api.recentemojis.EmptyGetRecentEmojis,
+        addRecentEmoji = io.element.android.libraries.emoji.api.recentemojis.AddRecentEmoji { Result.success(Unit) },
         mediaOptimizationConfigProvider = mediaOptimizationConfigProvider,
         notificationConversationService = notificationConversationService,
         slashCommandService = slashCommandService,

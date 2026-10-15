@@ -134,6 +134,7 @@ fun TextComposer(
     modifier: Modifier = Modifier,
     showTextFormatting: Boolean = false,
     isInThreadTimeline: Boolean = false,
+    onOpenEmojiPicker: (() -> Unit)? = null,
 ) {
     val markdown = when (state) {
         is TextEditorState.Markdown -> state.state.text.value()
@@ -401,6 +402,7 @@ fun TextComposer(
             },
             textFormatting = textFormattingOptions,
             endButtonParams = endButtonParams,
+            onOpenEmojiPicker = onOpenEmojiPicker,
         )
     } else {
         val endButtonParams = rememberEndButtonParams()
@@ -413,6 +415,7 @@ fun TextComposer(
             endButtonParams = endButtonParams,
             voiceRecording = voiceRecording,
             onAddAttachment = onAddAttachment,
+            onOpenEmojiPicker = onOpenEmojiPicker,
             onDeleteVoiceMessage = onDeleteVoiceMessage,
             onVoiceRecorderEvent = onVoiceRecorderEvent,
             onResetComposerMode = onResetComposerMode,
@@ -466,6 +469,7 @@ private fun StandardLayout(
     onDeleteVoiceMessage: () -> Unit,
     onVoiceRecorderEvent: (VoiceMessageRecorderEvent) -> Unit,
     onResetComposerMode: () -> Unit,
+    onOpenEmojiPicker: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -545,6 +549,11 @@ private fun StandardLayout(
                     movableVoiceRecording()
                 }
             }
+            if (onOpenEmojiPicker != null && voiceMessageState is VoiceMessageState.Idle) {
+                IconButton(onClick = onOpenEmojiPicker, modifier = Modifier.size(48.dp).padding(bottom = 5.dp)) {
+                    Icon(CompoundIcons.Reaction(), stringResource(R.string.rich_text_editor_open_emoji_picker))
+                }
+            }
             // To avoid loosing keyboard focus, the IconButton has to be defined here and has to be always enabled.
             val endButtonContentDescription = stringResource(endButtonParams.endButtonContentDescriptionResId)
             IconButton(
@@ -591,6 +600,7 @@ private fun TextFormattingLayout(
     dismissTextFormattingButton: @Composable () -> Unit,
     textFormatting: @Composable () -> Unit,
     endButtonParams: EndButtonParams,
+    onOpenEmojiPicker: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -620,6 +630,11 @@ private fun TextFormattingLayout(
             }
             Box(modifier = Modifier.weight(1f)) {
                 textFormatting()
+            }
+            if (onOpenEmojiPicker != null) {
+                IconButton(onClick = onOpenEmojiPicker, modifier = Modifier.size(48.dp)) {
+                    Icon(CompoundIcons.Reaction(), stringResource(R.string.rich_text_editor_open_emoji_picker))
+                }
             }
             // To avoid loosing keyboard focus, the IconButton has to be defined here and has to be always enabled.
             val endButtonContentDescription = stringResource(endButtonParams.endButtonContentDescriptionResId)

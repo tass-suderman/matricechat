@@ -40,7 +40,14 @@ internal fun aMessageEvent(
     isMine: Boolean = true,
     isEditable: Boolean = true,
     canBeRepliedTo: Boolean = true,
-    content: TimelineItemEventContent = TimelineItemTextContent(body = A_MESSAGE, htmlDocument = null, formattedBody = A_MESSAGE, isEdited = false),
+    content: TimelineItemEventContent =
+    TimelineItemTextContent(
+        body = A_MESSAGE,
+        htmlDocument = null,
+        formattedBody = A_MESSAGE,
+        isEdited = false,
+        formattedBodySc = com.beeper.android.messageformat.MatrixBodyParseResult(A_MESSAGE)
+    ),
     inReplyTo: InReplyToDetails? = null,
     threadInfo: TimelineItemThreadInfo? = null,
     sendState: LocalEventSendState = LocalEventSendState.Sent(AN_EVENT_ID),

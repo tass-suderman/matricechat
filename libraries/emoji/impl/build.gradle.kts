@@ -30,6 +30,9 @@ dependencies {
     implementation(projects.libraries.designsystem)
     implementation(projects.libraries.di)
     implementation(projects.libraries.matrix.api)
+    implementation(projects.libraries.matrixmedia.api)
+    implementation(libs.coil.compose)
+    implementation(libs.serialization.json)
     implementation(projects.libraries.uiStrings)
 
     implementation(libs.kotlinx.collections.immutable)

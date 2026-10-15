@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import dev.zacsweers.metro.ContributesBinding
 import io.element.android.emojibasebindings.Emoji
 import io.element.android.libraries.di.SessionScope
+import io.element.android.libraries.emoji.api.packs.CustomImage
 import io.element.android.libraries.emoji.api.picker.EmojiPickerRenderer
 import io.element.android.libraries.emoji.api.picker.EmojiPickerState
 import kotlinx.collections.immutable.ImmutableSet
@@ -26,6 +27,9 @@ class DefaultEmojiPickerRenderer : EmojiPickerRenderer {
         selectedEmojis: ImmutableSet<String>,
         modifier: Modifier,
         contentDescription: @Composable (Emoji, Boolean) -> String,
+        onSelectCustomImage: ((CustomImage) -> Unit)?,
+        onSelectSticker: ((CustomImage) -> Unit)?,
+        autoFocusSearch: Boolean,
     ) {
         if (state is DefaultEmojiPickerState) {
             EmojiPickerView(
@@ -35,6 +39,9 @@ class DefaultEmojiPickerRenderer : EmojiPickerRenderer {
                 selectedEmojis = selectedEmojis,
                 contentDescription = contentDescription,
                 modifier = modifier,
+                onSelectCustomImage = onSelectCustomImage,
+                onSelectSticker = onSelectSticker,
+                autoFocusSearch = autoFocusSearch,
             )
         } else {
             error("Unsupported state type: ${state::class.java}")

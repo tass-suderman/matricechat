@@ -10,10 +10,16 @@ package io.element.android.libraries.emoji.impl.picker
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import app.cash.turbine.TurbineTestContext
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
+import chat.schildi.lib.preferences.ScPref
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import com.google.common.truth.Truth.assertThat
 import io.element.android.emojibasebindings.Emoji
 import io.element.android.emojibasebindings.EmojibaseCategory
 import io.element.android.libraries.designsystem.theme.components.SearchBarResultState
+import io.element.android.libraries.emoji.api.packs.CustomImage
+import io.element.android.libraries.emoji.api.packs.ImagePackRepository
 import io.element.android.libraries.emoji.api.picker.EmojiPickerState
 import io.element.android.libraries.emoji.api.recentemojis.GetRecentEmojis
 import io.element.android.libraries.emoji.impl.fixtures.FakeEmojibaseProvider
@@ -23,6 +29,7 @@ import io.element.android.tests.testutils.test
 import io.element.android.tests.testutils.testCoroutineDispatchers
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -31,6 +38,50 @@ import org.junit.Test
 class EmojiPickerPresenterTest : RobolectricTest() {
     @get:Rule
     val warmUpRule = WarmUpRule()
+
+    @Test
+    fun `custom emoji uses emoticon images and excludes sticker-only images`() = runTest {
+        val emoji = CustomImage("wave", "Wave", "mxc://example.org/wave", setOf("emoticon"))
+        val sticker = CustomImage("turtle", "Turtle", "mxc://example.org/turtle", setOf("sticker"))
+        createPresenter(imagePackRepository = ImagePackRepository { Result.success(listOf(emoji, sticker)) }).test {
+            var state = awaitStoreLoaded()
+            state.eventSink(EmojiPickerEvent.RefreshCustomImages)
+            while (state.customImages.isEmpty()) {
+                state = awaitItem() as DefaultEmojiPickerState
+            }
+            assertThat(state.customImages).containsExactly(emoji)
+            assertThat(state.stickers).containsExactly(sticker)
+            assertThat(state.stickersEnabled).isTrue()
+            assertThat(state.customImagesEnabled).isTrue()
+        }
+    }
+
+    @Test
+    fun `disabling custom emoji avoids loading packs`() = runTest {
+        var calls = 0
+        val preferences = object : ScPreferencesStore by PreviewScPreferencesStore {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T> getCachedOrDefaultValue(scPref: ScPref<T>): T =
+                (if (scPref == ScPrefs.CUSTOM_EMOJI || scPref == ScPrefs.CUSTOM_STICKERS) false else scPref.defaultValue) as T
+            override fun <T> settingFlow(scPref: ScPref<T>) = flowOf(getCachedOrDefaultValue(scPref))
+        }
+        createPresenter(
+            scPreferencesStore = preferences,
+            imagePackRepository = ImagePackRepository {
+                calls++
+                Result.success(emptyList())
+            },
+        ).test {
+            val state = awaitStoreLoaded()
+            assertThat(state.customImagesEnabled).isFalse()
+            assertThat(state.customImages).isEmpty()
+            state.eventSink(EmojiPickerEvent.RefreshCustomImages)
+            val refreshed = awaitItem() as DefaultEmojiPickerState
+            assertThat(refreshed.customImagesEnabled).isFalse()
+            assertThat(refreshed.customImages).isEmpty()
+            assertThat(calls).isEqualTo(0)
+        }
+    }
 
     @Test
     fun `updating search query loads new results`() = runTest {
@@ -82,7 +133,8 @@ class EmojiPickerPresenterTest : RobolectricTest() {
         )
         createPresenter(categories = providedCategories).test {
             val state = awaitStoreLoaded()
-            assertThat(state.categories.size).isEqualTo(providedCategories.size)
+            assertThat(state.categories.size).isEqualTo(providedCategories.size + 1)
+            assertThat(state.categories.first().emojis).isEmpty()
         }
     }
 
@@ -97,10 +149,14 @@ class EmojiPickerPresenterTest : RobolectricTest() {
     private fun TestScope.createPresenter(
         categories: ImmutableList<Pair<EmojibaseCategory, ImmutableList<Emoji>>> = persistentListOf(emojiCategory()),
         getRecentEmojis: GetRecentEmojis = GetRecentEmojis { Result.success(persistentListOf()) },
+        imagePackRepository: ImagePackRepository = ImagePackRepository { Result.success(emptyList()) },
+        scPreferencesStore: ScPreferencesStore = PreviewScPreferencesStore,
     ) = DefaultEmojiPickerPresenter(
         emojibaseProvider = FakeEmojibaseProvider(emojis = categories.toMap()),
         getRecentEmojis = getRecentEmojis,
         coroutineDispatchers = testCoroutineDispatchers(),
+        imagePackRepository = imagePackRepository,
+        scPreferencesStore = scPreferencesStore,
     )
 
     private fun emojiCategory(

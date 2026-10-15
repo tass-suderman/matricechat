@@ -14,6 +14,10 @@ import io.element.android.libraries.textcomposer.model.MessageComposerMode
 import io.element.android.libraries.textcomposer.model.Suggestion
 
 sealed interface MessageComposerEvent {
+    data class ShowEmojiPicker(val show: Boolean) : MessageComposerEvent
+    data class InsertEmoji(val emoji: ResolvedSuggestion.Emoji) : MessageComposerEvent
+    data class SendSticker(val sticker: io.element.android.libraries.emoji.api.packs.CustomImage) : MessageComposerEvent
+    data object ClearStickerError : MessageComposerEvent
     data object ToggleFullScreenState : MessageComposerEvent
     data object SendMessage : MessageComposerEvent
     data class SendUri(val uri: Uri) : MessageComposerEvent
