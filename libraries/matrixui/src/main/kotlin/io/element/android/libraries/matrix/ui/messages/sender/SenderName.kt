@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -36,7 +37,14 @@ fun SenderName(
     senderProfile: ProfileDetails,
     senderNameMode: SenderNameMode,
     modifier: Modifier = Modifier,
+    discordRoleUserId: String? = null,
 ) {
+    val role = LocalDiscordRoles.current[discordRoleUserId ?: senderId.value]
+    val nameMode = if (role != null && senderNameMode is SenderNameMode.Timeline) {
+        SenderNameMode.Timeline(Color(role.color))
+    } else {
+        senderNameMode
+    }
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -46,16 +54,16 @@ fun SenderName(
             is ProfileDetails.Error,
             ProfileDetails.Pending,
             ProfileDetails.Unavailable -> {
-                MainText(text = senderId.value, mode = senderNameMode)
+                MainText(text = senderId.value, mode = nameMode)
             }
             is ProfileDetails.Ready -> {
                 val displayName = senderProfile.displayName
                 if (displayName.isNullOrEmpty()) {
-                    MainText(text = senderId.value, mode = senderNameMode)
+                    MainText(text = senderId.value, mode = nameMode)
                 } else {
-                    MainText(text = displayName, mode = senderNameMode)
+                    MainText(text = displayName, mode = nameMode)
                     if (senderProfile.displayNameAmbiguous) {
-                        SecondaryText(text = senderId.value, mode = senderNameMode)
+                        SecondaryText(text = senderId.value, mode = nameMode)
                     }
                 }
                 val userStatus = senderProfile.displayedStatus
@@ -72,6 +80,9 @@ fun SenderName(
                     )
                 }
             }
+        }
+        if (role != null && senderNameMode is SenderNameMode.Timeline) {
+            SecondaryText(text = role.name, mode = nameMode)
         }
     }
 }
@@ -160,6 +171,15 @@ internal fun SenderNamePreview(
                     senderNameMode = mode,
                 )
             }
+        }
+        CompositionLocalProvider(
+            LocalDiscordRoles provides mapOf(senderNameData.userId.value to DiscordRole("Moderator", 0xff12ab34L)),
+        ) {
+            SenderName(
+                senderId = senderNameData.userId,
+                senderProfile = senderNameData.profileDetails,
+                senderNameMode = SenderNameMode.Timeline(Color.Red),
+            )
         }
     }
 }

@@ -32,6 +32,7 @@ import io.element.android.libraries.matrix.api.permalink.PermalinkData
 import io.element.android.libraries.matrix.test.AN_EVENT_ID
 import io.element.android.libraries.matrix.test.A_SESSION_ID
 import io.element.android.libraries.matrix.test.A_USER_ID
+import io.element.android.libraries.matrix.test.FakeMatrixClient
 import io.element.android.libraries.matrix.test.room.FakeBaseRoom
 import io.element.android.libraries.matrix.test.roomlist.FakeRoomListService
 import io.element.android.libraries.matrix.ui.messages.RoomMemberProfilesCache
@@ -73,6 +74,7 @@ class DefaultMessagesEntryPointTest {
                 analyticsService = FakeAnalyticsService(),
                 locationService = FakeLocationService(),
                 room = FakeBaseRoom(),
+                matrixClient = FakeMatrixClient(),
                 roomMemberProfilesCache = RoomMemberProfilesCache(),
                 roomNamesCache = RoomNamesCache(),
                 mentionSpanUpdater = object : MentionSpanUpdater {

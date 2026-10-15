@@ -20,9 +20,26 @@ private val mxcUrl = Regex("""mxc://[^/\s?#<>]+/[^/\s?#<>]+""")
 @Inject
 @ContributesBinding(SessionScope::class)
 class DefaultImagePackRepository(private val client: MatrixClient, private val dispatchers: CoroutineDispatchers) : ImagePackRepository {
-    override suspend fun getImages(): Result<List<CustomImage>> = withContext(dispatchers.computation) {
+    override suspend fun getImages(): Result<List<CustomImage>> = getImagesForRoom(null)
+
+    override suspend fun getImagesForRoom(roomId: RoomId?): Result<List<CustomImage>> = withContext(dispatchers.computation) {
         runCatchingExceptions {
-            val images = parseImagePack(client.getAccountData("im.ponies.user_emotes").getOrThrow()).toMutableList()
+            val images = mutableListOf<CustomImage>()
+            if (roomId != null) {
+                val visited = mutableSetOf<RoomId>()
+                val pending = ArrayDeque<RoomId>().apply { add(roomId) }
+                while (pending.isNotEmpty()) {
+                    val id = pending.removeFirst()
+                    if (!visited.add(id)) continue
+                    pending.addAll(client.spaceService.joinedParents(id).getOrNull().orEmpty().map { it.roomId })
+                    client.getRoom(id)?.use { room ->
+                        val state = room.fetchFullRoomState().getOrNull()
+                            ?: room.getRawState("im.ponies.room_emotes").getOrNull().orEmpty()
+                        images += roomImagePacks(state, null)
+                    }
+                }
+            }
+            images += parseImagePack(client.getAccountData("im.ponies.user_emotes").getOrThrow())
             val rooms = globalImagePackKeys(client.getAccountData("im.ponies.emote_rooms").getOrThrow())
             rooms.forEach { (roomId, keys) ->
                 client.getRoom(roomId)?.use { room ->
@@ -56,9 +73,9 @@ internal fun imagePackContent(raw: String?): JsonObject? = jsonObject(raw)?.let 
     it["content"] as? JsonObject ?: it
 }
 
-internal fun roomImagePacks(state: List<String>, keys: Set<String>): List<CustomImage> = state.flatMap { raw ->
+internal fun roomImagePacks(state: List<String>, keys: Set<String>?): List<CustomImage> = state.flatMap { raw ->
     val event = jsonObject(raw)
-    if (event?.text("type") == "im.ponies.room_emotes" && event.text("state_key") in keys) {
+    if (event?.text("type") == "im.ponies.room_emotes" && (keys == null || event.text("state_key") in keys)) {
         parseImagePack(raw)
     } else {
         emptyList()

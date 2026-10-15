@@ -70,6 +70,7 @@ import chat.schildi.theme.extensions.scOrElse
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.features.messages.impl.UrlPreviewView
+import io.element.android.features.messages.impl.discordRoleUserId
 import io.element.android.features.messages.impl.timeline.TimelineEvent
 import io.element.android.features.messages.impl.timeline.TimelineRoomInfo
 import io.element.android.features.messages.impl.timeline.aTimelineItemEvent
@@ -135,6 +136,7 @@ import io.element.android.libraries.matrix.ui.messages.reply.InReplyToDetails
 import io.element.android.libraries.matrix.ui.messages.reply.InReplyToView
 import io.element.android.libraries.matrix.ui.messages.reply.content
 import io.element.android.libraries.matrix.ui.messages.reply.eventId
+import io.element.android.libraries.matrix.ui.messages.sender.LocalDiscordRoles
 import io.element.android.libraries.matrix.ui.messages.sender.SenderName
 import io.element.android.libraries.matrix.ui.messages.sender.SenderNameMode
 import io.element.android.libraries.testtags.TestTags
@@ -520,6 +522,16 @@ private fun TimelineItemEventRowContent(
                     }
                     .padding(horizontal = 16.dp)
                     .zIndex(1f),
+                discordRoleUserId = run {
+                    val roles = LocalDiscordRoles.current
+                    remember(event.timelineItemDebugInfoProvider, roles) {
+                        if (event.senderId.value in roles || roles.isEmpty()) {
+                            null
+                        } else {
+                            discordRoleUserId(event.timelineItemDebugInfoProvider().originalJson, roles)
+                        }
+                    }
+                },
             )
         }
 
@@ -638,7 +650,8 @@ private fun MessageSenderInformation(
     senderProfile: ProfileDetails,
     senderAvatar: AvatarData,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    discordRoleUserId: String? = null,
 ) {
     val avatarColors = scAvatarColorsOverride(senderAvatar) ?: AvatarColorsProvider.provide(senderAvatar.id)
     Row(
@@ -665,6 +678,7 @@ private fun MessageSenderInformation(
             senderId = senderId,
             senderProfile = senderProfile,
             senderNameMode = SenderNameMode.Timeline(avatarColors.foreground),
+            discordRoleUserId = discordRoleUserId,
         )
     }
 }

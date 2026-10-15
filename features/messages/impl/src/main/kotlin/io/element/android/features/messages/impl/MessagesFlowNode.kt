@@ -74,6 +74,7 @@ import io.element.android.libraries.dateformatter.api.DateFormatter
 import io.element.android.libraries.dateformatter.api.DateFormatterMode
 import io.element.android.libraries.dateformatter.api.toHumanReadableDuration
 import io.element.android.libraries.di.RoomScope
+import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -83,6 +84,7 @@ import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.permalink.PermalinkData
 import io.element.android.libraries.matrix.api.room.BaseRoom
+import io.element.android.libraries.matrix.api.room.LocalRoomId
 import io.element.android.libraries.matrix.api.room.alias.matches
 import io.element.android.libraries.matrix.api.room.joinedRoomMembers
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
@@ -91,6 +93,7 @@ import io.element.android.libraries.matrix.api.timeline.TimelineProvider
 import io.element.android.libraries.matrix.api.timeline.item.TimelineItemDebugInfo
 import io.element.android.libraries.matrix.ui.messages.RoomMemberProfilesCache
 import io.element.android.libraries.matrix.ui.messages.RoomNamesCache
+import io.element.android.libraries.matrix.ui.messages.sender.LocalDiscordRoles
 import io.element.android.libraries.mediaviewer.api.GalleryInfo
 import io.element.android.libraries.mediaviewer.api.GalleryItemData
 import io.element.android.libraries.mediaviewer.api.MediaInfo
@@ -125,6 +128,7 @@ class MessagesFlowNode(
     private val analyticsService: AnalyticsService,
     private val locationService: LocationService,
     private val room: BaseRoom,
+    private val matrixClient: MatrixClient,
     private val roomMemberProfilesCache: RoomMemberProfilesCache,
     private val roomNamesCache: RoomNamesCache,
     private val mentionSpanUpdater: MentionSpanUpdater,
@@ -948,6 +952,8 @@ class MessagesFlowNode(
         }
 
         CompositionLocalProvider(
+            LocalRoomId provides room.roomId,
+            LocalDiscordRoles provides discordRoles(matrixClient, room, coroutineDispatchers),
             LocalMentionSpanUpdater provides mentionSpanUpdater
         ) {
             BackstackWithOverlayBox(modifier)

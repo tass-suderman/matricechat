@@ -40,12 +40,11 @@ class EmojiPickerPresenterTest : RobolectricTest() {
     val warmUpRule = WarmUpRule()
 
     @Test
-    fun `custom emoji uses emoticon images and excludes sticker-only images`() = runTest {
+    fun `custom emoji loads automatically and excludes sticker-only images`() = runTest {
         val emoji = CustomImage("wave", "Wave", "mxc://example.org/wave", setOf("emoticon"))
         val sticker = CustomImage("turtle", "Turtle", "mxc://example.org/turtle", setOf("sticker"))
         createPresenter(imagePackRepository = ImagePackRepository { Result.success(listOf(emoji, sticker)) }).test {
             var state = awaitStoreLoaded()
-            state.eventSink(EmojiPickerEvent.RefreshCustomImages)
             while (state.customImages.isEmpty()) {
                 state = awaitItem() as DefaultEmojiPickerState
             }

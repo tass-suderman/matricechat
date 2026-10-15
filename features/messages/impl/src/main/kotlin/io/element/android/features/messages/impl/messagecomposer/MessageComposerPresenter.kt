@@ -525,7 +525,7 @@ class MessageComposerPresenter(
                         }
                         emojiChoices.value = regular
                         if (customEmojiEnabled) {
-                            imagePackRepository.getImages().onSuccess { images ->
+                            imagePackRepository.getImagesForRoom(room.roomId).onSuccess { images ->
                                 emojiChoices.value = regular + images.filter { "emoticon" in it.usage }.map { image ->
                                     ResolvedSuggestion.Emoji(image.name, image.shortcode, imageUrl = image.url)
                                 }

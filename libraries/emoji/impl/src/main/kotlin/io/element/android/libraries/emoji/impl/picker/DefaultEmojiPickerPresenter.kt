@@ -37,6 +37,7 @@ import io.element.android.libraries.emoji.api.picker.EmojiPickerState
 import io.element.android.libraries.emoji.api.recentemojis.GetRecentEmojis
 import io.element.android.libraries.emoji.impl.EmojibaseProvider
 import io.element.android.libraries.emoji.impl.R
+import io.element.android.libraries.matrix.api.room.LocalRoomId
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -61,6 +62,7 @@ class DefaultEmojiPickerPresenter(
 
     @Composable
     override fun present(): EmojiPickerState {
+        val roomId = LocalRoomId.current
         val customImagesEnabled by scPreferencesStore.settingState(ScPrefs.CUSTOM_EMOJI)
         val stickersEnabled by scPreferencesStore.settingState(ScPrefs.CUSTOM_STICKERS)
         var stickers by remember { mutableStateOf<ImmutableList<CustomImage>>(persistentListOf()) }
@@ -68,17 +70,16 @@ class DefaultEmojiPickerPresenter(
         var customImagesLoading by remember { mutableStateOf(false) }
         var customImagesError by remember { mutableStateOf(false) }
         var refreshCustomImages by remember { mutableIntStateOf(0) }
-        LaunchedEffect(customImagesEnabled, stickersEnabled, refreshCustomImages) {
+        LaunchedEffect(roomId, customImagesEnabled, stickersEnabled, refreshCustomImages) {
             if (!customImagesEnabled && !stickersEnabled) {
                 customImages = persistentListOf()
                 stickers = persistentListOf()
                 customImagesError = false
                 return@LaunchedEffect
             }
-            if (refreshCustomImages == 0) return@LaunchedEffect
             customImagesLoading = true
             try {
-                withContext(coroutineDispatchers.computation) { imagePackRepository.getImages() }
+                withContext(coroutineDispatchers.computation) { imagePackRepository.getImagesForRoom(roomId) }
                     .onSuccess { images ->
                         customImages = images.filter { customImagesEnabled && "emoticon" in it.usage }.toImmutableList()
                         stickers = images.filter { stickersEnabled && "sticker" in it.usage }.toImmutableList()
