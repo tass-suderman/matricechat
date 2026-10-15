@@ -19,6 +19,7 @@ data class AvatarData(
     val url: String? = null,
     val size: AvatarSize,
     val powerLevel: Long? = null,
+    val presenceUserId: String? = null,
 ) {
     val scPreviewLetters by lazy { scPreviewLetters() }
     val initialLetter by lazy {

@@ -95,7 +95,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @ContributesNode(RoomScope::class)
 @AssistedInject
@@ -346,7 +345,7 @@ class MessagesNode(
             // SC end
             LocalEventContentValidationState provides eventContentValidationCache,
         ) {
-            //val state = presenter.present()
+            // val state = presenter.present()
 
             BackHandler {
                 state.eventSink(MessagesEvent.MarkAsFullyReadAndExit(timelineController.scReadState))
@@ -409,13 +408,15 @@ class MessagesNode(
                         onViewRequestsClick = callback::navigateToKnockRequestsList,
                     )
                 },
+                emojiPickerRenderer = emojiPickerRenderer,
                 customReactionBottomSheet = {
                     CustomReactionBottomSheet(
                         state = state.customReactionState,
                         onSelectEmoji = { uniqueId, emoji ->
                             state.eventSink(MessagesEvent.ToggleReaction(emoji.unicode, uniqueId))
                         },
-                        onSelectCustomEmoji = { uniqueId, emoji -> // SC
+                        onSelectCustomEmoji = { uniqueId, emoji ->
+                            // SC
                             state.eventSink(MessagesEvent.ToggleReaction(emoji, uniqueId))
                         },
                         emojiPickerRenderer = emojiPickerRenderer,

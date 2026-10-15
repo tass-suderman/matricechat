@@ -88,45 +88,59 @@ fun RoomListContentView(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
 ) {
-    when (contentState) {
-        is RoomListContentState.Skeleton -> {
-            SkeletonView(
-                modifier = modifier,
-                count = contentState.count,
-                contentPadding = contentPadding,
-            )
+    Box(modifier) {
+        if (ScPrefs.CHAT_WALLPAPER_ENABLED.value()) {
+            val wallpaper = ScPrefs.CHAT_WALLPAPER.value()
+            if (wallpaper.isNotEmpty()) {
+                coil3.compose.AsyncImage(
+                    model = java.io.File(wallpaper),
+                    alpha = ScPrefs.CHAT_WALLPAPER_OPACITY.value().coerceIn(0, 100) / 100f,
+                    contentDescription = null,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier.matchParentSize(),
+                )
+            }
         }
-        is RoomListContentState.Empty -> {
-            EmptyView(
-                modifier = modifier.padding(contentPadding),
-                state = contentState,
-                eventSink = eventSink,
-                onSetUpRecoveryClick = onSetUpRecoveryClick,
-                onConfirmRecoveryKeyClick = onConfirmRecoveryKeyClick,
-                onCreateRoomClick = onCreateRoomClick,
-            )
-        }
-        is RoomListContentState.Rooms -> {
-            RoomsView(
-                modifier = modifier,
-                state = contentState,
-                hideInvitesAvatars = hideInvitesAvatars,
-                filtersState = filtersState,
-                spaceFiltersState = spaceFiltersState,
-                // SC start
-                homeState = homeState,
-                onUpstreamSpaceClick = onUpstreamSpaceClick,
-                onCreateSpaceClick = onCreateSpaceClick,
-                onExploreSpaceClick = onExploreSpaceClick,
-                onMeasureSpaceBarHeight = onMeasureSpaceBarHeight,
-                // SC end
-                eventSink = eventSink,
-                onSetUpRecoveryClick = onSetUpRecoveryClick,
-                onConfirmRecoveryKeyClick = onConfirmRecoveryKeyClick,
-                onRoomClick = onRoomClick,
-                lazyListState = lazyListState,
-                contentPadding = contentPadding,
-            )
+        when (contentState) {
+            is RoomListContentState.Skeleton -> {
+                SkeletonView(
+                    modifier = Modifier,
+                    count = contentState.count,
+                    contentPadding = contentPadding,
+                )
+            }
+            is RoomListContentState.Empty -> {
+                EmptyView(
+                    modifier = Modifier.padding(contentPadding),
+                    state = contentState,
+                    eventSink = eventSink,
+                    onSetUpRecoveryClick = onSetUpRecoveryClick,
+                    onConfirmRecoveryKeyClick = onConfirmRecoveryKeyClick,
+                    onCreateRoomClick = onCreateRoomClick,
+                )
+            }
+            is RoomListContentState.Rooms -> {
+                RoomsView(
+                    modifier = Modifier,
+                    state = contentState,
+                    hideInvitesAvatars = hideInvitesAvatars,
+                    filtersState = filtersState,
+                    spaceFiltersState = spaceFiltersState,
+                    // SC start
+                    homeState = homeState,
+                    onUpstreamSpaceClick = onUpstreamSpaceClick,
+                    onCreateSpaceClick = onCreateSpaceClick,
+                    onExploreSpaceClick = onExploreSpaceClick,
+                    onMeasureSpaceBarHeight = onMeasureSpaceBarHeight,
+                    // SC end
+                    eventSink = eventSink,
+                    onSetUpRecoveryClick = onSetUpRecoveryClick,
+                    onConfirmRecoveryKeyClick = onConfirmRecoveryKeyClick,
+                    onRoomClick = onRoomClick,
+                    lazyListState = lazyListState,
+                    contentPadding = contentPadding,
+                )
+            }
         }
     }
 }

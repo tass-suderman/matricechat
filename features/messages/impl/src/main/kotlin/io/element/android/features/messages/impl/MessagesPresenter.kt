@@ -230,6 +230,11 @@ class MessagesPresenter(
 
         val membersState by room.membersStateFlow.collectAsState()
         val dmRoomMember by room.getDirectRoomMember(membersState)
+        LaunchedEffect(roomInfo.isDm) {
+            if (roomInfo.isDm && room.membersStateFlow.value is RoomMembersState.Unknown) {
+                room.updateMembers()
+            }
+        }
         val roomMemberIdentityStateChanges = identityChangeState.roomMemberIdentityStateChanges
 
         // The top bar should show a "history" icon if:
@@ -345,7 +350,7 @@ class MessagesPresenter(
         return MessagesState(
             roomId = room.roomId,
             roomName = roomInfo.scRoomDisplayNameOverride() ?: roomInfo.name,
-            roomAvatar = roomAvatar,
+            roomAvatar = roomAvatar.copy(presenceUserId = dmRoomMember?.userId?.value),
             heroes = heroes,
             userEventPermissions = userEventPermissions,
             composerState = composerState,

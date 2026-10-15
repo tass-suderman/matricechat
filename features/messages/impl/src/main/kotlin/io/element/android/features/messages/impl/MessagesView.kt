@@ -158,6 +158,7 @@ fun MessagesView(
     modifier: Modifier = Modifier,
     forceJumpToBottomVisibility: Boolean = false,
     customReactionBottomSheet: @Composable () -> Unit,
+    emojiPickerRenderer: io.element.android.libraries.emoji.api.picker.EmojiPickerRenderer = io.element.android.libraries.emoji.api.picker.NoOpEmojiPickerRenderer,
 ) {
     val eventContentValidationState = LocalEventContentValidationState.current
 
@@ -248,7 +249,8 @@ fun MessagesView(
                             onBackClick = onBackClick,
                         )
                     } else {
-                        Column { // SC wrong indention
+                        Column {
+                            // SC wrong indention
                         MessagesViewTopBar(
                             state = state, // SC
                             roomName = state.roomName,
@@ -351,6 +353,7 @@ fun MessagesView(
         },
         bottomSheetContent = {
             MessagesViewComposerBottomSheetContents(
+                emojiPickerRenderer = emojiPickerRenderer,
                 state = state,
                 onLinkClick = { url, customTab -> onLinkClick(url, customTab) },
                 onRoomSuccessorClick = { roomId ->
@@ -506,7 +509,7 @@ internal fun RowScope.MessagesMenuActions(
         roomCallState = roomCallState,
         onJoinCallClick = onJoinCallClick,
     )
-    //Spacer(Modifier.width(8.dp)) // SC: moved to scMessagesViewTopBarActions()
+    // Spacer(Modifier.width(8.dp)) // SC: moved to scMessagesViewTopBarActions()
     scMessagesViewTopBarActions(state, roomCallState, onJoinCallClick, onViewAllPinnedMessagesClick)
 }
 
@@ -608,7 +611,9 @@ private fun MessagesViewContent(
                     modifier = Modifier.onSizeChanged { topBannersHeightDp = with(density) { it.height.toDp() } },
                 ) {
                     AnimatedVisibility(
-                        visible = ScPrefs.PINNED_MESSAGE_OVERLAY.value() && state.pinnedMessagesBannerState is PinnedMessagesBannerState.Visible && scrollBehavior.isVisible,
+                        visible =
+                            ScPrefs.PINNED_MESSAGE_OVERLAY.value() && state.pinnedMessagesBannerState is PinnedMessagesBannerState.Visible &&
+                                scrollBehavior.isVisible,
                         enter = expandVertically(),
                         exit = shrinkVertically(),
                     ) {
@@ -643,6 +648,7 @@ private fun MessagesViewComposerBottomSheetContents(
     scBeforeSend: (() -> Unit)?,
     onRoomSuccessorClick: (RoomId) -> Unit,
     onLinkClick: (String, Boolean) -> Unit,
+    emojiPickerRenderer: io.element.android.libraries.emoji.api.picker.EmojiPickerRenderer,
 ) {
     val contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).asPaddingValues()
     when {
@@ -680,6 +686,7 @@ private fun MessagesViewComposerBottomSheetContents(
                         voiceMessageState = state.voiceMessageComposerState,
                         modifier = Modifier.fillMaxWidth(),
                         scBeforeSend = scBeforeSend,
+                        emojiPickerRenderer = emojiPickerRenderer,
                     )
                 }
             }

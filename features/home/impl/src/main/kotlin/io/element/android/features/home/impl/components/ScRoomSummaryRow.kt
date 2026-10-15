@@ -161,7 +161,7 @@ private fun ScRoomSummaryRealRow(
                                 size = AvatarSize.InviteSender,
                             ),
                             avatarType = AvatarType.Sc(CircleShape),
-                            modifier = Modifier.align(Alignment.BottomEnd),
+                            modifier = Modifier.align(Alignment.BottomStart),
                         )
                     }
                 }

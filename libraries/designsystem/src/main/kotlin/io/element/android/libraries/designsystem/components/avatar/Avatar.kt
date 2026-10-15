@@ -8,13 +8,22 @@
 
 package io.element.android.libraries.designsystem.components.avatar
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -26,6 +35,7 @@ import io.element.android.libraries.designsystem.preview.ElementThemedPreview
 import io.element.android.libraries.designsystem.preview.PreviewGroup
 import io.element.android.libraries.designsystem.utils.CommonDrawables
 import kotlinx.collections.immutable.persistentListOf
+import kotlin.math.sqrt
 
 @Composable
 fun Avatar(
@@ -38,38 +48,73 @@ fun Avatar(
     // If true, will show initials even if avatarData.url is not null
     hideImage: Boolean = false,
 ) {
-    when (avatarType) {
-        is AvatarType.Sc -> InitialOrImageAvatar(
-            avatarData = avatarData,
-            hideAvatarImage = hideImage,
-            avatarShape = avatarType.avatarShape(forcedAvatarSize ?: avatarData.size.dp),
-            forcedAvatarSize = forcedAvatarSize,
-            modifier = modifier,
-            contentDescription = contentDescription,
-        )
-        is AvatarType.Room -> RoomAvatar(
-            avatarData = avatarData,
-            avatarType = avatarType,
-            modifier = modifier,
-            hideAvatarImage = hideImage,
-            forcedAvatarSize = forcedAvatarSize,
-            contentDescription = contentDescription,
-        )
-        AvatarType.User -> UserAvatar(
-            avatarData = avatarData,
-            modifier = modifier,
-            contentDescription = contentDescription,
-            forcedAvatarSize = forcedAvatarSize,
-            hideImage = hideImage,
-        )
-        is AvatarType.Space -> SpaceAvatar(
-            avatarData = avatarData,
-            avatarType = avatarType,
-            modifier = modifier,
-            hideAvatarImage = hideImage,
-            forcedAvatarSize = forcedAvatarSize,
-            contentDescription = contentDescription,
-        )
+    val presenceUserId = avatarData.presenceUserId ?: avatarData.id.takeIf { it.startsWith("@") }
+        ?: (avatarType as? AvatarType.Room)?.heroes?.singleOrNull()?.id
+    val provider = LocalAvatarPresence.current
+    val presence by remember(provider, presenceUserId) {
+        presenceUserId?.let(provider) ?: kotlinx.coroutines.flow.flowOf(null)
+    }.collectAsState(initial = null)
+    val pictureSize = forcedAvatarSize ?: avatarData.size.dp
+    val badgeSize = pictureSize * 0.28f
+    // Centre the badge on the circle's 45-degree edge, within the picture's original square bounds.
+    val badgeInset = pictureSize * ((1f - 1f / sqrt(2f)) / 2f) - badgeSize / 2
+    androidx.compose.foundation.layout.Box(modifier) {
+        when (avatarType) {
+            is AvatarType.Sc -> InitialOrImageAvatar(
+                avatarData = avatarData,
+                hideAvatarImage = hideImage,
+                avatarShape = avatarType.avatarShape(forcedAvatarSize ?: avatarData.size.dp),
+                forcedAvatarSize = forcedAvatarSize,
+                modifier = Modifier,
+                contentDescription = contentDescription,
+            )
+            is AvatarType.Room -> RoomAvatar(
+                avatarData = avatarData,
+                avatarType = avatarType,
+                modifier = Modifier,
+                hideAvatarImage = hideImage,
+                forcedAvatarSize = forcedAvatarSize,
+                contentDescription = contentDescription,
+            )
+            AvatarType.User -> UserAvatar(
+                avatarData = avatarData,
+                modifier = Modifier,
+                contentDescription = contentDescription,
+                forcedAvatarSize = forcedAvatarSize,
+                hideImage = hideImage,
+            )
+            is AvatarType.Space -> SpaceAvatar(
+                avatarData = avatarData,
+                avatarType = avatarType,
+                modifier = Modifier,
+                hideAvatarImage = hideImage,
+                forcedAvatarSize = forcedAvatarSize,
+                contentDescription = contentDescription,
+            )
+        }
+        val color = when (presence) {
+            "online" -> io.element.android.compound.theme.ElementTheme.colors.iconSuccessPrimary
+            "unavailable" -> io.element.android.compound.theme.ElementTheme.colors.iconWarningPrimary
+            "offline" -> io.element.android.compound.theme.ElementTheme.colors.iconSecondary
+            else -> null
+        }
+        val presenceDescription = when (presence) {
+            "online" -> androidx.compose.ui.res.stringResource(chat.schildi.lib.R.string.a11y_presence_online)
+            "unavailable" -> androidx.compose.ui.res.stringResource(chat.schildi.lib.R.string.a11y_presence_unavailable)
+            "offline" -> androidx.compose.ui.res.stringResource(chat.schildi.lib.R.string.a11y_presence_offline)
+            else -> ""
+        }
+        if (color != null) {
+            androidx.compose.foundation.layout.Box(
+                Modifier.align(Alignment.BottomEnd)
+                    .offset(x = -badgeInset, y = -badgeInset)
+                    .size(badgeSize)
+                    .background(color, androidx.compose.foundation.shape.CircleShape)
+                    .border(2.dp, io.element.android.compound.theme.ElementTheme.colors.bgCanvasDefault,
+                        androidx.compose.foundation.shape.CircleShape)
+                    .semantics { this.contentDescription = presenceDescription },
+            )
+        }
     }
 }
 

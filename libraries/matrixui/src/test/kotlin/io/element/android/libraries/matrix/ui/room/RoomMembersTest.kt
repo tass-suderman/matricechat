@@ -8,6 +8,7 @@
 
 package io.element.android.libraries.matrix.ui.room
 
+import androidx.compose.runtime.collectAsState
 import app.cash.molecule.RecompositionMode
 import app.cash.molecule.moleculeFlow
 import app.cash.turbine.test
@@ -28,6 +29,21 @@ class RoomMembersTest {
     private val roomMember1 = aRoomMember(A_USER_ID)
     private val roomMember2 = aRoomMember(A_USER_ID_2)
     private val roomMember3 = aRoomMember(A_USER_ID_3)
+
+    @Test
+    fun `direct member updates when members finish loading`() = runTest {
+        val room = FakeBaseRoom(sessionId = A_USER_ID, initialRoomInfo = aRoomInfo(isDm = true))
+        moleculeFlow(RecompositionMode.Immediate) {
+            val members = room.membersStateFlow.collectAsState()
+            room.getDirectRoomMember(members.value).value
+        }.test {
+            assertThat(awaitItem()).isNull()
+            room.givenRoomMembersState(RoomMembersState.Ready(persistentListOf(roomMember1, roomMember2)))
+            assertThat(awaitItem()).isEqualTo(roomMember2)
+            room.givenRoomMembersState(RoomMembersState.Ready(persistentListOf(roomMember1)))
+            assertThat(awaitItem()).isNull()
+        }
+    }
 
     @Test
     fun `getDirectRoomMember emits other member for encrypted DM`() = runTest {

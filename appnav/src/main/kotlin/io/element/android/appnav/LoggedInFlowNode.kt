@@ -699,7 +699,10 @@ class LoggedInFlowNode(
             compoundDark = colors.dark,
             buildMeta = buildMeta,
         ) {
-            CompositionLocalProvider(LocalMapTilerConfig provides updatedMapTilerConfig) {
+            CompositionLocalProvider(
+                LocalMapTilerConfig provides updatedMapTilerConfig,
+                io.element.android.libraries.designsystem.components.avatar.LocalAvatarPresence provides rememberAvatarPresenceProvider(matrixClient),
+            ) {
                 val isOnline by syncService.isOnline.collectAsState()
                 ConnectivityIndicatorContainer(
                     isOnline = isOnline,

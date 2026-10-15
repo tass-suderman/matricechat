@@ -28,6 +28,7 @@ android {
 setupDependencyInjection()
 
 dependencies {
+    implementation(libs.coil.compose)
     implementation(projects.schildi.lib)
     implementation(projects.schildi.matrixsdk)
     implementation(projects.schildi.components)
