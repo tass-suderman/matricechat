@@ -1075,6 +1075,7 @@ class DefaultNotifiableEventResolverTest : RobolectricTest() {
             FakeNotificationMediaRepo()
         }
         return DefaultNotifiableEventResolver(
+            scPreferencesStore = chat.schildi.lib.preferences.PreviewScPreferencesStore,
             stringProvider = AndroidStringProvider(context.resources),
             matrixClientProvider = matrixClientProvider,
             notificationMediaRepoFactory = notificationMediaRepoFactory,

@@ -74,7 +74,6 @@ import org.matrix.rustcomponents.sdk.EditedContent
 import org.matrix.rustcomponents.sdk.FormattedBody
 import org.matrix.rustcomponents.sdk.GalleryUploadParameters
 import org.matrix.rustcomponents.sdk.MessageFormat
-import org.matrix.rustcomponents.sdk.NoticeMessageContent
 import org.matrix.rustcomponents.sdk.PollData
 import org.matrix.rustcomponents.sdk.SendAttachmentJoinHandle
 import org.matrix.rustcomponents.sdk.UploadParameters
@@ -313,7 +312,7 @@ class RustTimeline(
     override suspend fun sendNotice( // SC
         body: String,
         htmlBody: String?,
-        plaintext: Boolean,  // SC
+        plaintext: Boolean, // SC
         intentionalMentions: List<IntentionalMention>,
         inReplyToEventId: EventId?
     ): Result<Unit> = withContext(dispatcher) {
@@ -360,7 +359,7 @@ class RustTimeline(
         body: String,
         htmlBody: String?,
         intentionalMentions: List<IntentionalMention>,
-        plaintext: Boolean,  // SC
+        plaintext: Boolean, // SC
     ): Result<Unit> = withContext(dispatcher) {
         runCatchingExceptions {
             val editedContent = EditedContent.RoomMessage(
@@ -382,7 +381,7 @@ class RustTimeline(
         eventOrTransactionId: EventOrTransactionId,
         caption: String?,
         formattedCaption: String?,
-        plaintext: Boolean,  // SC
+        plaintext: Boolean, // SC
     ): Result<Unit> = withContext(dispatcher) {
         runCatchingExceptions<Unit> {
             val editedContent = createCaptionEdit(
@@ -406,7 +405,7 @@ class RustTimeline(
         repliedToEventId: EventId,
         body: String,
         htmlBody: String?,
-        plaintext: Boolean,  // SC
+        plaintext: Boolean, // SC
         intentionalMentions: List<IntentionalMention>,
         fromNotification: Boolean,
         msgType: MsgType,
@@ -432,7 +431,7 @@ class RustTimeline(
         imageInfo: ImageInfo,
         caption: String?,
         formattedCaption: String?,
-        plaintext: Boolean,  // SC
+        plaintext: Boolean, // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
         Timber.tag(loggerTag).d("Sending image ${file.path.hash()}")
@@ -445,6 +444,7 @@ class RustTimeline(
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
                     skipCaptionAutoformat = plaintext, // SC
+                    extraContentJson = if (imageInfo.isSpoiler) io.element.android.libraries.matrix.api.media.MEDIA_SPOILER_CONTENT else null,
                     mentions = null,
                     inReplyTo = inReplyToEventId?.value,
                 ),
@@ -460,7 +460,7 @@ class RustTimeline(
         videoInfo: VideoInfo,
         caption: String?,
         formattedCaption: String?,
-        plaintext: Boolean,  // SC
+        plaintext: Boolean, // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
         Timber.tag(loggerTag).d("Sending video ${file.path.hash()}")
@@ -473,6 +473,7 @@ class RustTimeline(
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
                     skipCaptionAutoformat = plaintext, // SC
+                    extraContentJson = if (videoInfo.isSpoiler) io.element.android.libraries.matrix.api.media.MEDIA_SPOILER_CONTENT else null,
                     mentions = null,
                     inReplyTo = inReplyToEventId?.value,
                 ),
@@ -487,7 +488,7 @@ class RustTimeline(
         audioInfo: AudioInfo,
         caption: String?,
         formattedCaption: String?,
-        plaintext: Boolean,  // SC
+        plaintext: Boolean, // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
         Timber.tag(loggerTag).d("Sending audio ${file.path.hash()}")
@@ -513,7 +514,7 @@ class RustTimeline(
         fileInfo: FileInfo,
         caption: String?,
         formattedCaption: String?,
-        plaintext: Boolean,  // SC
+        plaintext: Boolean, // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
         Timber.tag(loggerTag).d("Sending file ${file.path.hash()}")

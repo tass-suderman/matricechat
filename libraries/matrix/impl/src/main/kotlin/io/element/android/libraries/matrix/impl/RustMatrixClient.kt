@@ -8,6 +8,7 @@
 
 package io.element.android.libraries.matrix.impl
 
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.libraries.androidutils.file.getSizeOfFiles
@@ -364,6 +365,37 @@ class RustMatrixClient(
             }
             .getOrNull()
             ?: sessionId.value.substringAfter(":")
+    }
+
+    // Keep bearer tokens out of logging interceptors and never forward them across redirects.
+    private val presenceHttpClient = okhttp3.OkHttpClient.Builder()
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .callTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
+    private val presenceRequests = kotlinx.coroutines.sync.Semaphore(4)
+
+    override suspend fun getUserPresence(userId: UserId): Result<String?> = withContext(sessionDispatcher) {
+        runCatchingExceptions {
+            presenceRequests.acquire()
+            try {
+                val url = homeserverUrl.toHttpUrl()
+                    .newBuilder()
+                    .addPathSegments("_matrix/client/v3/presence")
+                    .addPathSegment(userId.value)
+                    .addPathSegment("status")
+                    .build()
+                val request = okhttp3.Request.Builder()
+                    .url(url)
+                    .header("Authorization", "Bearer ${innerClient.session().accessToken}")
+                    .build()
+                presenceHttpClient.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) parsePresence(response.body.string()) else null
+                }
+            } finally {
+                presenceRequests.release()
+            }
+        }
     }
 
     override suspend fun getUrl(url: String): Result<ByteArray> = withContext(sessionDispatcher) {

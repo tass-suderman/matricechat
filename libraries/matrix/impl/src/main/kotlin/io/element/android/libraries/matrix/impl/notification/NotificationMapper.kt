@@ -15,6 +15,8 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.media.mediaSpoilerFlag
+import io.element.android.libraries.matrix.api.media.withMediaSpoiler
 import io.element.android.libraries.matrix.api.notification.NotificationContent
 import io.element.android.libraries.matrix.api.notification.NotificationData
 import io.element.android.libraries.matrix.impl.room.join.map
@@ -53,7 +55,15 @@ class NotificationMapper(
                     isEncrypted = item.roomInfo.isEncrypted.orFalse(),
                     isNoisy = item.isNoisy.orFalse(),
                     timestamp = timestamp,
-                    content = notificationContentMapper.map(item.event).getOrThrow(),
+                    content = notificationContentMapper.map(item.event).getOrThrow().let { content ->
+                        if (content is NotificationContent.MessageLike.RoomMessage) {
+                            content.copy(
+                            messageType = content.messageType.withMediaSpoiler(mediaSpoilerFlag(item.rawEvent) == true),
+                        )
+                        } else {
+                            content
+                        }
+                    },
                     hasMention = item.hasMention.orFalse(),
                     roomJoinRule = item.roomInfo.joinRule?.map(),
                 )

@@ -78,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.ScPrefs.FLOATING_DATE
 import chat.schildi.lib.preferences.value
 import chat.schildi.timeline.FloatingDateHeader
@@ -156,7 +157,7 @@ fun TimelineView(
         val timeline = state.timelineItems
         val firstVisibleTimelineIndex = effectiveVisibleTimelineItemIndex(firstVisibleIndex)
         if (firstVisibleTimelineIndex < timeline.size &&
-            timeline.subList(firstVisibleTimelineIndex, min(timeline.size-1, firstVisibleTimelineIndex+visibleItemCount))
+            timeline.subList(firstVisibleTimelineIndex, min(timeline.size - 1, firstVisibleTimelineIndex + visibleItemCount))
                 .any { it.contentType() == "TimelineItemReadMarkerModel" }) {
             state.eventSink(TimelineEvent.OnUnreadLineVisible)
         }
@@ -209,6 +210,18 @@ fun TimelineView(
         }
         CompositionLocalProvider(LocalTimelineEventRendererConfig provides composeLocalTimelineEventRendererConfig) {
             Box(modifier) {
+                if (ScPrefs.CHAT_WALLPAPER_ENABLED.value()) {
+                    val wallpaper = ScPrefs.CHAT_WALLPAPER.value()
+                    if (wallpaper.isNotEmpty()) {
+                        coil3.compose.AsyncImage(
+                            model = java.io.File(wallpaper),
+                            alpha = ScPrefs.CHAT_WALLPAPER_OPACITY.value().coerceIn(0, 100) / 100f,
+                            contentDescription = null,
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier.matchParentSize(),
+                        )
+                    }
+                }
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -451,11 +464,11 @@ private fun BoxScope.TimelineScrollHelper(
         }
     }
 
-    //val latestOnScrollFinishAt by rememberUpdatedState(onScrollFinishAt)
+    // val latestOnScrollFinishAt by rememberUpdatedState(onScrollFinishAt)
     LaunchedEffect(isScrollFinished, hasAnyEvent) {
         if (isScrollFinished && hasAnyEvent) {
             // Notify the parent composable about the first visible item index when scrolling finishes
-            //latestOnScrollFinishAt(lazyListState.firstVisibleItemIndex)
+            // latestOnScrollFinishAt(lazyListState.firstVisibleItemIndex)
             onScrollFinishAt(lazyListState.firstVisibleItemIndex, lazyListState.layoutInfo.visibleItemsInfo.size)
         }
     }

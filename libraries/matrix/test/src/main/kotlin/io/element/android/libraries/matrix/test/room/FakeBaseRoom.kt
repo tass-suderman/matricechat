@@ -64,8 +64,22 @@ class FakeBaseRoom(
     private val forgetResult: () -> Result<Unit> = { lambdaError() },
     private val reportRoomResult: (String?) -> Result<Unit> = { lambdaError() },
     private val predecessorRoomResult: () -> PredecessorRoom? = { null },
+    private val getRawStateResult: (String, String) -> Result<String?> = { _, _ -> lambdaError() },
+    private val sendRawResult: (String, String) -> Result<Unit> = { _, _ -> lambdaError() },
+    private val fetchFullRoomStateResult: () -> Result<List<String>> = { lambdaError() },
     private val threadRootIdForEventResult: (EventId) -> Result<ThreadId?> = { lambdaError() },
 ) : BaseRoom {
+    override suspend fun addSpaceChild(childId: RoomId): Result<Unit> = Result.success(Unit)
+    override suspend fun removeSpaceChild(childId: RoomId): Result<Unit> = Result.success(Unit)
+    override suspend fun setIsLowPriority(isLowPriority: Boolean): Result<Unit> = Result.success(Unit)
+    override suspend fun forceSendSingleReadReceipt(receiptType: ReceiptType, eventId: EventId): Result<Unit> = Result.success(Unit)
+    override suspend fun sendRaw(eventType: String, content: String): Result<Unit> = sendRawResult(eventType, content)
+    override suspend fun sendRawState(eventType: String, stateKey: String, content: String): Result<String> = lambdaError()
+    override suspend fun getRawState(eventType: String, stateKey: String): Result<String?> = getRawStateResult(eventType, stateKey)
+    override suspend fun getRawState(eventType: String): Result<List<String>> = lambdaError()
+    override suspend fun fetchFullRoomState(): Result<List<String>> = fetchFullRoomStateResult()
+    override suspend fun setRoomUserDisplayName(displayName: String?): Result<Unit> = Result.success(Unit)
+
     private val _roomInfoFlow: MutableStateFlow<RoomInfo> = MutableStateFlow(initialRoomInfo)
     override val roomInfoFlow: StateFlow<RoomInfo> = _roomInfoFlow
 

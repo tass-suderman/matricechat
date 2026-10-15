@@ -68,6 +68,13 @@ internal fun aRustRoomInfo(
     isDm: Boolean = false,
     fullyReadEventId: String? = null,
 ) = RoomInfo(
+    unreadCount = 0u,
+    privateRoomName = null,
+    spaceChildren = emptyList(),
+    canonicalSpaceParent = null,
+    canUserManageSpaces = false,
+    hasIncompleteUnreadCount = false,
+    bridgeStates = emptyList(),
     id = id,
     displayName = displayName,
     rawName = rawName,

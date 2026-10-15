@@ -77,6 +77,7 @@ fun CustomReactionBottomSheet(
                 ExpandSheetWhenImeIsVisible(sheetState)
                 emojiPickerRenderer.Render(
                     state = state.target.emojiPickerState,
+                    autoFocusSearch = true,
                     onSelectEmoji = ::onEmojiSelectedDismiss,
                     onSelectCustomEmoji = ::onCustomEmojiSelectedDismiss,
                     selectedEmojis = state.selectedEmoji,

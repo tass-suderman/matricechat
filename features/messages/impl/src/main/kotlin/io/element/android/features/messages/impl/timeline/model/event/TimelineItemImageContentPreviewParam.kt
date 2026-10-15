@@ -17,6 +17,7 @@ open class TimelineItemImageContentPreviewParam : PreviewParameterProvider<Timel
     override val values: Sequence<TimelineItemImageContent>
         get() = sequenceOf(
             aTimelineItemImageContent(),
+            aTimelineItemImageContent().let { it.copy(mediaSource = it.mediaSource.copy(isSpoiler = true)) },
             aTimelineItemImageContent(aspectRatio = 1.0f),
             aTimelineItemImageContent(aspectRatio = 1.5f),
             aTimelineItemImageContent(blurhash = null),

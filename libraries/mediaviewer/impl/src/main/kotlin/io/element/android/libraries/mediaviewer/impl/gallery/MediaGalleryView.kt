@@ -39,6 +39,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +53,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.value
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.architecture.AsyncData
@@ -420,6 +423,23 @@ private fun MediaGalleryImageGrid(
             key = { it.id() },
             contentType = { it::class.java },
         ) { item ->
+            val source = when (item) {
+                is MediaItem.Image -> item.mediaSource
+                is MediaItem.Video -> item.mediaSource
+                else -> null
+            }
+            var spoilerRevealed by remember(source) { mutableStateOf(false) }
+            if (source?.isSpoiler == true && ScPrefs.MEDIA_SPOILERS.value() && !spoilerRevealed) {
+                io.element.android.libraries.matrix.ui.components.MediaSpoilerPreview(
+                    model = io.element.android.libraries.matrix.ui.media.MediaRequestData(
+                        source = if (item is MediaItem.Video) item.thumbnailSource else source,
+                        kind = io.element.android.libraries.matrix.ui.media.MediaRequestData.Kind.Thumbnail(320L, 320L),
+                    ),
+                    onReveal = { spoilerRevealed = true },
+                    modifier = Modifier.aspectRatio(1f),
+                )
+                return@items
+            }
             val blurHash = when (item) {
                 is MediaItem.Image -> item.blurHash
                 is MediaItem.Video -> item.blurHash

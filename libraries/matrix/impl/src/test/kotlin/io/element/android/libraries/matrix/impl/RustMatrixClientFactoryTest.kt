@@ -55,6 +55,7 @@ fun TestScope.createRustMatrixClientFactory(
     workManagerScheduler: FakeWorkManagerScheduler = FakeWorkManagerScheduler(),
     sqliteStoreBuilderProvider: SqliteStoreBuilderProvider = FakeSqliteStoreBuilderProvider(),
 ) = RustMatrixClientFactory(
+    scPreferencesStore = chat.schildi.lib.preferences.FakeScPreferencesStore,
     cacheDirectory = cacheDirectory,
     appCoroutineScope = backgroundScope,
     coroutineDispatchers = testCoroutineDispatchers(),

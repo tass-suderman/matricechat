@@ -20,8 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.value
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.designsystem.components.blurhash.BlurHashAsyncImage
 import io.element.android.libraries.designsystem.preview.ElementPreview
@@ -38,7 +41,13 @@ fun AttachmentThumbnail(
     thumbnailSize: Long = 32L,
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
 ) {
-    if (info.thumbnailSource != null) {
+    if (info.thumbnailSource?.isSpoiler == true && ScPrefs.MEDIA_SPOILERS.value()) {
+        Icon(
+            imageVector = CompoundIcons.VisibilityOff(),
+            contentDescription = stringResource(chat.schildi.lib.R.string.common_media_spoiler),
+            modifier = modifier
+        )
+    } else if (info.thumbnailSource != null) {
         val mediaRequestData = MediaRequestData(
             source = info.thumbnailSource,
             kind = MediaRequestData.Kind.Thumbnail(thumbnailSize),

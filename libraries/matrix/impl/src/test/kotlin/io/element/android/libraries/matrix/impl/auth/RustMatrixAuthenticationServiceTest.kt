@@ -269,6 +269,7 @@ class RustMatrixAuthenticationServiceTest {
             sqliteStoreBuilderProvider = sqliteStoreBuilderProvider,
         )
         return RustMatrixAuthenticationService(
+            buildMeta = aBuildMeta(),
             sessionPathsFactory = sessionPathsFactory,
             coroutineDispatchers = testCoroutineDispatchers(),
             sessionStore = sessionStore,

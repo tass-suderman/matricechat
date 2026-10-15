@@ -10,7 +10,9 @@ package io.element.android.libraries.matrix.impl.timeline.reply
 
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.media.withMediaSpoiler
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.impl.timeline.item.event.TimelineEventContentMapper
 import io.element.android.libraries.matrix.impl.timeline.item.event.map
 import org.matrix.rustcomponents.sdk.EmbeddedEventDetails
@@ -25,7 +27,10 @@ class InReplyToMapper(
             is EmbeddedEventDetails.Ready -> {
                 InReplyTo.Ready(
                     eventId = inReplyToId,
-                    content = timelineEventContentMapper.map(event.content),
+                    content = timelineEventContentMapper.map(event.content).let { content ->
+                        // shortcut: embedded SDK replies omit custom flags; show a thumbnail only when the original event is available.
+                        if (content is MessageContent) content.copy(type = content.type.withMediaSpoiler(true)) else content
+                    },
                     senderId = UserId(event.sender),
                     senderProfile = event.senderProfile.map(),
                 )

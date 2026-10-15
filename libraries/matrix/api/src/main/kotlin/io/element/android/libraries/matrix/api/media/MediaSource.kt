@@ -22,6 +22,7 @@ data class MediaSource(
      * This is used to hold data for encrypted media.
      */
     val json: String? = null,
+    val isSpoiler: Boolean = false,
 ) : Parcelable {
     /**
      * A URL with invalid parts (like `#fragment`, if it's an MXC url) removed.

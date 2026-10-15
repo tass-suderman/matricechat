@@ -914,15 +914,18 @@ class TimelinePresenterTest {
             val oneReaction = persistentListOf(
                 EventReaction(
                     key = "❤️",
-                    senders = persistentListOf(alice, charlie)
+                    senders = persistentListOf(alice, charlie),
+                    shortcode = null
                 ),
                 EventReaction(
                     key = "👍",
-                    senders = persistentListOf(alice, bob)
+                    senders = persistentListOf(alice, bob),
+                    shortcode = null
                 ),
                 EventReaction(
                     key = "🐶",
-                    senders = persistentListOf(charlie)
+                    senders = persistentListOf(charlie),
+                    shortcode = null
                 ),
             )
             timelineItems.emit(
@@ -1041,7 +1044,7 @@ class TimelinePresenterTest {
             initialState.eventSink.invoke(TimelineEvent.FocusOnEvent(AN_EVENT_ID))
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
-                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO))
+                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO, forReadMarker = false))
             }
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
@@ -1049,7 +1052,7 @@ class TimelinePresenterTest {
             }
             skipItems(2)
             awaitItem().also { state ->
-                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Success(AN_EVENT_ID))
+                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Success(AN_EVENT_ID, forReadMarker = false))
                 assertThat(state.timelineItems).isNotEmpty()
             }
             initialState.eventSink.invoke(TimelineEvent.JumpToLive)
@@ -1075,7 +1078,7 @@ class TimelinePresenterTest {
         presenter.test {
             val initialState = awaitFirstItem()
             initialState.eventSink.invoke(TimelineEvent.FocusOnEvent(AN_EVENT_ID))
-            val focusedState = consumeItemsUntilPredicate { it.focusRequestState == FocusRequestState.Success(AN_EVENT_ID) }.last()
+            val focusedState = consumeItemsUntilPredicate { it.focusRequestState == FocusRequestState.Success(AN_EVENT_ID, forReadMarker = false) }.last()
             assertThat(focusedState.isLive).isFalse()
             initialState.eventSink.invoke(TimelineEvent.LoadMore(Timeline.PaginationDirection.FORWARDS))
 
@@ -1101,7 +1104,7 @@ class TimelinePresenterTest {
         presenter.test {
             val initialState = awaitFirstItem()
             initialState.eventSink.invoke(TimelineEvent.FocusOnEvent(AN_EVENT_ID))
-            consumeItemsUntilPredicate { it.focusRequestState == FocusRequestState.Success(AN_EVENT_ID) }
+            consumeItemsUntilPredicate { it.focusRequestState == FocusRequestState.Success(AN_EVENT_ID, forReadMarker = false) }
             initialState.eventSink.invoke(TimelineEvent.OnFocusEventRender)
             initialState.eventSink.invoke(TimelineEvent.LoadMore(Timeline.PaginationDirection.FORWARDS))
             advanceUntilIdle()
@@ -1125,7 +1128,7 @@ class TimelinePresenterTest {
         presenter.test {
             val initialState = awaitFirstItem()
             initialState.eventSink.invoke(TimelineEvent.FocusOnEvent(AN_EVENT_ID))
-            consumeItemsUntilPredicate { it.focusRequestState == FocusRequestState.Success(AN_EVENT_ID) }
+            consumeItemsUntilPredicate { it.focusRequestState == FocusRequestState.Success(AN_EVENT_ID, forReadMarker = false) }
             initialState.eventSink.invoke(TimelineEvent.LoadMore(Timeline.PaginationDirection.BACKWARDS))
             advanceUntilIdle()
             assert(paginateLambda)
@@ -1265,11 +1268,11 @@ class TimelinePresenterTest {
 
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
-                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO))
+                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO, forReadMarker = false))
             }
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
-                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Success(AN_EVENT_ID, 0))
+                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Success(AN_EVENT_ID, 0, forReadMarker = false))
             }
         }
     }
@@ -1293,7 +1296,7 @@ class TimelinePresenterTest {
             initialState.eventSink(TimelineEvent.FocusOnEvent(AN_EVENT_ID))
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
-                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO))
+                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO, forReadMarker = false))
             }
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
@@ -1347,7 +1350,7 @@ class TimelinePresenterTest {
 
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
-                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO))
+                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO, forReadMarker = false))
             }
 
             advanceUntilIdle()
@@ -1355,7 +1358,7 @@ class TimelinePresenterTest {
             assertThat(awaitItem().focusRequestState).isEqualTo(FocusRequestState.Loading(AN_EVENT_ID))
 
             // The live timeline focuses in the thread root
-            assertThat(awaitItem().focusRequestState).isEqualTo(FocusRequestState.Success(A_THREAD_ID.asEventId()))
+            assertThat(awaitItem().focusRequestState).isEqualTo(FocusRequestState.Success(A_THREAD_ID.asEventId(), forReadMarker = false))
 
             // The thread is opened
             openThreadLambda.assertions()
@@ -1406,7 +1409,7 @@ class TimelinePresenterTest {
 
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
-                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO))
+                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO, forReadMarker = false))
             }
 
             advanceUntilIdle()
@@ -1414,7 +1417,7 @@ class TimelinePresenterTest {
             assertThat(awaitItem().focusRequestState).isEqualTo(FocusRequestState.Loading(AN_EVENT_ID))
 
             // The live timeline focuses in the event directly since we are already in the thread
-            assertThat(awaitItem().focusRequestState).isEqualTo(FocusRequestState.Success(AN_EVENT_ID))
+            assertThat(awaitItem().focusRequestState).isEqualTo(FocusRequestState.Success(AN_EVENT_ID, forReadMarker = false))
 
             // The thread is not opened again
             openThreadLambda.assertions().isNeverCalled()
@@ -1461,7 +1464,7 @@ class TimelinePresenterTest {
 
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
-                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO))
+                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO, forReadMarker = false))
             }
 
             advanceUntilIdle()
@@ -1469,7 +1472,7 @@ class TimelinePresenterTest {
             assertThat(awaitItem().focusRequestState).isEqualTo(FocusRequestState.Loading(AN_EVENT_ID))
 
             // The live timeline focuses in the event directly since we are already in the thread
-            assertThat(awaitItem().focusRequestState).isEqualTo(FocusRequestState.Success(A_THREAD_ID_2.asEventId()))
+            assertThat(awaitItem().focusRequestState).isEqualTo(FocusRequestState.Success(A_THREAD_ID_2.asEventId(), forReadMarker = false))
 
             // The other thread is opened
             openThreadLambda.assertions()
@@ -1520,7 +1523,7 @@ class TimelinePresenterTest {
 
             awaitItem().also { state ->
                 assertThat(state.focusedEventId).isEqualTo(AN_EVENT_ID)
-                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO))
+                assertThat(state.focusRequestState).isEqualTo(FocusRequestState.Requested(AN_EVENT_ID, Duration.ZERO, forReadMarker = false))
             }
 
             advanceUntilIdle()

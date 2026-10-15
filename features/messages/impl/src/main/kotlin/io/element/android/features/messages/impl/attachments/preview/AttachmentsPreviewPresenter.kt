@@ -20,6 +20,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.settingState
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
@@ -75,6 +78,7 @@ class AttachmentsPreviewPresenter(
     @SessionCoroutineScope private val sessionCoroutineScope: CoroutineScope,
     private val dispatchers: CoroutineDispatchers,
     private val mediaOptimizationConfigProvider: MediaOptimizationConfigProvider,
+    private val scPreferencesStore: ScPreferencesStore,
 ) : Presenter<AttachmentsPreviewState> {
     @AssistedFactory
     interface Factory {
@@ -114,6 +118,9 @@ class AttachmentsPreviewPresenter(
         val ongoingSendAttachmentJob = remember { mutableStateOf<Job?>(null) }
 
         var currentIndex by remember { mutableIntStateOf(0) }
+        val spoilersEnabled by scPreferencesStore.settingState(ScPrefs.MEDIA_SPOILERS)
+        var spoilerIndices by remember { mutableStateOf<Set<Int>>(emptySet()) }
+        var preparedFileIndices by remember { mutableStateOf<Map<File, Int>>(emptyMap()) }
 
         var attachmentsAndEdits by remember {
             mutableStateOf(
@@ -260,13 +267,25 @@ class AttachmentsPreviewPresenter(
                         val caption = markdownTextEditorState.getMessageMarkdown(permalinkBuilder)
                             .takeIf { it.isNotEmpty() }
 
+                        if (allMediaUploadInfos.size == editedAttachments.size) {
+                            preparedFileIndices = allMediaUploadInfos.mapIndexed { index, info -> info.file to index }.toMap()
+                        }
+                        val selectedSpoilers = spoilerIndices
+                        val preparedIndices = preparedFileIndices
                         val editedTempFilesToDelete = editedTempFiles
                         editedTempFiles = emptyMap()
 
                         // Send the media using the session coroutine scope so it doesn't matter if this screen or the chat one are closed
                         sessionCoroutineScope.launch(dispatchers.io) {
                             sendMedia(
-                                mediaUploadInfos = allMediaUploadInfos,
+                                mediaUploadInfos = allMediaUploadInfos.map { info ->
+                                    val spoiler = spoilersEnabled && preparedIndices[info.file] in selectedSpoilers
+                                    when (info) {
+                                        is MediaUploadInfo.Image -> info.copy(imageInfo = info.imageInfo.copy(isSpoiler = spoiler))
+                                        is MediaUploadInfo.Video -> info.copy(videoInfo = info.videoInfo.copy(isSpoiler = spoiler))
+                                        else -> info
+                                    }
+                                },
                                 caption = caption,
                                 sendActionState = sendActionState,
                                 inReplyToEventId = inReplyToEventId,
@@ -407,13 +426,22 @@ class AttachmentsPreviewPresenter(
                 AttachmentsPreviewEvent.ClearImageEditError -> {
                     displayImageEditError = false
                 }
+                AttachmentsPreviewEvent.ToggleSpoiler -> {
+                    if (spoilersEnabled) spoilerIndices = if (currentIndex in spoilerIndices) spoilerIndices - currentIndex else spoilerIndices + currentIndex
+                }
                 is AttachmentsPreviewEvent.SetCurrentCarouselIndex -> {
                     currentIndex = event.index
                 }
             }
         }
 
+        val currentMedia = (editedAttachments.getOrNull(currentIndex) as? Attachment.Media)?.localMedia
+        val canMarkSpoiler = spoilersEnabled && currentMedia?.info?.mimeType?.let {
+            it.startsWith("image/") || it.startsWith("video/")
+        } == true
         return AttachmentsPreviewState(
+            canMarkSpoiler = canMarkSpoiler,
+            isSpoiler = currentIndex in spoilerIndices,
             attachments = editedAttachments,
             imageEditorState = imageEditorState,
             canEditImage = canEditImage,
@@ -528,8 +556,17 @@ class AttachmentsPreviewPresenter(
         caption: String?,
         sendActionState: MutableState<SendActionState>,
         inReplyToEventId: EventId?,
-    ) = runCatchingExceptions {
-        if (mediaUploadInfos.size == 1) {
+    ) {
+        var remainingMedia = mediaUploadInfos
+        runCatchingExceptions {
+        if (mediaUploadInfos.any { it is MediaUploadInfo.Image && it.imageInfo.isSpoiler || it is MediaUploadInfo.Video && it.videoInfo.isSpoiler }) {
+            // The interoperable spoiler flag belongs on each individual media event.
+            for ((index, info) in mediaUploadInfos.withIndex()) {
+                sendActionState.value = SendActionState.Sending.Uploading(remainingMedia)
+                mediaSender.sendPreProcessedMedia(info, caption.takeIf { index == 0 }, null, inReplyToEventId).getOrThrow()
+                remainingMedia = remainingMedia.drop(1)
+            }
+        } else if (mediaUploadInfos.size == 1) {
             sendActionState.value = SendActionState.Sending.Uploading(mediaUploadInfos)
             mediaSender.sendPreProcessedMedia(
                 mediaUploadInfo = mediaUploadInfos.first(),
@@ -556,8 +593,9 @@ class AttachmentsPreviewPresenter(
             if (error is CancellationException) {
                 throw error
             } else {
-                sendActionState.value = SendActionState.Failure(error, mediaUploadInfos)
+                sendActionState.value = SendActionState.Failure(error, remainingMedia)
             }
         }
     )
+    }
 }

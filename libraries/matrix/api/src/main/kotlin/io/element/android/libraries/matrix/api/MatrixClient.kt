@@ -135,6 +135,9 @@ interface MatrixClient : ClientUrlContentFetcher {
     /** Scans media content before it is displayed, or `null` when no content scanner is configured for this session. */
     val contentScanner: ContentScanner?
 
+    /** Reported presence, or null if the homeserver does not expose it. */
+    suspend fun getUserPresence(userId: UserId): Result<String?>
+
     // SC start
     suspend fun getGlobalAccountData(): Result<List<AccountDataRawEvent>>
     suspend fun getRoomAccountData(roomId: RoomId): Result<List<AccountDataRawEvent>>

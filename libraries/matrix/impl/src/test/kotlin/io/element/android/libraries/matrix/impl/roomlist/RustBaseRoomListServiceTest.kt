@@ -21,7 +21,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.matrix.rustcomponents.sdk.RoomListServiceSyncIndicator
-import org.matrix.rustcomponents.sdk.RoomListService as RustRoomListService
+import org.matrix.rustcomponents.sdk.RoomListService as FfiRoomListService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RustBaseRoomListServiceTest {
@@ -44,8 +44,9 @@ class RustBaseRoomListServiceTest {
 }
 
 private fun TestScope.createRustRoomListService(
-    roomListService: RustRoomListService = FakeFfiRoomListService(),
+    roomListService: FfiRoomListService = FakeFfiRoomListService(),
 ) = RustRoomListService(
+    scPreferencesStore = chat.schildi.lib.preferences.FakeScPreferencesStore,
     innerRoomListService = roomListService,
     sessionDispatcher = StandardTestDispatcher(testScheduler),
     roomListFactory = RoomListFactory(

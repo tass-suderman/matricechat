@@ -159,6 +159,7 @@ class TimelineTextViewTest : RobolectricTest() {
             body = body,
             htmlDocument = null,
             formattedBody = formattedBody ?: SpannedString(body),
-            isEdited = false
+            isEdited = false,
+            formattedBodySc = com.beeper.android.messageformat.MatrixBodyParseResult(body)
         )
 }

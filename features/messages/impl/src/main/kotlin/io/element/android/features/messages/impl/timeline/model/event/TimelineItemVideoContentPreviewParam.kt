@@ -18,6 +18,7 @@ open class TimelineItemVideoContentPreviewParam : PreviewParameterProvider<Timel
     override val values: Sequence<TimelineItemVideoContent>
         get() = sequenceOf(
             aTimelineItemVideoContent(),
+            aTimelineItemVideoContent().let { it.copy(mediaSource = it.mediaSource.copy(isSpoiler = true)) },
             aTimelineItemVideoContent(aspectRatio = 1.0f),
             aTimelineItemVideoContent(aspectRatio = 1.5f),
             aTimelineItemVideoContent(thumbnailMediaSource = MediaSource("https://example.com/thumbnail.jpg")),

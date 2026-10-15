@@ -65,6 +65,7 @@ class RustTemporaryMatrixClientFactoryTest {
         clientBuilderProvider: ClientBuilderProvider = FakeClientBuilderProvider(),
         workManagerScheduler: FakeWorkManagerScheduler = FakeWorkManagerScheduler(),
     ) = RustMatrixClientFactory(
+        scPreferencesStore = chat.schildi.lib.preferences.FakeScPreferencesStore,
         cacheDirectory = cacheDirectory,
         appCoroutineScope = backgroundScope,
         coroutineDispatchers = testCoroutineDispatchers(),

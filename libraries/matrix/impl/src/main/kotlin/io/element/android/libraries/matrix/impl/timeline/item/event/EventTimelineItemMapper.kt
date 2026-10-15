@@ -12,15 +12,21 @@ import io.element.android.libraries.matrix.api.core.DeviceId
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.TransactionId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.media.mediaSpoilerFlag
+import io.element.android.libraries.matrix.api.media.withMediaSpoiler
 import io.element.android.libraries.matrix.api.timeline.item.TimelineItemDebugInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.EventReaction
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.event.GalleryMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.LocalEventSendState
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageShield
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails
 import io.element.android.libraries.matrix.api.timeline.item.event.ReactionSender
 import io.element.android.libraries.matrix.api.timeline.item.event.Receipt
 import io.element.android.libraries.matrix.api.timeline.item.event.TimelineItemEventOrigin
+import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.api.user.DisplayedStatus
 import io.element.android.libraries.matrix.impl.core.RustSendHandle
 import io.element.android.libraries.matrix.impl.user.from
@@ -43,6 +49,15 @@ class EventTimelineItemMapper(
     private val contentMapper: TimelineEventContentMapper = TimelineEventContentMapper(),
 ) {
     fun map(eventTimelineItem: RustEventTimelineItem): EventTimelineItem = eventTimelineItem.run {
+        val mappedContent = contentMapper.map(content)
+        val mediaContent = if (mappedContent is MessageContent &&
+            (mappedContent.type is ImageMessageType || mappedContent.type is VideoMessageType || mappedContent.type is GalleryMessageType)) {
+            val debug = lazyProvider.debugInfo()
+            val spoiler = mediaSpoilerFlag(debug.latestEditJson) ?: mediaSpoilerFlag(debug.originalJson) ?: false
+            mappedContent.copy(type = mappedContent.type.withMediaSpoiler(spoiler))
+        } else {
+            mappedContent
+        }
         EventTimelineItem(
             eventId = eventOrTransactionId.eventId(),
             transactionId = eventOrTransactionId.transactionId(),
@@ -56,7 +71,7 @@ class EventTimelineItemMapper(
             sender = UserId(sender),
             senderProfile = senderProfile.map(),
             timestamp = timestamp.toLong(),
-            content = contentMapper.map(content),
+            content = mediaContent,
             origin = origin?.map(),
             timelineItemDebugInfoProvider = { lazyProvider.debugInfo().map() },
             messageShieldProvider = { strict -> lazyProvider.getShields(strict).map() },

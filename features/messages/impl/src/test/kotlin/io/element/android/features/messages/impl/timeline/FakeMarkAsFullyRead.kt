@@ -16,7 +16,7 @@ import io.element.android.tests.testutils.lambda.lambdaError
 class FakeMarkAsFullyRead(
     private val invokeResult: (RoomId, EventId) -> Unit = { _, _ -> lambdaError() },
 ) : MarkAsFullyRead {
-    override suspend fun invoke(roomId: RoomId, eventId: EventId): Result<Unit> {
+    override suspend fun invoke(roomId: RoomId, eventId: EventId, withReadReceipt: io.element.android.libraries.matrix.api.timeline.ReceiptType?): Result<Unit> {
         return runCatchingExceptions { invokeResult(roomId, eventId) }
     }
 }

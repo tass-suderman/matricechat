@@ -11,6 +11,7 @@ package io.element.android.features.messages.impl.attachments.preview
 import io.element.android.features.messages.impl.attachments.preview.imageeditor.NormalizedCropRect
 
 sealed interface AttachmentsPreviewEvent {
+    data object ToggleSpoiler : AttachmentsPreviewEvent
     data object SendAttachment : AttachmentsPreviewEvent
     data object CancelAndDismiss : AttachmentsPreviewEvent
     data object CancelAndClearSendState : AttachmentsPreviewEvent

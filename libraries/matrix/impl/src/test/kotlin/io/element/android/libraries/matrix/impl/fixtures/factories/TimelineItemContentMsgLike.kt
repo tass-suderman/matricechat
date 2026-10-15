@@ -25,6 +25,7 @@ internal fun aRustTimelineItemContentMsgLike(
                 body = body,
                 isEdited = false,
                 mentions = null,
+                perMessageProfile = null,
             )
         ),
         threadRoot = null,

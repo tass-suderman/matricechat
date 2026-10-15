@@ -13,6 +13,7 @@ import io.element.android.libraries.matrix.api.core.DeviceId
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.ProgressCallback
 import io.element.android.libraries.matrix.api.core.RoomAlias
+import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SendHandle
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityStateChange
@@ -70,6 +71,7 @@ class FakeJoinedRoom(
     private val setNameResult: (String) -> Result<Unit> = { lambdaError() },
     private val setTopicResult: (String) -> Result<Unit> = { lambdaError() },
     private val updateAvatarResult: (String, ByteArray) -> Result<Unit> = { _, _ -> lambdaError() },
+    private val setAvatarUrlResult: (String) -> Result<Unit> = { lambdaError() },
     private val removeAvatarResult: () -> Result<Unit> = { lambdaError() },
     private val updateUserRoleResult: (List<UserRoleChange>) -> Result<Unit> = { lambdaError() },
     private val updatePowerLevelsResult: (RoomPowerLevelsValues) -> Result<Unit> = { lambdaError() },
@@ -135,6 +137,8 @@ class FakeJoinedRoom(
         simulateSendMediaProgress(null)
         updateAvatarResult(mimeType, data)
     }
+
+    override suspend fun setAvatarUrl(url: String): Result<Unit> = setAvatarUrlResult(url)
 
     override suspend fun removeAvatar(): Result<Unit> = simulateLongTask {
         removeAvatarResult()

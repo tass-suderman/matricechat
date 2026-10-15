@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 class FakeRoomListService(
     private val subscribeToVisibleRoomsLambda: (List<RoomId>) -> Unit = {},
     private val createRoomListLambda: (pageSize: Int) -> DynamicRoomList = { pageSize -> FakeDynamicRoomList(pageSize = pageSize) },
+    override val allSpaces: RoomList = FakeDynamicRoomList(pageSize = Int.MAX_VALUE),
     override val allRooms: RoomList = createRoomListLambda(Int.MAX_VALUE),
     private val isInitialSyncLambda: () -> Boolean = { true },
 ) : RoomListService {

@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.value
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseMessageLikeContent
@@ -69,18 +71,20 @@ internal fun InReplyToDetails.Ready.metadata(hideImage: Boolean): InReplyToMetad
     is MessageContent -> when (val type = eventContent.type) {
         is ImageMessageType -> Thumbnail(
             AttachmentThumbnailInfo(
-                thumbnailSource = (type.info?.thumbnailSource ?: type.source).takeUnless { hideImage },
+                thumbnailSource = (type.info?.thumbnailSource ?: type.source).takeUnless {
+                    hideImage || type.source.isSpoiler && ScPrefs.MEDIA_SPOILERS.value()
+                },
                 textContent = eventContent.body,
                 type = AttachmentThumbnailType.Image,
-                blurHash = type.info?.blurhash,
+                blurHash = type.info?.blurhash.takeUnless { type.source.isSpoiler && ScPrefs.MEDIA_SPOILERS.value() },
             )
         )
         is VideoMessageType -> Thumbnail(
             AttachmentThumbnailInfo(
-                thumbnailSource = type.info?.thumbnailSource?.takeUnless { hideImage },
+                thumbnailSource = type.info?.thumbnailSource?.takeUnless { hideImage || type.source.isSpoiler && ScPrefs.MEDIA_SPOILERS.value() },
                 textContent = eventContent.body,
                 type = AttachmentThumbnailType.Video,
-                blurHash = type.info?.blurhash,
+                blurHash = type.info?.blurhash.takeUnless { type.source.isSpoiler && ScPrefs.MEDIA_SPOILERS.value() },
             )
         )
         is FileMessageType -> Thumbnail(

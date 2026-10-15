@@ -91,6 +91,32 @@ class AttachmentsPreviewPresenterTest : RobolectricTest() {
     }
 
     @Test
+    fun `marked image reaches the uploader with spoiler metadata`() = runTest {
+        var sentInfo: ImageInfo? = null
+        val room = FakeJoinedRoom(liveTimeline = FakeTimeline().apply {
+            sendImageLambda = { _, _, info, _, _, _ ->
+                sentInfo = info
+                Result.success(FakeMediaUploadHandler())
+            }
+        })
+        val preProcessor = FakeMediaPreProcessor().apply { givenImageResult() }
+        createAttachmentsPreviewPresenter(room = room, mediaPreProcessor = preProcessor, onDoneListener = {}).test {
+            skipItems(1)
+            var state = awaitItem()
+            assertThat(state.canMarkSpoiler).isTrue()
+            state.eventSink(AttachmentsPreviewEvent.ToggleSpoiler)
+            do {
+                state = awaitItem()
+            } while (!state.isSpoiler)
+            state.eventSink(AttachmentsPreviewEvent.SendAttachment)
+            do {
+                state = awaitItem()
+            } while (state.sendActionState != SendActionState.Done)
+            assertThat(sentInfo!!.isSpoiler).isTrue()
+        }
+    }
+
+    @Test
     fun `present - initial state`() = runTest {
         createAttachmentsPreviewPresenter().test {
             skipItems(1)
@@ -1000,6 +1026,7 @@ class AttachmentsPreviewPresenterTest : RobolectricTest() {
             timelineMode = timelineMode,
             inReplyToEventId = null,
             mediaOptimizationConfigProvider = mediaOptimizationConfigProvider,
+            scPreferencesStore = chat.schildi.lib.preferences.PreviewScPreferencesStore,
         )
     }
 

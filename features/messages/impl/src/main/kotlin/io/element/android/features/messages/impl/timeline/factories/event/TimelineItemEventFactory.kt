@@ -107,6 +107,13 @@ class TimelineItemEventFactory(
             null -> null
         }
 
+        val reply = currentTimelineItem.event.inReplyTo()
+        val replyWithMetadata = if (reply is io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo.Ready) {
+            val original = timelineItems.asSequence().filterIsInstance<MatrixTimelineItem.Event>().firstOrNull { it.eventId == reply.eventId }
+            original?.let { reply.copy(content = it.event.content) } ?: reply
+        } else {
+            reply
+        }
         return TimelineItem.Event(
             id = currentTimelineItem.uniqueId,
             eventId = currentTimelineItem.eventId,
@@ -125,7 +132,7 @@ class TimelineItemEventFactory(
             reactionsState = currentTimelineItem.computeReactionsState(),
             readReceiptState = currentTimelineItem.computeReadReceiptState(roomMembers, renderReadReceipts),
             localSendState = currentTimelineItem.event.localSendState,
-            inReplyTo = currentTimelineItem.event.inReplyTo()?.map(permalinkParser = permalinkParser),
+            inReplyTo = replyWithMetadata?.map(permalinkParser = permalinkParser),
             threadInfo = mappedThreadInfo,
             origin = currentTimelineItem.event.origin,
             timelineItemDebugInfoProvider = currentTimelineItem.event.timelineItemDebugInfoProvider,

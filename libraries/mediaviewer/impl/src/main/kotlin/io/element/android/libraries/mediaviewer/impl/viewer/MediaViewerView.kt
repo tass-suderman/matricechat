@@ -72,6 +72,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.core.text.toSpannable
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.value
 import coil3.compose.AsyncImage
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
@@ -375,6 +377,19 @@ private fun MediaViewerPage(
     audioFocus: AudioFocus?,
     modifier: Modifier = Modifier,
 ) {
+    var spoilerRevealed by remember(data.mediaSource) { mutableStateOf(false) }
+    if (data.mediaSource.isSpoiler && ScPrefs.MEDIA_SPOILERS.value() && !spoilerRevealed) {
+        io.element.android.libraries.matrix.ui.components.MediaSpoilerPreview(
+            model = io.element.android.libraries.matrix.ui.media.MediaRequestData(
+                source = data.thumbnailSource ?: data.mediaSource,
+                kind = io.element.android.libraries.matrix.ui.media.MediaRequestData.Kind.Thumbnail(640L, 640L),
+            ),
+            onReveal = { spoilerRevealed = true },
+            modifier = modifier.fillMaxSize(),
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+        )
+        return
+    }
     val currentShowOverlay by rememberUpdatedState(showOverlay)
     val currentOnShowOverlayChange by rememberUpdatedState(onShowOverlayChange)
 

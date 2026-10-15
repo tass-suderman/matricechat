@@ -33,6 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.value
 import coil3.compose.AsyncImage
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
@@ -124,7 +126,7 @@ private fun MediaRow(
             modifier = Modifier
                 .size(40.dp),
         ) {
-            if (state.thumbnailSource == null) {
+            if (state.thumbnailSource == null || state.thumbnailSource.isSpoiler && ScPrefs.MEDIA_SPOILERS.value()) {
                 BigIcon(
                     style = BigIcon.Style.Default(CompoundIcons.Attachment()),
                 )

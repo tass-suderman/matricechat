@@ -80,7 +80,7 @@ class DefaultPusherSubscriber(
             lang = "en",
             appDisplayName = buildMeta.applicationName,
             // TODO getDeviceInfoUseCase.execute().displayName().orEmpty()
-            deviceDisplayName = "SchildiNext",
+            deviceDisplayName = "MatriceChat",
             url = gateway,
             defaultPayload = createDefaultPayload(pushClientSecret.getSecretForUser(userId)),
             append = false,

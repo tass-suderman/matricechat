@@ -172,6 +172,7 @@ class RustMatrixClientTest {
             updateUserProfileResult = { _, _, _ -> },
         ),
     ) = RustMatrixClient(
+        scPreferencesStore = chat.schildi.lib.preferences.FakeScPreferencesStore,
         innerClient = client,
         sessionPaths = SessionPaths(fileDirectory = File("files"), cacheDirectory = File("cache")),
         sessionStore = sessionStore,

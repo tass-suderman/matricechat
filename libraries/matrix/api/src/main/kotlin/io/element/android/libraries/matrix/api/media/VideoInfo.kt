@@ -18,5 +18,6 @@ data class VideoInfo(
     val size: Long?,
     val thumbnailInfo: ThumbnailInfo?,
     val thumbnailSource: MediaSource?,
-    val blurhash: String?
+    val blurhash: String?,
+    val isSpoiler: Boolean = false,
 )

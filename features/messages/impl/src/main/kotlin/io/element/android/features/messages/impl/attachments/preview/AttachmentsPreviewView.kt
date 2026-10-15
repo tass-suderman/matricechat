@@ -175,6 +175,15 @@ fun AttachmentsPreviewView(
                         )
                     },
                     actions = {
+                        if (state.canMarkSpoiler) {
+                            IconButton(onClick = { state.eventSink(AttachmentsPreviewEvent.ToggleSpoiler) }) {
+                                Icon(
+                                    imageVector = if (state.isSpoiler) CompoundIcons.VisibilityOff() else CompoundIcons.VisibilityOn(),
+                                    contentDescription = stringResource(chat.schildi.lib.R.string.action_mark_media_spoiler),
+                                    tint = if (state.isSpoiler) ElementTheme.colors.iconAccentPrimary else ElementTheme.colors.iconPrimary,
+                                )
+                            }
+                        }
                         if (state.canEditImage && canShowEditAction) {
                             IconButton(
                                 onClick = ::postOpenImageEditor,

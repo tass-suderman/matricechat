@@ -105,6 +105,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             htmlDocument = null,
             isEdited = false,
             formattedBody = SpannedString("body"),
+            formattedBodySc = (result as TimelineItemTextBasedContent).formattedBodySc
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -143,6 +144,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             htmlDocument = null,
             isEdited = false,
             formattedBody = "body",
+            formattedBodySc = (result as TimelineItemTextBasedContent).formattedBodySc
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -161,6 +163,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             htmlDocument = null,
             isEdited = false,
             formattedBody = SpannedString("body"),
+            formattedBodySc = (result as TimelineItemTextBasedContent).formattedBodySc
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -178,7 +181,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             inSpans(URLSpan("https://www.example.org")) {
                 append("https://www.example.org")
             }
-        })
+        }, formattedBodySc = (result as TimelineItemTextBasedContent).formattedBodySc)
         assertThat(result.body).isEqualTo(expected.body)
         assertThat(result.htmlDocument).isEqualTo(expected.htmlDocument)
         assertThat(result.plainText).isEqualTo(expected.plainText)
@@ -281,6 +284,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             thumbnailWidth = null,
             thumbnailHeight = null,
             fileExtension = "",
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -336,6 +340,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             thumbnailWidth = 5,
             thumbnailHeight = 10,
             fileExtension = "mp4",
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -360,6 +365,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             mimeType = MimeTypes.OctetStream,
             formattedFileSize = "0 Bytes",
             fileExtension = "",
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -397,6 +403,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             mimeType = MimeTypes.Mp3,
             formattedFileSize = "123 Bytes",
             fileExtension = "mp3",
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -423,6 +430,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             waveform = emptyList<Float>().toImmutableList(),
             fileExtension = "",
             formattedFileSize = "0 Bytes",
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -466,6 +474,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             waveform = persistentListOf(1f, 2f),
             fileExtension = "ogg",
             formattedFileSize = "123 Bytes",
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -495,7 +504,8 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             height = null,
             thumbnailWidth = null,
             thumbnailHeight = null,
-            aspectRatio = null
+            aspectRatio = null,
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -524,7 +534,8 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             blurhash = null,
             width = 32,
             height = 32,
-            aspectRatio = 1.0f
+            aspectRatio = 1.0f,
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -578,6 +589,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             thumbnailWidth = 5,
             thumbnailHeight = 10,
             aspectRatio = 0.5f,
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -601,7 +613,8 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             thumbnailSource = null,
             formattedFileSize = "0 Bytes",
             fileExtension = "",
-            mimeType = MimeTypes.OctetStream
+            mimeType = MimeTypes.OctetStream,
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -644,7 +657,8 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             thumbnailSource = MediaSource("url_thumbnail"),
             formattedFileSize = "123 Bytes",
             fileExtension = "pdf",
-            mimeType = MimeTypes.Pdf
+            mimeType = MimeTypes.Pdf,
+            formattedCaptionSc = null
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -663,6 +677,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             htmlDocument = null,
             formattedBody = SpannedString("body"),
             isEdited = false,
+            formattedBodySc = (result as TimelineItemTextBasedContent).formattedBodySc
         )
         assertThat(result).isEqualTo(expected)
     }
@@ -698,6 +713,7 @@ class TimelineItemContentMessageFactoryTest : RobolectricTest() {
             htmlDocument = null,
             formattedBody = SpannedString("* Bob body"),
             isEdited = false,
+            formattedBodySc = (result as TimelineItemTextBasedContent).formattedBodySc
         )
         assertThat(result).isEqualTo(expected)
     }

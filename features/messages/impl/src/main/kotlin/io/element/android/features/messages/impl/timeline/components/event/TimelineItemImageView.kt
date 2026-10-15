@@ -8,7 +8,6 @@
 
 package io.element.android.features.messages.impl.timeline.components.event
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,15 +22,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.theme.ScTheme
-import chat.schildi.theme.scBubbleFont
 import coil3.compose.AsyncImage
 import io.element.android.features.messages.impl.timeline.aTimelineItemEvent
 import io.element.android.features.messages.impl.timeline.components.ATimelineItemEventRow
@@ -65,6 +61,19 @@ fun TimelineItemImageView(
     contentValidationState: ContentValidationState,
     modifier: Modifier = Modifier,
 ) {
+    var spoilerRevealed by remember(content.mediaSource) { mutableStateOf(false) }
+    if (content.mediaSource.isSpoiler && ScPrefs.MEDIA_SPOILERS.value() && !spoilerRevealed) {
+        TimelineItemAspectRatioBox(modifier = modifier, aspectRatio = content.aspectRatio) {
+            ProtectedView(hideContent = hideMediaContent, onShowClick = onShowContentClick) {
+                io.element.android.libraries.matrix.ui.components.MediaSpoilerPreview(
+                    model = content.thumbnailMediaRequestData,
+                    onReveal = { spoilerRevealed = true },
+                    modifier = Modifier.matchParentSize(),
+                )
+            }
+        }
+        return
+    }
     val a11yLabel = stringResource(CommonStrings.common_image)
     val description = content.caption?.let { "$a11yLabel: $it" } ?: a11yLabel
     Column(modifier = modifier.wrapContentWidth(Alignment.CenterHorizontally)) {
@@ -93,7 +102,7 @@ fun TimelineItemImageView(
                     AsyncImage(
                         modifier = Modifier
                             .fillMaxWidth()
-                            //.then(if (isLoaded) Modifier.background(Color.White) else Modifier)
+                            // .then(if (isLoaded) Modifier.background(Color.White) else Modifier)
                             .then(
                                 if (!isTalkbackActive() && onContentClick != null) {
                                     Modifier

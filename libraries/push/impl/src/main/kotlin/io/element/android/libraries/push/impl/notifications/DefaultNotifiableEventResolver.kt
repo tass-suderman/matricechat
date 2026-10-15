@@ -98,6 +98,7 @@ class DefaultNotifiableEventResolver(
     private val fallbackNotificationFactory: FallbackNotificationFactory,
     private val featureFlagService: FeatureFlagService,
     private val sessionStore: SessionStore,
+    private val scPreferencesStore: chat.schildi.lib.preferences.ScPreferencesStore,
 ) : NotifiableEventResolver {
     override suspend fun resolveEvents(
         sessionId: SessionId,
@@ -164,7 +165,9 @@ class DefaultNotifiableEventResolver(
         }
         when (val content = this.content) {
             is NotificationContent.MessageLike.RoomMessage -> {
-                val showMediaPreview = client.mediaPreviewService.getMediaPreviewValue().isPreviewEnabled(roomJoinRule)
+                val isSpoiler = (content.messageType as? ImageMessageType)?.source?.isSpoiler == true &&
+                    scPreferencesStore.getSetting(chat.schildi.lib.preferences.ScPrefs.MEDIA_SPOILERS)
+                val showMediaPreview = !isSpoiler && client.mediaPreviewService.getMediaPreviewValue().isPreviewEnabled(roomJoinRule)
                 val senderDisambiguatedDisplayName = getDisambiguatedDisplayName(content.senderId)
                 val imageMimeType = content.getImageMimetype()
                 val imageUriString = if (showMediaPreview && imageMimeType != null) {

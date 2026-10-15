@@ -34,10 +34,8 @@ import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import chat.schildi.lib.compose.thenIf
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
-import chat.schildi.theme.scBubbleFont
 import coil3.compose.AsyncImage
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemVideoContent
@@ -71,6 +69,19 @@ fun TimelineItemVideoView(
     modifier: Modifier = Modifier,
 ) {
     val isTalkbackActive = isTalkbackActive()
+    var spoilerRevealed by remember(content.mediaSource) { mutableStateOf(false) }
+    if (content.mediaSource.isSpoiler && ScPrefs.MEDIA_SPOILERS.value() && !spoilerRevealed) {
+        TimelineItemAspectRatioBox(modifier = modifier, aspectRatio = content.aspectRatio) {
+            ProtectedView(hideContent = hideMediaContent, onShowClick = onShowContentClick) {
+                io.element.android.libraries.matrix.ui.components.MediaSpoilerPreview(
+                    model = MediaRequestData(source = content.thumbnailSource, kind = MediaRequestData.Kind.Thumbnail(MAX_THUMBNAIL_WIDTH, MAX_THUMBNAIL_HEIGHT)),
+                    onReveal = { spoilerRevealed = true },
+                    modifier = Modifier.matchParentSize(),
+                )
+            }
+        }
+        return
+    }
     val a11yLabel = stringResource(CommonStrings.common_video)
     val description = content.caption?.let { "$a11yLabel: $it" } ?: a11yLabel
     Column(modifier = modifier.wrapContentWidth(Alignment.CenterHorizontally)) {
