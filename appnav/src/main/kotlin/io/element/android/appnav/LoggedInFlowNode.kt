@@ -105,6 +105,7 @@ import io.element.android.services.appnavstate.api.AppNavigationStateService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -687,6 +688,7 @@ class LoggedInFlowNode(
             enterpriseService.semanticColorsFlow(sessionId = matrixClient.sessionId)
         }.collectAsState(SemanticColorsLightDark.default)
 
+        val presenceProvider = rememberAvatarPresenceProvider(matrixClient)
         val currentMapTilerConfig = LocalMapTilerConfig.current
         val updatedMapTilerConfig by produceState(currentMapTilerConfig) {
             value = customMapTilerConfigProvider.get().getOrNull() ?: currentMapTilerConfig
@@ -701,7 +703,12 @@ class LoggedInFlowNode(
         ) {
             CompositionLocalProvider(
                 LocalMapTilerConfig provides updatedMapTilerConfig,
-                io.element.android.libraries.designsystem.components.avatar.LocalAvatarPresence provides rememberAvatarPresenceProvider(matrixClient),
+                io.element.android.libraries.designsystem.components.avatar.LocalAvatarPresence provides remember(presenceProvider) {
+                    { userId -> presenceProvider(userId).map { it?.presence } }
+                },
+                io.element.android.libraries.matrix.ui.components.LocalUserStatusMessage provides remember(presenceProvider) {
+                    { userId -> presenceProvider(userId).map { it?.statusMessage } }
+                },
             ) {
                 val isOnline by syncService.isOnline.collectAsState()
                 ConnectivityIndicatorContainer(

@@ -7,6 +7,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.user.UserPresence
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,16 +16,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 
 @Composable
-internal fun rememberAvatarPresenceProvider(client: MatrixClient): (String) -> Flow<String?> {
+internal fun rememberAvatarPresenceProvider(client: MatrixClient): (String) -> Flow<UserPresence?> {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     return remember(client, lifecycle) {
-        val users = mutableMapOf<String, Flow<String?>>()
-        val provider: (String) -> Flow<String?> = { userId: String ->
+        val users = mutableMapOf<String, Flow<UserPresence?>>()
+        val provider: (String) -> Flow<UserPresence?> = { userId: String ->
             users.getOrPut(userId) {
                 channelFlow {
                     lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                         while (isActive) {
-                            send(client.getUserPresence(UserId(userId)).getOrNull())
+                            send(client.getUserPresenceInfo(UserId(userId)).getOrNull())
                             delay(60_000)
                         }
                     }

@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import chat.schildi.lib.compose.thenIf
 import chat.schildi.lib.preferences.ScPrefs
@@ -55,11 +56,14 @@ import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.preview.ROOM_NAME
 import io.element.android.libraries.designsystem.theme.components.HorizontalDivider
 import io.element.android.libraries.designsystem.theme.components.Icon
+import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TopAppBar
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
 import io.element.android.libraries.matrix.api.user.DisplayedStatus
+import io.element.android.libraries.matrix.api.user.UserStatus
 import io.element.android.libraries.matrix.ui.components.DisplayNameWithStatus
 import io.element.android.libraries.matrix.ui.components.aMatrixUserList
+import io.element.android.libraries.matrix.ui.components.rememberUserStatusMessage
 import io.element.android.libraries.matrix.ui.model.getAvatarData
 import io.element.android.libraries.ui.strings.CommonStrings
 import kotlinx.collections.immutable.ImmutableList
@@ -105,6 +109,7 @@ internal fun MessagesViewTopBar(
                     isTombstoned = isTombstoned,
                     heroes = heroes,
                     dmUserStatus = dmUserStatus,
+                    dmUserId = state.roomAvatar.presenceUserId,
                     modifier = titleModifier.thenIf(ScPrefs.SC_TIMELINE_LAYOUT.value()) { weight(1f, fill = false) }
                 )
 
@@ -161,6 +166,7 @@ private fun RoomAvatarAndNameRow(
     heroes: ImmutableList<AvatarData>,
     isTombstoned: Boolean,
     dmUserStatus: DisplayedStatus?,
+    dmUserId: String?,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -174,14 +180,25 @@ private fun RoomAvatarAndNameRow(
                 isTombstoned = isTombstoned,
             ),
         )
-        DisplayNameWithStatus(
-            name = roomName ?: stringResource(CommonStrings.common_no_room_name),
-            status = dmUserStatus,
-            modifier = Modifier.padding(start = 8.dp),
-            style = ElementTheme.typography.fontBodyLgMedium,
-            nameColor = ElementTheme.colors.textPrimary,
-            nameFontStyle = FontStyle.Italic.takeIf { roomName == null },
-        )
+        Column(modifier = Modifier.padding(start = 8.dp)) {
+            val statusMessage = rememberUserStatusMessage(dmUserId, dmUserStatus)
+            DisplayNameWithStatus(
+                name = roomName ?: stringResource(CommonStrings.common_no_room_name),
+                status = dmUserStatus.takeIf { statusMessage == null || it is DisplayedStatus.InCall },
+                style = ElementTheme.typography.fontBodyLgMedium,
+                nameColor = ElementTheme.colors.textPrimary,
+                nameFontStyle = FontStyle.Italic.takeIf { roomName == null },
+            )
+            if (statusMessage != null) {
+                Text(
+                    text = statusMessage,
+                    style = ElementTheme.typography.fontBodySmRegular,
+                    color = ElementTheme.colors.textSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }
 
@@ -226,6 +243,10 @@ internal fun MessagesViewTopBarPreview() = ElementPreview {
     )
     Column {
         AMessagesViewTopBar()
+        HorizontalDivider()
+        AMessagesViewTopBar(dmUserStatus = DisplayedStatus.UserSet(UserStatus("☕", "Taking a break")))
+        HorizontalDivider()
+        AMessagesViewTopBar(dmUserStatus = DisplayedStatus.UserSet(UserStatus("", "A long status message that will be ellipsized in the DM header")))
         HorizontalDivider()
         AMessagesViewTopBar(
             heroes = aMatrixUserList().map { it.getAvatarData(AvatarSize.TimelineRoom) }.toImmutableList(),

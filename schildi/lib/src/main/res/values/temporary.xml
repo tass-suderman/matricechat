@@ -32,4 +32,6 @@
     <string name="a11y_presence_offline">Offline</string>
     <string name="screen_settings_chat_wallpaper_opacity_title">Wallpaper opacity</string>
     <string name="screen_settings_chat_wallpaper_opacity_summary">Opacity: %1$d%%</string>
+    <string name="screen_settings_discord_role_labels_title">Show Discord role labels</string>
+    <string name="screen_settings_discord_role_labels_summary">Show role names beside message senders. Role colours remain visible when disabled.</string>
 </resources>

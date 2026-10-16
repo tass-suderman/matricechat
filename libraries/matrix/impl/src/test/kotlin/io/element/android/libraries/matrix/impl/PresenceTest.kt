@@ -17,4 +17,18 @@ class PresenceTest {
             assertThat(parsePresence(content)).isNull()
         }
     }
+    @Test
+    fun `presence status messages are preserved without requiring a known presence`() {
+        val presence = parseUserPresence("""{"presence":"online","status_msg":"Working remotely"}""")
+        assertThat(presence.presence).isEqualTo("online")
+        assertThat(presence.statusMessage).isEqualTo("Working remotely")
+        assertThat(parseUserPresence("""{"status_msg":"Away for lunch"}""").statusMessage).isEqualTo("Away for lunch")
+    }
+
+    @Test
+    fun `missing blank and non-string status messages remain absent`() {
+        listOf("{}", """{"status_msg":null}""", """{"status_msg":"  "}""", """{"status_msg":42}""", """{"status_msg":{}}""").forEach {
+            assertThat(parseUserPresence(it).statusMessage).isNull()
+        }
+    }
 }

@@ -28,7 +28,23 @@ jobs:
           android sdk install build-tools/37.0.0
       - uses: gradle/actions/setup-gradle@v4
       - name: Build F-Droid release APK
-        run: ./gradlew :app:assembleFdroidScDefaultRelease --no-daemon -PmatriceVersionCode=$((1250 + GITHUB_RUN_NUMBER))
+        shell: bash
+        run: |
+          free -h
+          df -h "$GITHUB_WORKSPACE"
+          vmstat -w 30 &
+          monitor_pid=$!
+          trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
+          # Share Gradle's heap with Kotlin instead of starting another large JVM.
+          ./gradlew :app:assembleFdroidScDefaultRelease --no-daemon --max-workers=2 \
+            -Pkotlin.compiler.execution.strategy=in-process --stacktrace \
+            -PmatriceVersionCode=$((1250 + GITHUB_RUN_NUMBER))
+      - name: Build resource diagnostics
+        if: always()
+        run: |
+          free -h
+          df -h "$GITHUB_WORKSPACE"
+          sudo dmesg --ctime | tail -n 80 || true
       - uses: actions/upload-artifact@v4
         with:
           name: android-apk

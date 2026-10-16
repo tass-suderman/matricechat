@@ -39,6 +39,10 @@ object ScPrefs {
 
     val MEDIA_SPOILERS = ScBoolPref("MEDIA_SPOILERS", true, R.string.screen_settings_media_spoilers_title, R.string.screen_settings_media_spoilers_summary)
 
+    val SHOW_DISCORD_ROLE_LABELS = ScBoolPref(
+        "SHOW_DISCORD_ROLE_LABELS", false, R.string.screen_settings_discord_role_labels_title, R.string.screen_settings_discord_role_labels_summary,
+    )
+
     val CUSTOM_STICKERS = ScBoolPref("CUSTOM_STICKERS", true, R.string.common_custom_stickers, R.string.screen_settings_custom_stickers_summary)
 
     val COMPOSER_EMOJI_PICKER =
@@ -278,6 +282,7 @@ object ScPrefs {
             FLOATING_DATE,
             HIDE_CALL_TOOLBAR_ACTION,
             VERBOSE_CONVERSATION_ICONS,
+            SHOW_DISCORD_ROLE_LABELS,
             REPLY_PREVIEW_LINE_COUNT,
             ScPrefCategory(R.string.sc_pref_category_timeline_event_visibility, null, listOf(
                 VIEW_REDACTIONS,

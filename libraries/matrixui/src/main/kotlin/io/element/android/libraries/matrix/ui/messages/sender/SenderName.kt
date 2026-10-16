@@ -38,6 +38,7 @@ fun SenderName(
     senderNameMode: SenderNameMode,
     modifier: Modifier = Modifier,
     discordRoleUserId: String? = null,
+    showRoleLabel: Boolean = false,
 ) {
     val role = LocalDiscordRoles.current[discordRoleUserId ?: senderId.value]
     val nameMode = if (role != null && senderNameMode is SenderNameMode.Timeline) {
@@ -81,7 +82,7 @@ fun SenderName(
                 }
             }
         }
-        if (role != null && senderNameMode is SenderNameMode.Timeline) {
+        if (role != null && senderNameMode is SenderNameMode.Timeline && showRoleLabel) {
             SecondaryText(text = role.name, mode = nameMode)
         }
     }
@@ -175,11 +176,14 @@ internal fun SenderNamePreview(
         CompositionLocalProvider(
             LocalDiscordRoles provides mapOf(senderNameData.userId.value to DiscordRole("Moderator", 0xff12ab34L)),
         ) {
-            SenderName(
-                senderId = senderNameData.userId,
-                senderProfile = senderNameData.profileDetails,
-                senderNameMode = SenderNameMode.Timeline(Color.Red),
-            )
+            listOf(false, true).forEach { showRoleLabel ->
+                SenderName(
+                    senderId = senderNameData.userId,
+                    senderProfile = senderNameData.profileDetails,
+                    senderNameMode = SenderNameMode.Timeline(Color.Red),
+                    showRoleLabel = showRoleLabel,
+                )
+            }
         }
     }
 }

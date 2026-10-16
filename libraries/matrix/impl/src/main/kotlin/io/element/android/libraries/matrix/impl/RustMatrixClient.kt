@@ -55,6 +55,7 @@ import io.element.android.libraries.matrix.api.sync.SyncState
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.user.MatrixSearchUserResults
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import io.element.android.libraries.matrix.api.user.UserPresence
 import io.element.android.libraries.matrix.api.user.UserStatus
 import io.element.android.libraries.matrix.impl.encryption.RustEncryptionService
 import io.element.android.libraries.matrix.impl.exception.mapClientException
@@ -375,7 +376,9 @@ class RustMatrixClient(
         .build()
     private val presenceRequests = kotlinx.coroutines.sync.Semaphore(4)
 
-    override suspend fun getUserPresence(userId: UserId): Result<String?> = withContext(sessionDispatcher) {
+    override suspend fun getUserPresence(userId: UserId): Result<String?> = getUserPresenceInfo(userId).map { it.presence }
+
+    override suspend fun getUserPresenceInfo(userId: UserId): Result<UserPresence> = withContext(sessionDispatcher) {
         runCatchingExceptions {
             presenceRequests.acquire()
             try {
@@ -390,7 +393,7 @@ class RustMatrixClient(
                     .header("Authorization", "Bearer ${innerClient.session().accessToken}")
                     .build()
                 presenceHttpClient.newCall(request).execute().use { response ->
-                    if (response.isSuccessful) parsePresence(response.body.string()) else null
+                    if (response.isSuccessful) parseUserPresence(response.body.string()) else UserPresence(null)
                 }
             } finally {
                 presenceRequests.release()

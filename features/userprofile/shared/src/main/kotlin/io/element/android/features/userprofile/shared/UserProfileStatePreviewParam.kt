@@ -19,6 +19,7 @@ import io.element.android.libraries.designsystem.utils.snackbar.SnackbarMessage
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.user.DisplayedStatus
+import io.element.android.libraries.matrix.api.user.UserStatus
 import io.element.android.libraries.matrix.ui.components.aMatrixUser
 
 open class UserProfileStatePreviewParam : PreviewParameterProvider<UserProfileState> {
@@ -26,6 +27,9 @@ open class UserProfileStatePreviewParam : PreviewParameterProvider<UserProfileSt
         get() = sequenceOf(
             aUserProfileState(),
             aUserProfileState(userName = null),
+            aUserProfileState(displayedStatus = DisplayedStatus.UserSet(UserStatus("☕", "Taking a break"))),
+            aUserProfileState(displayedStatus = DisplayedStatus.UserSet(UserStatus("", "A longer status message that wraps beneath the full Matrix username"))),
+            aUserProfileState(displayedStatus = DisplayedStatus.UserSet(UserStatus("", ""))),
             aUserProfileState(isBlocked = AsyncData.Success(true), verificationState = UserProfileVerificationState.VERIFIED),
             aUserProfileState(displayConfirmationDialog = UserProfileState.ConfirmationDialog.Block),
             aUserProfileState(displayConfirmationDialog = UserProfileState.ConfirmationDialog.Unblock),

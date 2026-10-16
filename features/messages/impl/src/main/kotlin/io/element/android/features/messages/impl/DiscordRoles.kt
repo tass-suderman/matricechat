@@ -66,7 +66,10 @@ internal fun parseDiscordRoles(state: List<String>): Map<String, DiscordRole> {
     if (!enabled) return emptyMap()
     return events.mapNotNull { event ->
         if (event.text("type") != "fi.mau.discord.member_role") return@mapNotNull null
-        val userId = event.text("state_key")?.takeIf { it.startsWith("@") } ?: return@mapNotNull null
+        val userId = event.text("state_key")
+            ?.takeIf { it.startsWith("user:@") }
+            ?.removePrefix("user:")
+            ?: return@mapNotNull null
         val content = event["content"] as? JsonObject ?: return@mapNotNull null
         val name = content.text("name")?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
         val color = content.text("color")?.takeIf { it.matches(Regex("#[0-9a-fA-F]{6}")) } ?: return@mapNotNull null

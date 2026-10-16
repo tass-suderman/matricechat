@@ -8,7 +8,7 @@ class DiscordRolesTest {
     private val role = """
         {
             "type": "fi.mau.discord.member_role",
-            "state_key": "@discord_123:example.org",
+            "state_key": "user:@discord_123:example.org",
             "content": {
                 "role_id": "1",
                 "name": "Moderator",
@@ -34,10 +34,26 @@ class DiscordRolesTest {
     fun `cleared or malformed role metadata removes the colour`() {
         assertThat(parseDiscordRoles(listOf(tracking, role.replace("#12ab34", "red")))).isEmpty()
         assertThat(
-            parseDiscordRoles(listOf(tracking, """{"type":"fi.mau.discord.member_role","state_key":"@discord_123:example.org","content":{}}"""))
+            parseDiscordRoles(listOf(tracking, """{"type":"fi.mau.discord.member_role","state_key":"user:@discord_123:example.org","content":{}}"""))
         ).isEmpty()
         assertThat(parseDiscordRoles(listOf(tracking, "not json"))).isEmpty()
     }
+    @Test
+    fun `unprefixed and invalid member role keys are ignored`() {
+        listOf("@discord_123:example.org", "user:discord_123:example.org", "user:", "").forEach { key ->
+            assertThat(parseDiscordRoles(listOf(tracking, role.replace("user:@discord_123:example.org", key)))).isEmpty()
+        }
+    }
+
+    @Test
+    fun `cleared prefixed role does not fall back to a stale bare user key`() {
+        val legacy = role.replace("user:@", "@")
+        val cleared = """
+            {"type":"fi.mau.discord.member_role","state_key":"user:@discord_123:example.org","content":{}}
+        """.trimIndent()
+        assertThat(parseDiscordRoles(listOf(tracking, legacy, cleared))).isEmpty()
+    }
+
     @Test
     fun `double puppets resolve through Discord per-message profile identity`() {
         val roles = parseDiscordRoles(listOf(tracking, role))

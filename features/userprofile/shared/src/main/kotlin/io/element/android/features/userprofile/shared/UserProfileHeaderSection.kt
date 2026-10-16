@@ -43,6 +43,7 @@ import io.element.android.libraries.designsystem.theme.components.OutlinedButton
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.user.DisplayedStatus
+import io.element.android.libraries.matrix.ui.components.rememberUserStatusMessage
 import io.element.android.libraries.matrix.ui.model.toText
 import io.element.android.libraries.testtags.TestTags
 import io.element.android.libraries.testtags.testTag
@@ -95,15 +96,6 @@ fun UserProfileHeaderSection(
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
-        displayedStatus?.let { status ->
-            Text(
-                text = status.toText(),
-                style = ElementTheme.typography.fontBodyLgMedium,
-                color = ElementTheme.colors.textSecondary,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
         Text(
             modifier = Modifier.niceClickable { onUserIdClick() },
             text = userId.value,
@@ -111,6 +103,16 @@ fun UserProfileHeaderSection(
             color = ElementTheme.colors.textSecondary,
             textAlign = TextAlign.Center,
         )
+        val statusMessage = rememberUserStatusMessage(userId.value, displayedStatus) ?: displayedStatus?.toText()
+        if (!statusMessage.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = statusMessage,
+                style = ElementTheme.typography.fontBodyLgMedium,
+                color = ElementTheme.colors.textSecondary,
+                textAlign = TextAlign.Center,
+            )
+        }
         Spacer(modifier = Modifier.height(12.dp))
         when (verificationState) {
             UserProfileVerificationState.UNKNOWN, UserProfileVerificationState.UNVERIFIED -> Unit

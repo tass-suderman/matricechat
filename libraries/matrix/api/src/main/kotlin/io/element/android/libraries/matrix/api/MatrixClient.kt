@@ -48,6 +48,7 @@ import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.user.MatrixSearchUserResults
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import io.element.android.libraries.matrix.api.user.UserPresence
 import io.element.android.libraries.matrix.api.user.UserStatus
 import io.element.android.libraries.matrix.api.verification.SessionVerificationService
 import kotlinx.collections.immutable.ImmutableList
@@ -137,6 +138,10 @@ interface MatrixClient : ClientUrlContentFetcher {
 
     /** Reported presence, or null if the homeserver does not expose it. */
     suspend fun getUserPresence(userId: UserId): Result<String?>
+
+    /** Includes traditional Matrix presence status messages when the homeserver exposes them. */
+    suspend fun getUserPresenceInfo(userId: UserId): Result<UserPresence> =
+        getUserPresence(userId).map { UserPresence(it) }
 
     // SC start
     suspend fun getGlobalAccountData(): Result<List<AccountDataRawEvent>>

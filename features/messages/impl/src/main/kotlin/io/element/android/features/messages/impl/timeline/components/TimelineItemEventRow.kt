@@ -65,6 +65,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.constraintlayout.compose.ConstrainScope
 import androidx.constraintlayout.compose.ConstraintLayout
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.value
 import chat.schildi.theme.ScTheme
 import chat.schildi.theme.extensions.scOrElse
 import io.element.android.compound.theme.ElementTheme
@@ -679,6 +681,7 @@ private fun MessageSenderInformation(
             senderProfile = senderProfile,
             senderNameMode = SenderNameMode.Timeline(avatarColors.foreground),
             discordRoleUserId = discordRoleUserId,
+            showRoleLabel = ScPrefs.SHOW_DISCORD_ROLE_LABELS.value(),
         )
     }
 }
