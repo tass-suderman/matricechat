@@ -13,7 +13,7 @@
     <string name="screen_settings_color_background">Background color</string>
     <string name="screen_settings_color_surface">Surface color</string>
     <string name="screen_settings_color_text">Text color</string>
-    <string name="screen_settings_color_accent">Accent color</string>
+    <string name="screen_settings_color_accent">Action accent colour</string>
     <string name="screen_settings_color_icons">Icons color</string>
     <string name="screen_settings_color_borders">Borders color</string>
     <string name="screen_settings_color_hex_argb">Hex ARGB (#AARRGGBB)</string>
@@ -34,4 +34,11 @@
     <string name="screen_settings_chat_wallpaper_opacity_summary">Opacity: %1$d%%</string>
     <string name="screen_settings_discord_role_labels_title">Show Discord role labels</string>
     <string name="screen_settings_discord_role_labels_summary">Show role names beside message senders. Role colours remain visible when disabled.</string>
+    <string name="screen_settings_color_links">Link text colour</string>
+    <string name="screen_settings_color_accent_icons">Accent icon colour</string>
+    <string name="screen_settings_color_accent_borders">Accent border and focus colour</string>
+    <string name="screen_settings_color_badges">Accent badge background colour</string>
+    <string name="screen_settings_color_unread">Unread notification colour</string>
+    <string name="screen_settings_color_muted_unread">Silent and muted unread badge colour</string>
+    <string name="screen_settings_color_mentions">Mention badge colour</string>
 </resources>

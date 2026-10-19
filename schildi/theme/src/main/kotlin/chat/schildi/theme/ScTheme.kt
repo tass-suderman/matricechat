@@ -48,6 +48,27 @@ object ScTheme {
         @Composable
         get() = getUserThemedColor(ScPrefs.BUBBLE_BG_LIGHT_OUTGOING, ScPrefs.BUBBLE_BG_DARK_OUTGOING) ?: exposures.bubbleBgOutgoing
 
+    val unreadNotificationColor: Color
+        @Composable
+        get() {
+            getUserThemedColor(ScPrefs.UNREAD_LIGHT, ScPrefs.UNREAD_DARK)?.let { return it }
+            // Unread indicators share an upstream icon token, but have an independent custom colour.
+            val baseColors = if (ScPrefs.EL_THEME.value()) {
+                if (ElementTheme.isLightTheme) elColorsLight else elColorsDark
+            } else if (ElementTheme.isLightTheme) {
+                sclSemanticColors
+            } else if (ScPrefs.BLACK_THEME.value()) {
+                scbSemanticColors
+            } else {
+                scdSemanticColors
+            }
+            return baseColors.iconAccentTertiary
+        }
+
+    val mentionBadgeColor: Color
+        @Composable
+        get() = getUserThemedColor(ScPrefs.MENTION_LIGHT, ScPrefs.MENTION_DARK) ?: ElementTheme.colors.bgCriticalPrimary
+
     @Composable
     private fun getUserThemedColor(lightPref: ScColorPref, darkPref: ScColorPref): Color? =
         if (ScPrefs.CUSTOM_COLORS.value()) (if (ElementTheme.isLightTheme) lightPref else darkPref).userColor() else null
@@ -80,7 +101,8 @@ fun ScTheme(
     val customColorsEnabled = ScPrefs.CUSTOM_COLORS.value()
     val surface = if (customColorsEnabled) (if (darkTheme) ScPrefs.SURFACE_DARK else ScPrefs.SURFACE_LIGHT).userColor() else null
     val text = if (customColorsEnabled) (if (darkTheme) ScPrefs.TEXT_DARK else ScPrefs.TEXT_LIGHT).userColor() else null
-    val accent = if (customColorsEnabled) (if (darkTheme) ScPrefs.ACCENT_DARK else ScPrefs.ACCENT_LIGHT).userColor() else null
+    val mutedUnread = if (customColorsEnabled) (if (darkTheme) ScPrefs.MUTED_UNREAD_DARK else ScPrefs.MUTED_UNREAD_LIGHT).userColor() else null
+    val badge = if (customColorsEnabled) (if (darkTheme) ScPrefs.BADGE_DARK else ScPrefs.BADGE_LIGHT).userColor() else null
     val baseExposures = getThemeExposures(darkTheme, useElTheme, useBlackTheme)
     val currentExposures = remember {
         // EleLight is default
@@ -92,8 +114,9 @@ fun ScTheme(
         composerBlockBg = surface ?: baseExposures.composerBlockBg,
         composerBlockFg = text ?: baseExposures.composerBlockFg,
         tertiaryFgNoAlpha = text ?: baseExposures.tertiaryFgNoAlpha,
-        greenFg = accent ?: baseExposures.greenFg,
-        unreadBadgeColor = accent ?: baseExposures.unreadBadgeColor,
+        greenBg = badge ?: baseExposures.greenBg,
+        unreadBadgeColor = mutedUnread ?: baseExposures.unreadBadgeColor,
+        unreadBadgeOnToolbarColor = mutedUnread ?: baseExposures.unreadBadgeOnToolbarColor,
     ))
     }
 

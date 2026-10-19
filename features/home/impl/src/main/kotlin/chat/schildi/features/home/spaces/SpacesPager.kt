@@ -584,11 +584,11 @@ private fun UnreadCountBox(unreadCounts: SpaceUnreadCountsDataSource.SpaceUnread
     when {
         unreadCounts.notifiedMessages > 0 -> {
             count = if (countChats) unreadCounts.notifiedChats else unreadCounts.notifiedMessages
-            badgeColor = if (unreadCounts.mentionedMessages > 0) ElementTheme.colors.bgCriticalPrimary else ElementTheme.colors.unreadIndicator
+            badgeColor = if (unreadCounts.mentionedMessages > 0) ScTheme.mentionBadgeColor else ElementTheme.colors.unreadIndicator
         }
         unreadCounts.mentionedMessages > 0 -> {
             count = if (countChats) unreadCounts.mentionedChats else unreadCounts.mentionedMessages
-            badgeColor = ElementTheme.colors.bgCriticalPrimary
+            badgeColor = ScTheme.mentionBadgeColor
         }
         unreadCounts.markedUnreadChats > 0 -> {
             count = unreadCounts.markedUnreadChats

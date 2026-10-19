@@ -10,6 +10,7 @@ package io.element.android.libraries.designsystem.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import chat.schildi.theme.ScTheme
 import io.element.android.compound.annotations.CoreColorToken
 import io.element.android.compound.previews.ColorListPreview
 import io.element.android.compound.theme.ElementTheme
@@ -33,7 +34,8 @@ val SemanticColors.roomListRoomMessageDate
     get() = textSecondary
 
 val SemanticColors.unreadIndicator
-    get() = iconAccentTertiary
+    @Composable
+    get() = ScTheme.unreadNotificationColor
 
 val SemanticColors.placeholderBackground
     get() = bgSubtleSecondary

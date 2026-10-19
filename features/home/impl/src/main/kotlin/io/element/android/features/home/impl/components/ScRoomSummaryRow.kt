@@ -337,15 +337,15 @@ private fun ScUnreadCounter(room: RoomListRoomSummary, isInviteSeen: Boolean) {
         ScPrefs.DUAL_MENTION_UNREAD_COUNTS.value() && highlightCount > 0 && (notificationCount > highlightCount || unreadCount > highlightCount) -> {
             val fullUnreadToUse = max(unreadCount, notificationCount)
             count = "${formatUnreadCount(highlightCount)}/${formatUnreadCount(fullUnreadToUse, underestimate)}"
-            badgeColor = ElementTheme.colors.bgCriticalPrimary
+            badgeColor = ScTheme.mentionBadgeColor
         }
         notificationCount > 0 -> {
             count = formatUnreadCount(notificationCount, underestimate)
-            badgeColor = if (highlightCount > 0) ElementTheme.colors.bgCriticalPrimary else ElementTheme.colors.unreadIndicator
+            badgeColor = if (highlightCount > 0) ScTheme.mentionBadgeColor else ElementTheme.colors.unreadIndicator
         }
         highlightCount > 0 -> {
             count = formatUnreadCount(highlightCount, underestimate)
-            badgeColor = ElementTheme.colors.bgCriticalPrimary
+            badgeColor = ScTheme.mentionBadgeColor
         }
         room.isMarkedUnread -> {
             count = "!"

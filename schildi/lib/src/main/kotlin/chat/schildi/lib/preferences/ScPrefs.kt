@@ -60,6 +60,20 @@ object ScPrefs {
 
     val ACCENT_LIGHT = ScColorPref("ACCENT_LIGHT", R.string.screen_settings_color_accent)
 
+    val LINK_LIGHT = ScColorPref("LINK_LIGHT", R.string.screen_settings_color_links)
+
+    val ACCENT_ICON_LIGHT = ScColorPref("ACCENT_ICON_LIGHT", R.string.screen_settings_color_accent_icons)
+
+    val ACCENT_BORDER_LIGHT = ScColorPref("ACCENT_BORDER_LIGHT", R.string.screen_settings_color_accent_borders)
+
+    val BADGE_LIGHT = ScColorPref("BADGE_LIGHT", R.string.screen_settings_color_badges)
+
+    val UNREAD_LIGHT = ScColorPref("UNREAD_LIGHT", R.string.screen_settings_color_unread)
+
+    val MUTED_UNREAD_LIGHT = ScColorPref("MUTED_UNREAD_LIGHT", R.string.screen_settings_color_muted_unread)
+
+    val MENTION_LIGHT = ScColorPref("MENTION_LIGHT", R.string.screen_settings_color_mentions)
+
     val ICON_LIGHT = ScColorPref("ICON_LIGHT", R.string.screen_settings_color_icons)
 
     val BORDER_LIGHT = ScColorPref("BORDER_LIGHT", R.string.screen_settings_color_borders)
@@ -71,6 +85,20 @@ object ScPrefs {
     val TEXT_DARK = ScColorPref("TEXT_DARK", R.string.screen_settings_color_text)
 
     val ACCENT_DARK = ScColorPref("ACCENT_DARK", R.string.screen_settings_color_accent)
+
+    val LINK_DARK = ScColorPref("LINK_DARK", R.string.screen_settings_color_links)
+
+    val ACCENT_ICON_DARK = ScColorPref("ACCENT_ICON_DARK", R.string.screen_settings_color_accent_icons)
+
+    val ACCENT_BORDER_DARK = ScColorPref("ACCENT_BORDER_DARK", R.string.screen_settings_color_accent_borders)
+
+    val BADGE_DARK = ScColorPref("BADGE_DARK", R.string.screen_settings_color_badges)
+
+    val UNREAD_DARK = ScColorPref("UNREAD_DARK", R.string.screen_settings_color_unread)
+
+    val MUTED_UNREAD_DARK = ScColorPref("MUTED_UNREAD_DARK", R.string.screen_settings_color_muted_unread)
+
+    val MENTION_DARK = ScColorPref("MENTION_DARK", R.string.screen_settings_color_mentions)
 
     val ICON_DARK = ScColorPref("ICON_DARK", R.string.screen_settings_color_icons)
 
@@ -201,6 +229,13 @@ object ScPrefs {
                 SURFACE_LIGHT,
                 TEXT_LIGHT,
                 ACCENT_LIGHT,
+                LINK_LIGHT,
+                ACCENT_ICON_LIGHT,
+                ACCENT_BORDER_LIGHT,
+                BADGE_LIGHT,
+                UNREAD_LIGHT,
+                MUTED_UNREAD_LIGHT,
+                MENTION_LIGHT,
                 ICON_LIGHT,
                 BORDER_LIGHT,
                 BUBBLE_BG_LIGHT_INCOMING,
@@ -211,6 +246,13 @@ object ScPrefs {
                 SURFACE_DARK,
                 TEXT_DARK,
                 ACCENT_DARK,
+                LINK_DARK,
+                ACCENT_ICON_DARK,
+                ACCENT_BORDER_DARK,
+                BADGE_DARK,
+                UNREAD_DARK,
+                MUTED_UNREAD_DARK,
+                MENTION_DARK,
                 ICON_DARK,
                 BORDER_DARK,
                 BUBBLE_BG_DARK_INCOMING,

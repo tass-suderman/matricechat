@@ -13,6 +13,10 @@ internal fun SemanticColors.withCustomColors(): SemanticColors {
     val surface = (if (isLight) ScPrefs.SURFACE_LIGHT else ScPrefs.SURFACE_DARK).userColor()
     val text = (if (isLight) ScPrefs.TEXT_LIGHT else ScPrefs.TEXT_DARK).userColor()
     val accent = (if (isLight) ScPrefs.ACCENT_LIGHT else ScPrefs.ACCENT_DARK).userColor()
+    val link = (if (isLight) ScPrefs.LINK_LIGHT else ScPrefs.LINK_DARK).userColor()
+    val accentIcon = (if (isLight) ScPrefs.ACCENT_ICON_LIGHT else ScPrefs.ACCENT_ICON_DARK).userColor()
+    val accentBorder = (if (isLight) ScPrefs.ACCENT_BORDER_LIGHT else ScPrefs.ACCENT_BORDER_DARK).userColor()
+    val badge = (if (isLight) ScPrefs.BADGE_LIGHT else ScPrefs.BADGE_DARK).userColor()
     val icon = (if (isLight) ScPrefs.ICON_LIGHT else ScPrefs.ICON_DARK).userColor()
     val border = (if (isLight) ScPrefs.BORDER_LIGHT else ScPrefs.BORDER_DARK).userColor()
     return copy(
@@ -25,18 +29,18 @@ internal fun SemanticColors.withCustomColors(): SemanticColors {
         textPrimary = text ?: textPrimary,
         textSecondary = text ?: textSecondary,
         textActionAccent = accent ?: textActionAccent,
-        textLinkExternal = accent ?: textLinkExternal,
+        textLinkExternal = link ?: textLinkExternal,
         bgAccentRest = accent ?: bgAccentRest,
         bgActionPrimaryRest = accent ?: bgActionPrimaryRest,
-        bgBadgeAccent = accent ?: bgBadgeAccent,
-        iconAccentPrimary = accent ?: iconAccentPrimary,
-        iconAccentTertiary = accent ?: iconAccentTertiary,
+        bgBadgeAccent = badge ?: bgBadgeAccent,
+        iconAccentPrimary = accentIcon ?: iconAccentPrimary,
+        iconAccentTertiary = accentIcon ?: iconAccentTertiary,
         iconPrimary = icon ?: iconPrimary,
         iconSecondary = icon ?: iconSecondary,
         iconTertiary = icon ?: iconTertiary,
         borderInteractivePrimary = border ?: borderInteractivePrimary,
         borderInteractiveSecondary = border ?: borderInteractiveSecondary,
-        borderAccentPrimary = accent ?: borderAccentPrimary,
-        borderFocused = accent ?: borderFocused,
+        borderAccentPrimary = accentBorder ?: borderAccentPrimary,
+        borderFocused = accentBorder ?: borderFocused,
     )
 }
