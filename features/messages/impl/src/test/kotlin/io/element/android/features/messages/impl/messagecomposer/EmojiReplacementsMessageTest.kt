@@ -26,6 +26,16 @@ class EmojiReplacementsMessageTest {
     }
 
     @Test
+    fun `matches all unicode whitespace without Android unsupported regex flags`() {
+        val separators = listOf(" ", "\t", "\n", "\r", "\u0085", "\u00a0", "\u1680", "\u2003", "\u2028", "\u2029", "\u202f", "\u3000")
+        for (separator in separators) {
+            assertThat(replaceEmojiTokens("hi${separator}<3", rules)).isEqualTo("👋${separator}❤️")
+            val html = EmojiReplacementFormatter(rules).replaceHtml("<p>hi${separator}&lt;3</p>")!!
+            assertThat(Jsoup.parseBodyFragment(html).body().wholeText()).contains("👋${separator}❤️")
+        }
+    }
+
+    @Test
     fun `backslashes escape matches and can themselves be escaped`() {
         assertThat(replaceEmojiTokens("""\<3 \\<3 \\\<3 \other""", rules)).isEqualTo("""<3 \❤️ \<3 \other""")
     }

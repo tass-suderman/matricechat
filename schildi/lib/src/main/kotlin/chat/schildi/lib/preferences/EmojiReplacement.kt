@@ -19,11 +19,14 @@ fun decodeEmojiReplacements(value: String): List<EmojiReplacement> =
 
 fun encodeEmojiReplacements(rules: List<EmojiReplacement>): String = Json.encodeToString(rules)
 
+// Android’s ICU rejects the JVM-only (?U) flag, so spell out Unicode whitespace.
+val emojiReplacementTokenRegex = Regex("[^\\s\\p{Z}\\u0085]+")
+
 /** Exact whitespace-delimited tokens; an odd number of leading backslashes escapes a match. */
 fun replaceEmojiTokens(text: String, rules: List<EmojiReplacement>): String {
     val replacements = rules.filter { it.text.isNotBlank() && it.text.none(Char::isWhitespace) && it.emoji.isNotBlank() }
         .distinctBy { it.text }.associate { it.text to it.emoji }
-    return Regex("(?U)\\S+").replace(text) { match ->
+    return emojiReplacementTokenRegex.replace(text) { match ->
         val token = match.value
         val slashes = token.takeWhile { it == '\\' }.length
         val word = token.drop(slashes)

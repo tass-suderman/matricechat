@@ -8,6 +8,7 @@
 package io.element.android.features.messages.impl.messagecomposer
 
 import chat.schildi.lib.preferences.EmojiReplacement
+import chat.schildi.lib.preferences.emojiReplacementTokenRegex
 import chat.schildi.lib.preferences.replaceEmojiTokens
 import io.element.android.libraries.textcomposer.model.Message
 import org.jsoup.Jsoup
@@ -75,7 +76,7 @@ internal class EmojiReplacementFormatter(rules: List<EmojiReplacement>) {
                 if (node is org.jsoup.nodes.Element && node.isBlock) text.append('\n')
             }
         })
-        val tokens = Regex("(?U)\\S+").findAll(text).toList()
+        val tokens = emojiReplacementTokenRegex.findAll(text).toList()
         val wholeMarkers = tokens.map { it.value }.toSet()
         var changed = false
         for ((node, start) in nodes) {
