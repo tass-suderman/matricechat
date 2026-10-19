@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="screen_settings_emoji_replacements_title">Text to emoji</string>
+    <string name="screen_settings_emoji_replacements_summary">Choose words or emoticons to replace with emoji when sending messages</string>
+    <string name="screen_settings_emoji_replacements_help">Match complete space-separated words, including at the start or end of a message. Prefix a word with a backslash to send it literally. Incomplete rules and text containing spaces are ignored. For duplicates, the first matching row wins.</string>
+    <string name="screen_settings_emoji_replacements_word">Text</string>
+    <string name="screen_settings_emoji_replacements_choose">Choose emoji</string>
+    <string name="screen_settings_emoji_replacements_add">Add New</string>
+    <string name="a11y_delete_emoji_replacement">Delete replacement %1$d</string>
+    <string name="error_emoji_replacements_save">Could not save emoji replacements. Try changing the rule again.</string>
+    <string name="screen_settings_flat_messages_title">Flat message layout</string>
+    <string name="screen_settings_flat_messages_summary">Show messages beneath the sender’s name without chat bubbles, like Discord</string>
     <string name="common_custom_emoji">Custom emoji</string>
     <string name="screen_settings_custom_emoji_summary">Use your personal and globally active FluffyChat emoji packs in any chat.</string>
     <string name="screen_settings_emoji_autocomplete_title">Emoji autocomplete</string>

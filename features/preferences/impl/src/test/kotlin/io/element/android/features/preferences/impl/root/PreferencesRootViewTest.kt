@@ -434,6 +434,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setView(
             onOpenNotificationSettings = onOpenNotificationSettings,
             onSignOutClick = onSignOutClick,
             onDeactivateClick = onDeactivateClick,
+            navigateToScTweaks = {},
         )
     }
 }

@@ -287,6 +287,7 @@ class PreferencesRootPresenterTest {
         matrixClient = matrixClient,
         analyticsService = FakeAnalyticsService(),
         versionFormatter = FakeVersionFormatter(),
+        buildMeta = aBuildMeta(),
         snackbarDispatcher = SnackbarDispatcher(),
         showDeveloperSettingsProvider = showDeveloperSettingsProvider,
         featureFlagService = featureFlagService,

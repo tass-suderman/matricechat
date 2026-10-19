@@ -8,11 +8,14 @@
 
 package io.element.android.features.messages.impl.timeline.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -69,6 +72,7 @@ fun MessageEventBubble(
     modifier: Modifier = Modifier,
     customBackgroundColor: Color? = null,
     borderColor: Color? = null,
+    flatLayout: Boolean = false,
     content: @Composable BoxScope.() -> Unit = {},
 ) {
     val clickableModifier = if (isTalkbackActive()) {
@@ -82,6 +86,20 @@ fun MessageEventBubble(
                 interactionSource = interactionSource
             )
             .onKeyboardContextMenuAction(onLongClick)
+    }
+
+    if (flatLayout) {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .background(customBackgroundColor ?: Color.Transparent)
+                .then(if (borderColor != null) Modifier.border(1.dp, borderColor) else Modifier)
+                .testTag(TestTags.messageBubble)
+                .then(clickableModifier),
+            contentAlignment = Alignment.CenterStart,
+            content = content,
+        )
+        return
     }
 
     val cutTopStart = state.cutTopStart

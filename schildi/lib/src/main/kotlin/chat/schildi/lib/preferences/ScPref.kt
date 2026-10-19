@@ -260,3 +260,18 @@ data class ScWallpaperPref(
     @IgnoredOnParcel override val key = stringPreferencesKey(sKey)
     override fun ensureType(value: Any?): String? = value as? String
 }
+
+@Parcelize
+data class ScEmojiReplacementsPref(
+    override val sKey: String,
+    override val titleRes: Int,
+    override val summaryRes: Int? = null,
+) : ScPref<String> {
+    @IgnoredOnParcel override val defaultValue = "[]"
+    @IgnoredOnParcel override val disabledValue: String? = null
+    @IgnoredOnParcel override val authorsChoice: String? = null
+    @IgnoredOnParcel override val upstreamChoice: String? = null
+    @IgnoredOnParcel override val dependencies: List<ScPrefDependency> = emptyList()
+    @IgnoredOnParcel override val key = stringPreferencesKey(sKey)
+    override fun ensureType(value: Any?): String? = value as? String
+}

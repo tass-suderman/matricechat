@@ -58,6 +58,7 @@ import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
@@ -65,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.constraintlayout.compose.ConstrainScope
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.theme.ScTheme
@@ -165,6 +167,7 @@ val NEGATIVE_MARGIN_FOR_BUBBLE = (-8).dp
 val SENDER_AVATAR_BORDER_WIDTH = 3.dp
 
 private val BUBBLE_INCOMING_OFFSET = 16.dp
+private val FLAT_MESSAGE_START = 16.dp + AvatarSize.TimelineSender.dp + 4.dp
 
 @Composable
 fun TimelineItemEventRow(
@@ -188,6 +191,7 @@ fun TimelineItemEventRow(
     onSwipeToReply: () -> Unit,
     eventSink: (TimelineEvent.TimelineItemEvent) -> Unit,
     modifier: Modifier = Modifier,
+    flatLayout: Boolean = ScPrefs.FLAT_MESSAGES.value(),
     eventContentView: @Composable (Modifier, (ContentAvoidingLayoutData) -> Unit) -> Unit = { contentModifier, onContentLayoutChange ->
         // Only pass down a custom clickable lambda if the content can be clicked separately
         val onContentClick = onEventClick.takeUnless { event.isWholeContentClickable }
@@ -257,6 +261,7 @@ fun TimelineItemEventRow(
                         ReplySwipeIndicator({ offset / 120 })
                     }
                     TimelineItemEventRowContent(
+                        flatLayout = flatLayout,
                         event = event,
                         timelineMode = timelineMode,
                         timelineProtectionState = timelineProtectionState,
@@ -291,6 +296,7 @@ fun TimelineItemEventRow(
             }
         } else {
             TimelineItemEventRowContent(
+                flatLayout = flatLayout,
                 event = event,
                 timelineMode = timelineMode,
                 timelineProtectionState = timelineProtectionState,
@@ -310,7 +316,9 @@ fun TimelineItemEventRow(
 
         if (displayThreadSummaries && timelineMode !is Timeline.Mode.Thread && event.threadInfo is TimelineItemThreadInfo.ThreadRoot) {
             ThreadSummaryView(
-                modifier = if (event.isMine) {
+                modifier = if (flatLayout) {
+                    Modifier.padding(start = FLAT_MESSAGE_START, end = 16.dp)
+                } else if (event.isMine) {
                     Modifier
                         .align(Alignment.End)
                         .padding(end = 16.dp)
@@ -319,7 +327,7 @@ fun TimelineItemEventRow(
                 }.padding(top = 2.dp),
                 threadSummary = event.threadInfo.summary,
                 latestEventText = event.threadInfo.latestEventText,
-                isOutgoing = event.isMine,
+                isOutgoing = event.isMine && !flatLayout,
                 onClick = {
                     event.eventId?.let {
                         eventSink(TimelineEvent.OpenThread(it.toThreadId(), null))
@@ -475,6 +483,7 @@ private fun SwipeSensitivity(
 
 @Composable
 private fun TimelineItemEventRowContent(
+    flatLayout: Boolean,
     event: TimelineItem.Event,
     timelineMode: Timeline.Mode,
     timelineProtectionState: TimelineProtectionState,
@@ -491,7 +500,7 @@ private fun TimelineItemEventRowContent(
     modifier: Modifier = Modifier,
     eventContentView: @Composable (Modifier, (ContentAvoidingLayoutData) -> Unit) -> Unit,
 ) {
-    fun ConstrainScope.linkStartOrEnd(event: TimelineItem.Event) = if (event.isMine) {
+    fun ConstrainScope.linkStartOrEnd(event: TimelineItem.Event) = if (event.isMine && !flatLayout) {
         end.linkTo(parent.end)
     } else {
         start.linkTo(parent.start)
@@ -510,7 +519,7 @@ private fun TimelineItemEventRowContent(
         ) = createRefs()
 
         // Sender
-        if (event.showSenderInformation && !timelineRoomInfo.isDm) {
+        if (if (flatLayout) event.groupPosition.isNew() else event.showSenderInformation && !timelineRoomInfo.isDm) {
             MessageSenderInformation(
                 event.senderId,
                 event.senderProfile,
@@ -564,13 +573,17 @@ private fun TimelineItemEventRowContent(
         MessageEventBubble(
             modifier = Modifier
                 .constrainAs(message) {
-                    val topMargin = if (bubbleState.cutTopStart) {
+                    val topMargin = if (!flatLayout && bubbleState.cutTopStart) {
                         NEGATIVE_MARGIN_FOR_BUBBLE
                     } else {
                         0.dp
                     }
                     top.linkTo(sender.bottom, margin = topMargin)
-                    if (event.isMine) {
+                    if (flatLayout) {
+                        start.linkTo(parent.start, margin = FLAT_MESSAGE_START)
+                        end.linkTo(parent.end, margin = 16.dp)
+                        width = Dimension.fillToConstraints
+                    } else if (event.isMine) {
                         end.linkTo(parent.end, margin = 16.dp)
                     } else {
                         val startMargin = if (timelineRoomInfo.isDm) 16.dp else 16.dp + BUBBLE_INCOMING_OFFSET
@@ -583,12 +596,14 @@ private fun TimelineItemEventRowContent(
             onLongClick = onLongClick,
             customBackgroundColor = dangerousContentBubbleColor,
             borderColor = borderColor,
+            flatLayout = flatLayout,
         ) {
             MessageEventBubbleContent(
                 event = event,
                 timelineMode = timelineMode,
                 timelineProtectionState = timelineProtectionState,
                 onMessageLongClick = onLongClick,
+                flatLayout = flatLayout,
                 inReplyToClick = inReplyToClick,
                 eventSink = eventSink,
                 eventContentView = eventContentView,
@@ -607,7 +622,9 @@ private fun TimelineItemEventRowContent(
                     .size(16.dp)
                     .constrainAs(pinIcon) {
                         top.linkTo(message.top)
-                        if (event.isMine) {
+                        if (flatLayout) {
+                            end.linkTo(parent.end)
+                        } else if (event.isMine) {
                             end.linkTo(message.start, margin = 8.dp)
                         } else {
                             start.linkTo(message.end, margin = 8.dp)
@@ -621,13 +638,13 @@ private fun TimelineItemEventRowContent(
             TimelineItemReactionsView(
                 reactionsState = event.reactionsState,
                 userCanSendReaction = timelineRoomInfo.userHasPermissionToSendReaction,
-                isOutgoing = event.isMine,
+                isOutgoing = event.isMine && !flatLayout,
                 onReactionClick = onReactionClick,
                 onReactionLongClick = onReactionLongClick,
                 onMoreReactionsClick = { onMoreReactionsClick(event) },
                 modifier = Modifier
                     .constrainAs(reactions) {
-                        top.linkTo(message.bottom, margin = (-4).dp)
+                        top.linkTo(message.bottom, margin = if (flatLayout) 2.dp else (-4).dp)
                         linkStartOrEnd(event)
                     }
                     .zIndex(1f)
@@ -635,6 +652,7 @@ private fun TimelineItemEventRowContent(
                         // Note: due to the applied constraints, start is left for other's message and right for mine
                         // In design we want a offset of 6.dp compare to the bubble, so start is 22.dp (16 + 6)
                         start = when {
+                            flatLayout -> FLAT_MESSAGE_START
                             event.isMine -> 22.dp
                             timelineRoomInfo.isDm -> 22.dp
                             else -> 22.dp + BUBBLE_INCOMING_OFFSET
@@ -693,6 +711,7 @@ private fun MessageEventBubbleContent(
     timelineMode: Timeline.Mode,
     timelineProtectionState: TimelineProtectionState,
     onMessageLongClick: () -> Unit,
+    flatLayout: Boolean,
     inReplyToClick: () -> Unit,
     eventSink: (TimelineEvent.TimelineItemEvent) -> Unit,
     @SuppressLint("ModifierParameter")
@@ -832,7 +851,9 @@ private fun MessageEventBubbleContent(
             }
 
         val topPadding = if (inReplyToDetails != null) 0.dp else 8.dp
-        val contentModifier = when (paddingBehaviour) {
+        val contentModifier = if (flatLayout && paddingBehaviour == ContentPadding.Textual) {
+            Modifier.padding(vertical = 2.dp)
+        } else when (paddingBehaviour) {
             ContentPadding.Textual ->
                 Modifier.padding(start = 12.dp, end = 12.dp, top = topPadding, bottom = 8.dp)
             ContentPadding.Media -> {
@@ -1231,4 +1252,12 @@ internal fun ThreadSummaryViewPreview() {
             onClick = {},
         )
     }
+}
+
+@PreviewsDayNight
+@Composable
+internal fun FlatMessageLayoutPreview(
+    @PreviewParameter(FlatMessageLayoutPreviewParam::class) event: TimelineItem.Event,
+) = ElementPreview {
+    ATimelineItemEventRow(event = event, flatLayout = true)
 }

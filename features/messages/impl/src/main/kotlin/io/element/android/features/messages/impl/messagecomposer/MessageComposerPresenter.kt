@@ -589,7 +589,12 @@ class MessageComposerPresenter(
         richTextEditorState: RichTextEditorState,
         slashCommandAction: MutableState<AsyncAction<Unit>>,
     ) = launch {
-        val message = formatCustomEmoji(currentComposerMessage(markdownTextEditorState, richTextEditorState, withMentions = true))
+        val message = formatCustomEmoji(
+            formatEmojiReplacements(
+                currentComposerMessage(markdownTextEditorState, richTextEditorState, withMentions = true),
+                chat.schildi.lib.preferences.decodeEmojiReplacements(scPreferencesStore.getCachedOrDefaultValue(ScPrefs.EMOJI_REPLACEMENTS)),
+            )
+        )
         val capturedMode = messageComposerContext.composerMode
 
         val slashCommand = if (capturedMode is MessageComposerMode.Normal) {

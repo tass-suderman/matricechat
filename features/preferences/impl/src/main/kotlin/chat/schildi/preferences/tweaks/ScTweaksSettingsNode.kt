@@ -46,6 +46,8 @@ class ScTweaksSettingsNode(
     @Assisted buildContext: BuildContext,
     @Assisted plugins: List<Plugin>,
     presenterFactory: ScTweaksSettingsPresenter.Factory,
+    private val emojiReplacementsPresenter: EmojiReplacementsPresenter,
+    private val emojiPickerRenderer: io.element.android.libraries.emoji.api.picker.EmojiPickerRenderer,
     private val appPreferencesStore: AppPreferencesStore,
     private val scPreferencesStore: ScPreferencesStore,
     @SessionCoroutineScope
@@ -65,6 +67,15 @@ class ScTweaksSettingsNode(
 
     @Composable
     override fun View(modifier: Modifier) {
+        if (prefScreen?.titleRes == ScPrefs.emojiReplacementSettings.titleRes) {
+            EmojiReplacementsView(
+                state = emojiReplacementsPresenter.present(),
+                renderer = emojiPickerRenderer,
+                onBackClick = ::navigateUp,
+                modifier = modifier,
+            )
+            return
+        }
         val state = presenter.present()
         ScTweaksSettingsView(
             state = state,

@@ -181,7 +181,15 @@ object ScPrefs {
     // Chat overview settings depending on spaces
     val SNC_FAB = ScBoolPref("SNC_FAB", true, R.string.sc_pref_snc_fab_title, R.string.sc_pref_snc_fab_summary, disabledValue = true, authorsChoice = false, upstreamChoice = true, dependencies = SPACE_NAV.asDependencies())
 
+    val EMOJI_REPLACEMENTS = ScEmojiReplacementsPref("EMOJI_REPLACEMENTS", R.string.screen_settings_emoji_replacements_title)
+    val emojiReplacementSettings = ScPrefScreen(
+        R.string.screen_settings_emoji_replacements_title,
+        R.string.screen_settings_emoji_replacements_summary,
+        listOf(EMOJI_REPLACEMENTS),
+    )
+
     // Timeline
+    val FLAT_MESSAGES = ScBoolPref("FLAT_MESSAGES", false, R.string.screen_settings_flat_messages_title, R.string.screen_settings_flat_messages_summary, authorsChoice = false, upstreamChoice = false)
     val PINNED_MESSAGE_OVERLAY = ScBoolPref("PINNED_MESSAGE_OVERLAY", false, R.string.sc_pref_pinned_message_overlay_title, R.string.sc_pref_pinned_message_overlay_summary, authorsChoice = false, upstreamChoice = true)
     val PINNED_MESSAGE_TOOLBAR_ACTION = ScBoolPref("PINNED_MESSAGE_TOOLBAR_ACTION", true, R.string.sc_pref_pinned_message_toolbar_title, R.string.sc_pref_pinned_message_toolbar_summary, authorsChoice = true, upstreamChoice = false, dependencies = PINNED_MESSAGE_OVERLAY.asDependencies(expect = false), disabledValue = false)
     val HIDE_CALL_TOOLBAR_ACTION = ScBoolPref("HIDE_CALL_TOOLBAR_ACTION", false, R.string.sc_pref_hide_call_toolbar_action_title, R.string.sc_pref_hide_call_toolbar_action_summary, authorsChoice = true, upstreamChoice = false)
@@ -320,6 +328,7 @@ object ScPrefs {
         )),
         ScPrefScreen(R.string.sc_pref_category_timeline, null, listOf(
             SC_TIMELINE_LAYOUT,
+            FLAT_MESSAGES,
             //RENDER_INLINE_IMAGES,
             FLOATING_DATE,
             HIDE_CALL_TOOLBAR_ACTION,
@@ -349,6 +358,7 @@ object ScPrefs {
                 MEDIA_SPOILERS,
                 COMPOSER_EMOJI_PICKER,
                 EMOJI_AUTOCOMPLETE,
+                emojiReplacementSettings,
                 PREFER_FREEFORM_REACTIONS,
                 PREFER_FULLSCREEN_REACTION_SHEET,
                 ALWAYS_SHOW_REACTION_SEARCH_BAR,

@@ -25,8 +25,10 @@ internal fun ATimelineItemEventRow(
     isLastOutgoingMessage: Boolean = false,
     timelineProtectionState: TimelineProtectionState = aTimelineProtectionState(),
     displayThreadSummaries: Boolean = false,
+    flatLayout: Boolean = false,
 ) = TimelineItemEventRow(
     event = event,
+    flatLayout = flatLayout,
     timelineMode = timelineMode,
     timelineRoomInfo = timelineRoomInfo,
     timelineProtectionState = timelineProtectionState,

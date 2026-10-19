@@ -32,6 +32,11 @@ Note that following list of changes compared to Element X is likely incomplete, 
 
 - Floating date header while scrolling †
 - Bigger stickers
+- Animate Lottie (`.json` and gzipped `.tgs`) stickers, including files with an incorrect image MIME type
+- Animate APNG stickers through on-device FFmpeg previews on 64-bit devices
+- Show Klipy and Tenor MP4s as looping GIF previews using on-device FFmpeg on 64-bit devices
+    - Previews are limited to 30 seconds, 480px, and 15fps; tapping opens the original video
+    - Set `bridge.klipy_gifs: false` in mautrix-discord and restart it to keep conversion off the bridge for new messages
 - Differentiate notices from normal text messages by adding some transparency
 - Custom [compose-native message rendering](https://github.com/beeper/matrix-messageformat-compose) instead of old view-based spans
     - Render collapsible `<details>` tags in messages
@@ -82,3 +87,7 @@ Note that following list of changes compared to Element X is likely incomplete, 
 
 
 †: Can be partly enabled or disabled by user setting
+
+- Optional flat message layout in Timeline settings: left-aligned messages beneath each sender’s name, without chat bubbles. Disabled by default.
+
+- Text to emoji submenu in Timeline settings: define whole-token replacements using the emoji picker, add or delete rules, and prefix a token with a backslash to send it literally. Rules apply when sending, excluding code and links.
