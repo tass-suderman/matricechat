@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
@@ -39,6 +40,7 @@ import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.audio.api.AudioFocus
 import io.element.android.libraries.audio.api.AudioFocusRequester
 import io.element.android.libraries.dateformatter.api.toHumanReadableDuration
+import io.element.android.libraries.designsystem.atomic.atoms.PlaybackSpeedButton
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Icon
@@ -57,6 +59,7 @@ fun MediaPlayerControllerView(
     onToggleMute: () -> Unit,
     audioFocus: AudioFocus?,
     modifier: Modifier = Modifier,
+    onTogglePlaybackSpeed: (() -> Unit)? = null,
 ) {
     if (audioFocus != null) {
         val latestOnTogglePlay by rememberUpdatedState(onTogglePlay)
@@ -180,6 +183,18 @@ fun MediaPlayerControllerView(
                     color = ElementTheme.colors.textPrimary,
                     style = ElementTheme.typography.fontBodyXsMedium,
                 )
+                if (onTogglePlaybackSpeed != null) {
+                    val a11yPlaybackSpeed = stringResource(CommonStrings.a11y_playback_speed)
+                    PlaybackSpeedButton(
+                        speed = state.playbackSpeed,
+                        onClick = onTogglePlaybackSpeed,
+                        modifier = Modifier
+                            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                            .semantics {
+                                contentDescription = a11yPlaybackSpeed
+                            },
+                    )
+                }
                 if (state.canMute) {
                     val a11yUnmute = stringResource(CommonStrings.common_unmute)
                     val a11yMute = stringResource(CommonStrings.common_mute)
@@ -220,6 +235,7 @@ internal fun MediaPlayerControllerViewPreview(
         onTogglePlay = {},
         onSeekChange = {},
         onToggleMute = {},
+        onTogglePlaybackSpeed = {},
         audioFocus = null,
     )
 }

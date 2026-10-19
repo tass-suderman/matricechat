@@ -8,6 +8,7 @@
 
 package io.element.android.features.messages.impl.timeline.components.event
 
+import android.os.Process
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -37,10 +38,12 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemVideoContent
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemVideoContentPreviewParam
 import io.element.android.features.messages.impl.timeline.model.event.aTimelineItemVideoContent
+import io.element.android.features.messages.impl.timeline.model.event.isGifVideo
 import io.element.android.features.messages.impl.timeline.protection.ProtectedView
 import io.element.android.features.messages.impl.timeline.protection.coerceRatioWhenHidingContent
 import io.element.android.features.messages.impl.timeline.util.handleAsyncImageStateChange
@@ -49,6 +52,7 @@ import io.element.android.libraries.designsystem.modifiers.onKeyboardContextMenu
 import io.element.android.libraries.designsystem.modifiers.roundedBackground
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
+import io.element.android.libraries.matrix.api.exception.ClientException
 import io.element.android.libraries.matrix.ui.media.MAX_THUMBNAIL_HEIGHT
 import io.element.android.libraries.matrix.ui.media.MAX_THUMBNAIL_WIDTH
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
@@ -69,6 +73,8 @@ fun TimelineItemVideoView(
     modifier: Modifier = Modifier,
 ) {
     val isTalkbackActive = isTalkbackActive()
+    var gifPreviewFailed by remember(content.mediaSource) { mutableStateOf(false) }
+    val showGifPreview = content.isGifVideo && Process.is64Bit() && !gifPreviewFailed
     var spoilerRevealed by remember(content.mediaSource) { mutableStateOf(false) }
     if (content.mediaSource.isSpoiler && ScPrefs.MEDIA_SPOILERS.value() && !spoilerRevealed) {
         TimelineItemAspectRatioBox(modifier = modifier, aspectRatio = content.aspectRatio) {
@@ -122,8 +128,8 @@ fun TimelineItemVideoView(
                             }
                         ),
                     model = MediaRequestData(
-                        source = content.thumbnailSource,
-                        kind = MediaRequestData.Kind.Thumbnail(
+                        source = if (showGifPreview) content.mediaSource else content.thumbnailSource,
+                        kind = if (showGifPreview) MediaRequestData.Kind.File(content.filename, content.mimeType) else MediaRequestData.Kind.Thumbnail(
                             width = content.thumbnailWidth?.toLong() ?: MAX_THUMBNAIL_WIDTH,
                             height = content.thumbnailHeight?.toLong() ?: MAX_THUMBNAIL_HEIGHT,
                         )
@@ -132,18 +138,19 @@ fun TimelineItemVideoView(
                     alignment = Alignment.Center,
                     contentDescription = description,
                     onState = { state ->
-                        val url = content.thumbnailSource?.safeUrl
-                        if (url != null) {
-                            handleAsyncImageStateChange(
-                                state = state,
-                                onLoaded = { isLoaded = true },
-                                updateContentValidationState = { contentValidationState.update(url, it) },
-                            )
+                        if (showGifPreview && state is AsyncImagePainter.State.Error && state.result.throwable !is ClientException.ContentScanner) {
+                            gifPreviewFailed = true
                         }
+                        val url = content.thumbnailSource?.safeUrl ?: content.mediaSource.safeUrl
+                        handleAsyncImageStateChange(
+                            state = state,
+                            onLoaded = { isLoaded = true },
+                            updateContentValidationState = { contentValidationState.update(url, it) },
+                        )
                     },
                 )
 
-                if (!isContentBeingValidated) {
+                if (!isContentBeingValidated && !showGifPreview) {
                     Box(
                         modifier = Modifier.roundedBackground(),
                         contentAlignment = Alignment.Center,
@@ -155,7 +162,7 @@ fun TimelineItemVideoView(
                             modifier = Modifier.semantics { hideFromAccessibility() }
                         )
                     }
-                } else {
+                } else if (isContentBeingValidated) {
                     CircularProgressIndicator()
                 }
             }

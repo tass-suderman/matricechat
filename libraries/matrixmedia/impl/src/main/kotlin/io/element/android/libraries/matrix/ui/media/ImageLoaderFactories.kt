@@ -38,26 +38,24 @@ class DefaultImageLoaderFactory(
         }
     )
 
-    override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(context)
-            .components {
-                add(okHttpNetworkFetcherFactory)
+    override fun newImageLoader(): ImageLoader = newImageLoaderBuilder().build()
+
+    private fun newImageLoaderBuilder(): ImageLoader.Builder = ImageLoader.Builder(context)
+        .components {
+            add(okHttpNetworkFetcherFactory)
+            add(LottieDecoder.Factory())
+            add(GifVideoDecoder.Factory())
+            add(SvgDecoder.Factory())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                add(AnimatedImageDecoder.Factory())
+            } else {
+                add(GifDecoder.Factory())
             }
-            .build()
-    }
+        }
 
     override fun newImageLoader(matrixMediaLoader: MatrixMediaLoader): ImageLoader {
-        return ImageLoader.Builder(context)
+        return newImageLoaderBuilder()
             .components {
-                add(okHttpNetworkFetcherFactory)
-                // Add svg support
-                add(SvgDecoder.Factory())
-                // Add gif support
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    add(AnimatedImageDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
-                }
                 add(AvatarDataKeyer())
                 add(MediaRequestDataKeyer())
                 add(AvatarDataFetcherFactory(matrixMediaLoader))

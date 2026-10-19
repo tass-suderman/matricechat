@@ -18,6 +18,7 @@ open class MediaPlayerControllerStatePreviewParam : PreviewParameterProvider<Med
             progressInMillis = 59_000,
             durationInMillis = 83_000,
             isMuted = true,
+            playbackSpeed = 2f,
         ),
         aMediaPlayerControllerState(
             canMute = false,

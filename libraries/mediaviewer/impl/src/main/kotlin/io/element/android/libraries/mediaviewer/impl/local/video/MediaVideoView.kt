@@ -36,6 +36,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.ParserException
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_READY
 import androidx.media3.common.Timeline
@@ -142,6 +143,12 @@ private fun ExoPlayerMediaVideoView(
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 mediaPlayerControllerState = mediaPlayerControllerState.copy(
                     isPlaying = isPlaying,
+                )
+            }
+
+            override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
+                mediaPlayerControllerState = mediaPlayerControllerState.copy(
+                    playbackSpeed = playbackParameters.speed,
                 )
             }
 
@@ -272,6 +279,10 @@ private fun ExoPlayerMediaVideoView(
                 onToggleMute = {
                     autoHideController++
                     exoPlayer.volume = if (exoPlayer.volume == 1f) 0f else 1f
+                },
+                onTogglePlaybackSpeed = {
+                    autoHideController++
+                    exoPlayer.setPlaybackSpeed(if (exoPlayer.playbackParameters.speed == 2f) 1f else 2f)
                 },
                 audioFocus = audioFocus,
                 modifier = Modifier

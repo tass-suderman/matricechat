@@ -405,6 +405,7 @@ licensee {
     allow("BSD-2-Clause")
     allow("BSD-3-Clause")
     allow("EPL-1.0")
+    allowUrl("https://github.com/ffmpegkit-maintained/ffmpeg/blob/main/LICENSE")
     allowUrl("https://opensource.org/license/bsd-3-clause")
     allowUrl("https://opensource.org/license/bsd-2-clause")
     allowUrl("https://opensource.org/licenses/MIT")

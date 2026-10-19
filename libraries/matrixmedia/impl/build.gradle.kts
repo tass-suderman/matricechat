@@ -26,6 +26,10 @@ dependencies {
     implementation(projects.libraries.designsystem)
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
+    implementation(libs.lottie)
+    implementation(libs.ffmpeg)
+    // The maintained FFmpeg POM omits this runtime dependency of its Java wrapper.
+    implementation(libs.ffmpeg.exceptions)
     implementation(libs.coil.svg)
     implementation(libs.coil.network.okhttp)
 
