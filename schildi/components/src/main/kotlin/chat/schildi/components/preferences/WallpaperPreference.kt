@@ -16,11 +16,11 @@ import androidx.compose.ui.res.stringResource
 import chat.schildi.lib.R
 import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.designsystem.theme.components.Text
+import java.io.File
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.util.UUID
 
 @Composable
 internal fun WallpaperPreference(current: String, onChange: (Any) -> Unit) {
@@ -123,9 +123,14 @@ internal fun WallpaperPreferencePreview(@androidx.compose.ui.tooling.preview.Pre
     }
 
 @Composable
-internal fun WallpaperOpacityPreference(value: Int, enabled: Boolean, onChange: (Any) -> Unit) {
+internal fun WallpaperOpacityPreference(
+    value: Int,
+    enabled: Boolean,
+    onChange: (Any) -> Unit,
+    @androidx.annotation.StringRes titleRes: Int = R.string.screen_settings_chat_wallpaper_opacity_title,
+) {
     io.element.android.libraries.designsystem.components.preferences.PreferenceSlide(
-        title = stringResource(R.string.screen_settings_chat_wallpaper_opacity_title),
+        title = stringResource(titleRes),
         summary = stringResource(R.string.screen_settings_chat_wallpaper_opacity_summary, value),
         value = value.coerceIn(0, 100) / 100f,
         onValueChange = { onChange(kotlin.math.round(it * 100).toInt().coerceIn(0, 100)) },

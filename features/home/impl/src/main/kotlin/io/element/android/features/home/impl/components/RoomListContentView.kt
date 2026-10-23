@@ -89,18 +89,6 @@ fun RoomListContentView(
     modifier: Modifier = Modifier,
 ) {
     Box(modifier) {
-        if (ScPrefs.CHAT_WALLPAPER_ENABLED.value()) {
-            val wallpaper = ScPrefs.CHAT_WALLPAPER.value()
-            if (wallpaper.isNotEmpty()) {
-                coil3.compose.AsyncImage(
-                    model = java.io.File(wallpaper),
-                    alpha = ScPrefs.CHAT_WALLPAPER_OPACITY.value().coerceIn(0, 100) / 100f,
-                    contentDescription = null,
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                    modifier = Modifier.matchParentSize(),
-                )
-            }
-        }
         when (contentState) {
             is RoomListContentState.Skeleton -> {
                 SkeletonView(

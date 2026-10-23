@@ -11,6 +11,7 @@ package io.element.android.features.home.impl.filters
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import io.element.android.libraries.designsystem.components.topBarBackground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
@@ -147,7 +148,7 @@ private fun RoomListClearFiltersButton(
     Box(
         modifier = modifier
             .clip(CircleShape)
-            .background(ElementTheme.colors.bgActionPrimaryRest)
+            .background(ElementTheme.colors.bgActionPrimaryRest.topBarBackground())
             .clickable(onClick = onClick)
             .padding(4.dp)
     ) {
@@ -191,8 +192,8 @@ private fun RoomListFilterView(
         modifier = modifier.height(32.dp),
         shape = CircleShape,
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = background.value,
-            selectedContainerColor = background.value,
+            containerColor = background.value.topBarBackground(),
+            selectedContainerColor = background.value.topBarBackground(),
             labelColor = textColour.value,
             selectedLabelColor = textColour.value,
         ),

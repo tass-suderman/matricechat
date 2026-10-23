@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
+import io.element.android.libraries.designsystem.components.bottomBarBackground
 import io.element.android.libraries.designsystem.components.media.WaveFormSamples
 import io.element.android.libraries.designsystem.components.media.WaveformPlaybackView
 import io.element.android.libraries.designsystem.preview.ElementPreview
@@ -39,9 +40,9 @@ import io.element.android.libraries.designsystem.theme.components.IconButton
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.libraries.ui.utils.time.formatShort
-import kotlinx.collections.immutable.ImmutableList
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 internal fun VoiceMessagePreview(
@@ -61,7 +62,7 @@ internal fun VoiceMessagePreview(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                color = ElementTheme.colors.bgSubtleSecondary,
+                color = ElementTheme.colors.bgSubtleSecondary.bottomBarBackground(),
                 shape = MaterialTheme.shapes.medium,
             )
             .padding(start = 8.dp, end = 20.dp, top = 6.dp, bottom = 6.dp)

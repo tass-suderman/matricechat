@@ -28,11 +28,12 @@ import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 @Composable
 fun Modifier.backgroundVerticalGradient(
     isVisible: Boolean = true,
+    alpha: Float = 1f,
 ): Modifier {
     if (!isVisible) return this
     return background(
         brush = Brush.verticalGradient(
-            colors = gradientSubtleColors(),
+            colors = gradientSubtleColors().map { it.copy(alpha = it.alpha * alpha) },
         ),
     )
 }

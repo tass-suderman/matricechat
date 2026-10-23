@@ -113,6 +113,8 @@ import io.element.android.libraries.testtags.TestTags
 import io.element.android.libraries.testtags.testTag
 import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.wysiwyg.link.Link
+import kotlin.math.min
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -123,8 +125,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import kotlin.math.min
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun TimelineView(
@@ -210,18 +210,6 @@ fun TimelineView(
         }
         CompositionLocalProvider(LocalTimelineEventRendererConfig provides composeLocalTimelineEventRendererConfig) {
             Box(modifier) {
-                if (ScPrefs.CHAT_WALLPAPER_ENABLED.value()) {
-                    val wallpaper = ScPrefs.CHAT_WALLPAPER.value()
-                    if (wallpaper.isNotEmpty()) {
-                        coil3.compose.AsyncImage(
-                            model = java.io.File(wallpaper),
-                            alpha = ScPrefs.CHAT_WALLPAPER_OPACITY.value().coerceIn(0, 100) / 100f,
-                            contentDescription = null,
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                            modifier = Modifier.matchParentSize(),
-                        )
-                    }
-                }
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()

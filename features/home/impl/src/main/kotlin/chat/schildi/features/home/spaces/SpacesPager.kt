@@ -37,7 +37,6 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import chat.schildi.lib.compose.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,6 +62,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import chat.schildi.lib.compose.ScrollableTabRow
 import chat.schildi.lib.compose.TabRowDefaults
 import chat.schildi.lib.compose.TabRowDefaults.tabIndicatorOffset
 import chat.schildi.lib.preferences.ScAppStateStore
@@ -76,19 +76,20 @@ import io.element.android.features.home.impl.spaces.HomeSpacesView
 import io.element.android.libraries.designsystem.components.avatar.Avatar
 import io.element.android.libraries.designsystem.components.avatar.AvatarSize
 import io.element.android.libraries.designsystem.components.avatar.AvatarType
+import io.element.android.libraries.designsystem.components.bottomBarBackground
 import io.element.android.libraries.designsystem.text.toPx
 import io.element.android.libraries.designsystem.theme.unreadIndicator
 import io.element.android.libraries.designsystem.utils.OnLifecycleEvent
 import io.element.android.libraries.matrix.api.core.RoomId
+import kotlin.math.absoluteValue
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import kotlin.math.absoluteValue
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
 
 @Composable
 fun SpacesPager(
@@ -310,7 +311,7 @@ private fun ColumnScope.SpacesPager(
         selectedTabIndex = selectedTabRendered,
         edgePadding = 0.dp,
         minTabWidth = 0.dp,
-        containerColor = ScTheme.exposures.spaceBarBg ?: TabRowDefaults.primaryContainerColor,
+        containerColor = (ScTheme.exposures.spaceBarBg ?: TabRowDefaults.primaryContainerColor).bottomBarBackground(),
         indicator = { tabPositions ->
             Box(
                 Modifier

@@ -73,8 +73,13 @@ fun <T> ScPref<T>.AutoRendered(initial: Any, onChange: (Any) -> Unit) {
     when (this) {
         is ScBoolPref -> return Rendered(initial, onChange)
         is ScIntPref -> {
-            if (sKey == chat.schildi.lib.preferences.ScPrefs.CHAT_WALLPAPER_OPACITY.sKey) {
+            if (this in listOf(
+                    chat.schildi.lib.preferences.ScPrefs.CHAT_WALLPAPER_OPACITY,
+                    chat.schildi.lib.preferences.ScPrefs.TOP_BAR_OPACITY,
+                    chat.schildi.lib.preferences.ScPrefs.BOTTOM_BAR_OPACITY,
+                )) {
                 return WallpaperOpacityPreference(
+                    titleRes = titleRes,
                     value = (initial as? Int ?: defaultValue).coerceIn(0, 100),
                     enabled = LocalScPreferencesStore.current.enabledState(this).value,
                     onChange = onChange,

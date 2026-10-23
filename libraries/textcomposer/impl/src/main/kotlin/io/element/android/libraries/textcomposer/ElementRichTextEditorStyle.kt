@@ -10,6 +10,7 @@ package io.element.android.libraries.textcomposer
 
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
+import chat.schildi.theme.ScTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.unit.TextUnit
@@ -59,7 +60,7 @@ object ElementRichTextEditorStyle {
                 includeFontPadding = false,
             ),
             cursor = RichTextEditorDefaults.cursorStyle(
-                color = colors.iconAccentTertiary,
+                color = ScTheme.chatAccentColor ?: colors.iconAccentTertiary,
             ),
             link = RichTextEditorDefaults.linkStyle(
                 color = colors.textLinkExternal,

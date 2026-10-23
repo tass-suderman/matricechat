@@ -42,8 +42,12 @@ class SettingsBackupServiceTest {
         val global = factory.create("elementx_preferences")
         global.edit { it[stringPreferencesKey("theme")] = "dark" }
         tweaks.setSetting(ScPrefs.CHAT_WALLPAPER_OPACITY, 37)
+        tweaks.setSetting(ScPrefs.TOP_BAR_OPACITY, 25)
+        tweaks.setSetting(ScPrefs.BOTTOM_BAR_OPACITY, 75)
+        tweaks.setSetting(ScPrefs.HIDE_MISMATCHED_SENDER_WARNING, true)
         tweaks.setSetting(ScPrefs.CUSTOM_COLORS, false)
         tweaks.setSetting(ScPrefs.ACCENT_DARK, 0xff123456.toInt())
+        tweaks.setSetting(ScPrefs.CHAT_ACCENT, 0xffbc27de.toInt())
         val wallpaper = File(context.filesDir, "source-wallpaper.png")
         Bitmap.createBitmap(3, 2, Bitmap.Config.ARGB_8888).let { bitmap ->
             wallpaper.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
@@ -63,8 +67,12 @@ class SettingsBackupServiceTest {
             it[stringPreferencesKey("notificationMessageSoundUri")] = "content://previous-app/sound"
         }
         tweaks.setSetting(ScPrefs.CHAT_WALLPAPER_OPACITY, 100)
+        tweaks.setSetting(ScPrefs.TOP_BAR_OPACITY, 100)
+        tweaks.setSetting(ScPrefs.BOTTOM_BAR_OPACITY, 100)
+        tweaks.setSetting(ScPrefs.HIDE_MISMATCHED_SENDER_WARNING, false)
         tweaks.setSetting(ScPrefs.CUSTOM_COLORS, true)
         tweaks.setSetting(ScPrefs.ACCENT_DARK, 0)
+        tweaks.setSetting(ScPrefs.CHAT_ACCENT, 0)
         tweaks.setSetting(ScPrefs.CHAT_WALLPAPER, "")
         factory.create(sessionName).edit { it[booleanPreferencesKey("sendPublicReadReceipts")] = true }
         service.importSettings(Uri.fromFile(file)).getOrThrow()
@@ -72,8 +80,12 @@ class SettingsBackupServiceTest {
         assertThat(global.data.first()[booleanPreferencesKey("added_after_export")]).isTrue()
         assertThat(global.data.first()[stringPreferencesKey("notificationMessageSoundUri")]).isNull()
         assertThat(tweaks.getSetting(ScPrefs.CHAT_WALLPAPER_OPACITY)).isEqualTo(37)
+        assertThat(tweaks.getSetting(ScPrefs.TOP_BAR_OPACITY)).isEqualTo(25)
+        assertThat(tweaks.getSetting(ScPrefs.BOTTOM_BAR_OPACITY)).isEqualTo(75)
+        assertThat(tweaks.getSetting(ScPrefs.HIDE_MISMATCHED_SENDER_WARNING)).isTrue()
         assertThat(tweaks.getSetting(ScPrefs.CUSTOM_COLORS)).isFalse()
         assertThat(tweaks.backupDataStore.data.first()[ScPrefs.ACCENT_DARK.key]).isEqualTo(0xff123456.toInt())
+        assertThat(tweaks.backupDataStore.data.first()[ScPrefs.CHAT_ACCENT.key]).isEqualTo(0xffbc27de.toInt())
         val restoredWallpaper = File(tweaks.getSetting(ScPrefs.CHAT_WALLPAPER))
         assertThat(restoredWallpaper.path).isNotEqualTo(wallpaper.path)
         assertThat(restoredWallpaper.readBytes()).isEqualTo(wallpaper.readBytes())

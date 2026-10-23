@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.designsystem.atomic.atoms.CounterAtom
+import io.element.android.libraries.designsystem.components.bottomBarBackground
 import io.element.android.libraries.designsystem.components.tooltip.PlainTooltip
 import io.element.android.libraries.designsystem.components.tooltip.TooltipBox
 import io.element.android.libraries.designsystem.preview.ElementPreview
@@ -78,7 +79,7 @@ fun HorizontalFloatingToolbar(
         androidx.compose.material3.HorizontalFloatingToolbar(
             expanded = expanded,
             modifier = modifier,
-            colors = colors,
+            colors = colors.copy(toolbarContainerColor = colors.toolbarContainerColor.bottomBarBackground()),
             contentPadding = contentPadding,
             scrollBehavior = scrollBehavior,
             shape = shape,
@@ -93,7 +94,7 @@ fun HorizontalFloatingToolbar(
             expanded = expanded,
             floatingActionButton = floatingActionButton,
             modifier = modifier,
-            colors = colors,
+            colors = colors.copy(toolbarContainerColor = colors.toolbarContainerColor.bottomBarBackground()),
             contentPadding = contentPadding,
             scrollBehavior = scrollBehavior,
             shape = shape,

@@ -75,10 +75,12 @@ import io.element.android.features.home.impl.spacefilters.SpaceFiltersState
 import io.element.android.features.home.impl.spacefilters.aSelectedSpaceFiltersState
 import io.element.android.features.home.impl.spacefilters.anUnselectedSpaceFiltersState
 import io.element.android.libraries.designsystem.atomic.atoms.RedIndicatorAtom
+import io.element.android.libraries.designsystem.components.LocalTopBarOpacity
 import io.element.android.libraries.designsystem.components.TopAppBarScrollBehaviorLayout
 import io.element.android.libraries.designsystem.components.avatar.Avatar
 import io.element.android.libraries.designsystem.components.avatar.AvatarSize
 import io.element.android.libraries.designsystem.components.avatar.AvatarType
+import io.element.android.libraries.designsystem.components.topBarBackground
 import io.element.android.libraries.designsystem.modifiers.backgroundVerticalGradient
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
@@ -133,10 +135,11 @@ fun HomeTopBar(
     Column(modifier) {
         TopAppBar(
             modifier = Modifier
-                .let { ScTheme.exposures.appBarBg?.let { c -> it.background(c) } ?: it
+                .let { ScTheme.exposures.appBarBg?.let { c -> it.background(c.topBarBackground()) } ?: it
                 // indention for merge start
                 .backgroundVerticalGradient(
                     isVisible = !areSearchResultsDisplayed,
+                    alpha = LocalTopBarOpacity.current,
                 )
                 } // indention for merge end
                 .statusBarsPadding()
@@ -198,7 +201,10 @@ fun HomeTopBar(
             windowInsets = WindowInsets(left = 4.dp),
         )
         if (displayFilters) {
-            TopAppBarScrollBehaviorLayout(scrollBehavior = scrollBehavior) {
+            TopAppBarScrollBehaviorLayout(
+                scrollBehavior = scrollBehavior,
+                backgroundColor = ElementTheme.colors.bgCanvasDefault.topBarBackground(),
+            ) {
                 RoomListFiltersView(
                     state = filtersState,
                     modifier = Modifier

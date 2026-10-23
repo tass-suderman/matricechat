@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import chat.schildi.theme.ScTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -236,7 +237,7 @@ internal fun TimelineItemRow(
 private fun Modifier.focusedEvent(
     focusedEventOffset: Dp,
 ): Modifier {
-    val highlightedLineColor = ElementTheme.colors.borderAccentSubtle
+    val highlightedLineColor = ScTheme.chatAccentColor ?: ElementTheme.colors.borderAccentSubtle
     val gradientColors = scMessageHighlightColors() ?: gradientSubtleColors()
     val verticalOffset = focusedEventOffset.toPx()
     val verticalRatio = 0.7f

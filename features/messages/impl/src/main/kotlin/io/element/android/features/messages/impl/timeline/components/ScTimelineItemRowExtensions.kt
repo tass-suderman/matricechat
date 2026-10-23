@@ -6,10 +6,12 @@ import chat.schildi.theme.ScTheme
 import io.element.android.compound.theme.ElementTheme
 
 @Composable
-fun scMessageHighlightColors(): List<Color>? = if (ScTheme.yes)
-    listOf(
+fun scMessageHighlightColors(): List<Color>? {
+    ScTheme.chatAccentColor?.let { colour ->
+        return listOf(colour.copy(alpha = colour.alpha * 0.5f), Color.Transparent)
+    }
+    return if (ScTheme.yes) listOf(
         ScTheme.exposures.messageHighlightBg ?: ElementTheme.colors.textActionAccent.copy(alpha = 0.5f),
-        Color.Transparent
-    )
-else
-    null
+        Color.Transparent,
+    ) else null
+}

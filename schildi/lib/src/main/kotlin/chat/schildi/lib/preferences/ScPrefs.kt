@@ -32,6 +32,17 @@ object ScPrefs {
         dependencies = CHAT_WALLPAPER_ENABLED.asDependencies(),
     )
 
+    val TOP_BAR_OPACITY = ScIntPref(
+        "TOP_BAR_OPACITY", 100, R.string.screen_settings_top_bar_opacity_title,
+        R.string.screen_settings_chat_wallpaper_opacity_summary, minValue = 0, maxValue = 100,
+        dependencies = CHAT_WALLPAPER_ENABLED.asDependencies(),
+    )
+    val BOTTOM_BAR_OPACITY = ScIntPref(
+        "BOTTOM_BAR_OPACITY", 100, R.string.screen_settings_bottom_bar_opacity_title,
+        R.string.screen_settings_chat_wallpaper_opacity_summary, minValue = 0, maxValue = 100,
+        dependencies = CHAT_WALLPAPER_ENABLED.asDependencies(),
+    )
+
     val CHAT_WALLPAPER = ScWallpaperPref("CHAT_WALLPAPER", R.string.screen_settings_chat_wallpaper_title, R.string.screen_settings_chat_wallpaper_summary)
 
     val EMOJI_AUTOCOMPLETE =
@@ -189,6 +200,10 @@ object ScPrefs {
     )
 
     // Timeline
+    val HIDE_MISMATCHED_SENDER_WARNING = ScBoolPref(
+        "HIDE_MISMATCHED_SENDER_WARNING", false, R.string.screen_settings_hide_mismatched_sender_title,
+        R.string.screen_settings_hide_mismatched_sender_summary,
+    )
     val FLAT_MESSAGES = ScBoolPref("FLAT_MESSAGES", false, R.string.screen_settings_flat_messages_title, R.string.screen_settings_flat_messages_summary, authorsChoice = false, upstreamChoice = false)
     val PINNED_MESSAGE_OVERLAY = ScBoolPref("PINNED_MESSAGE_OVERLAY", false, R.string.sc_pref_pinned_message_overlay_title, R.string.sc_pref_pinned_message_overlay_summary, authorsChoice = false, upstreamChoice = true)
     val PINNED_MESSAGE_TOOLBAR_ACTION = ScBoolPref("PINNED_MESSAGE_TOOLBAR_ACTION", true, R.string.sc_pref_pinned_message_toolbar_title, R.string.sc_pref_pinned_message_toolbar_summary, authorsChoice = true, upstreamChoice = false, dependencies = PINNED_MESSAGE_OVERLAY.asDependencies(expect = false), disabledValue = false)
@@ -215,6 +230,8 @@ object ScPrefs {
     val LEGACY_MESSAGE_RENDERING = ScBoolPref("LEGACY_MESSAGE_RENDERING", false, R.string.sc_pref_legacy_message_rendering_title, R.string.sc_pref_legacy_message_rendering_summary, authorsChoice = false, upstreamChoice = true, dependencies = SC_DANGER_ZONE.asDependencies())
     val VERBOSE_CONVERSATION_ICONS = ScBoolPref("VERBOSE_CONVERSATION_ICONS", false, R.string.sc_pref_verbose_room_title_icons_title, R.string.sc_pref_verbose_room_title_icons_summary, authorsChoice = false, upstreamChoice = true)
 
+    val CHAT_ACCENT = ScColorPref("CHAT_ACCENT", R.string.screen_settings_color_chat_accent, R.string.screen_settings_color_chat_accent_summary)
+
     // Advanced theming options - Light theme
     val BUBBLE_BG_LIGHT_OUTGOING = ScColorPref("BUBBLE_BG_LIGHT_OUTGOING", R.string.sc_pref_bubble_color_outgoing_title)
     val BUBBLE_BG_LIGHT_INCOMING = ScColorPref("BUBBLE_BG_LIGHT_INCOMING", R.string.sc_pref_bubble_color_incoming_title)
@@ -232,6 +249,7 @@ object ScPrefs {
         R.string.sc_pref_screen_advanced_theming_summary,
         listOf(
             CUSTOM_COLORS,
+            ScPrefCategory(R.string.screen_settings_color_chat_section, null, listOf(CHAT_ACCENT)),
             ScPrefCategory(R.string.sc_theme_category_light, null, listOf(
                 CANVAS_LIGHT,
                 SURFACE_LIGHT,
@@ -275,6 +293,8 @@ object ScPrefs {
                 CHAT_WALLPAPER_ENABLED,
                 CHAT_WALLPAPER,
                 CHAT_WALLPAPER_OPACITY,
+                TOP_BAR_OPACITY,
+                BOTTOM_BAR_OPACITY,
                 BLACK_THEME,
                 EL_TYPOGRAPHY,
                 TWO_INITIALS_AVATAR_FALLBACK,
@@ -329,6 +349,7 @@ object ScPrefs {
         ScPrefScreen(R.string.sc_pref_category_timeline, null, listOf(
             SC_TIMELINE_LAYOUT,
             FLAT_MESSAGES,
+            HIDE_MISMATCHED_SENDER_WARNING,
             //RENDER_INLINE_IMAGES,
             FLOATING_DATE,
             HIDE_CALL_TOOLBAR_ACTION,

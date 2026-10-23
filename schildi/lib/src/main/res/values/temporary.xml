@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="screen_settings_color_chat_section">Chat colours</string>
+    <string name="screen_settings_color_chat_accent">Chat accent colour</string>
+    <string name="screen_settings_color_chat_accent_summary">Use one colour for the new messages divider, fading message highlights and typing cursor in both themes</string>
+    <string name="screen_settings_hide_mismatched_sender_title">Normal timestamps for sender-device mismatches</string>
+    <string name="screen_settings_hide_mismatched_sender_summary">Hide the timestamp warning when a message sender differs from the sending device owner, as with some bridges</string>
+    <string name="screen_settings_top_bar_opacity_title">Top bar opacity</string>
+    <string name="screen_settings_bottom_bar_opacity_title">Bottom bar opacity</string>
     <string name="screen_settings_emoji_replacements_title">Text to emoji</string>
     <string name="screen_settings_emoji_replacements_summary">Choose words or emoticons to replace with emoji when sending messages</string>
     <string name="screen_settings_emoji_replacements_help">Match complete space-separated words, including at the start or end of a message. Prefix a word with a backslash to send it literally. Incomplete rules and text containing spaces are ignored. For duplicates, the first matching row wins.</string>

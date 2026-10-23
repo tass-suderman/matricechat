@@ -91,3 +91,8 @@ Note that following list of changes compared to Element X is likely incomplete, 
 - Optional flat message layout in Timeline settings: left-aligned messages beneath each sender’s name, without chat bubbles. Disabled by default.
 
 - Text to emoji submenu in Timeline settings: define whole-token replacements using the emoji picker, add or delete rules, and prefix a token with a backslash to send it literally. Rules apply when sending, excluding code and links.
+
+- Independent top and bottom bar opacity controls accompany wallpaper opacity in appearance settings. Chat and room-list bars reveal a continuous wallpaper underneath while controls remain opaque.
+- An optional Timeline setting shows normal timestamps for sender/device mismatch warnings from bridges; other encryption warnings retain their existing display.
+
+- Filter chip backgrounds and their scrolling container follow top-bar opacity. The Chat colours section adds one shared accent for new-message dividers, fading highlights and the typing cursor in both light and dark themes.

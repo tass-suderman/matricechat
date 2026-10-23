@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.value
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.features.messages.impl.timeline.TimelineEvent
@@ -36,6 +38,7 @@ import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.timeline.item.event.LocalEventSendState
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageShield
 import io.element.android.libraries.ui.strings.CommonStrings
 
 @Composable
@@ -44,15 +47,16 @@ fun TimelineEventTimestampView(
     eventSink: (TimelineEvent.TimelineItemEvent) -> Unit,
     modifier: Modifier = Modifier,
     isLayoutDirectionMismatched: Boolean = false,
+    hideMismatchedSenderWarning: Boolean = ScPrefs.HIDE_MISMATCHED_SENDER_WARNING.value(),
 ) {
     val formattedTime = event.sentTime
     val hasError = event.failedToSend
-    val hasEncryptionCritical = event.messageShield?.isCritical.orFalse()
+    val shield = event.messageShield.takeUnless { hideMismatchedSenderWarning && it?.shield is MessageShield.MismatchedSender }
+    val hasEncryptionCritical = shield?.isCritical.orFalse()
     val isMessageEdited = event.content.isEdited()
     val isMessageRedacted = event.content.isRedacted()
     val tint = if (hasError || hasEncryptionCritical && !isMessageRedacted) ElementTheme.colors.textCriticalPrimary else ElementTheme.colors.textSecondary
 
-    val shield = event.messageShield
     val isVerifiedUserSendFailure = event.localSendState is LocalEventSendState.Failed.VerifiedUser
     val onClickLabel = when {
         shield != null -> stringResource(CommonStrings.a11y_view_details)
@@ -60,7 +64,7 @@ fun TimelineEventTimestampView(
         hasError -> stringResource(CommonStrings.a11y_view_details)
         else -> null
     }
-    val clickableModifier = remember(event) {
+    val clickableModifier = remember(event, shield) {
         when {
             shield != null -> {
                 Modifier.clickable(
@@ -147,4 +151,20 @@ internal fun TimelineEventTimestampViewPreview(@PreviewParameter(
 
 object TimelineEventTimestampViewDefaults {
     val spacing = 16.dp
+}
+
+internal class MismatchedSenderTimestampPreviewParam : androidx.compose.ui.tooling.preview.PreviewParameterProvider<Boolean> {
+    override val values = sequenceOf(false, true)
+}
+
+@PreviewsDayNight
+@Composable
+internal fun MismatchedSenderTimestampPreview(
+    @PreviewParameter(MismatchedSenderTimestampPreviewParam::class) hideWarning: Boolean,
+) = ElementPreview {
+    TimelineEventTimestampView(
+        event = io.element.android.features.messages.impl.timeline.aTimelineItemEvent(messageShield = MessageShield.MismatchedSender(true)),
+        eventSink = {},
+        hideMismatchedSenderWarning = hideWarning,
+    )
 }

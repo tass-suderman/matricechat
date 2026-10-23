@@ -60,6 +60,7 @@ import chat.schildi.lib.preferences.value
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.androidutils.ui.showKeyboard
+import io.element.android.libraries.designsystem.components.bottomBarBackground
 import io.element.android.libraries.designsystem.components.media.WaveFormSamples
 import io.element.android.libraries.designsystem.preview.DAY_MODE_NAME
 import io.element.android.libraries.designsystem.preview.ElementPreview
@@ -664,7 +665,7 @@ private fun TextInputBox(
     modifier: Modifier = Modifier,
     textInput: @Composable () -> Unit,
 ) {
-    val bgColor = ElementTheme.colors.bgSubtleSecondary
+    val bgColor = ElementTheme.colors.bgSubtleSecondary.bottomBarBackground()
     val borderColor = ElementTheme.colors.borderDisabled
     val roundedCorners = textInputRoundedCornerShape(composerMode = composerMode)
 

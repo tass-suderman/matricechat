@@ -106,6 +106,8 @@ import io.element.android.libraries.androidutils.ui.hideKeyboard
 import io.element.android.libraries.designsystem.atomic.molecules.ComposerAlertMolecule
 import io.element.android.libraries.designsystem.components.ExpandableBottomSheetLayout
 import io.element.android.libraries.designsystem.components.ExpandableBottomSheetLayoutState
+import io.element.android.libraries.designsystem.components.WallpaperBackground
+import io.element.android.libraries.designsystem.components.bottomBarBackground
 import io.element.android.libraries.designsystem.components.dialogs.ConfirmationDialog
 import io.element.android.libraries.designsystem.components.dialogs.TextFieldDialog
 import io.element.android.libraries.designsystem.components.rememberExpandableBottomSheetLayoutState
@@ -136,9 +138,9 @@ import io.element.android.libraries.matrix.ui.media.contentvalidation.LocalEvent
 import io.element.android.libraries.textcomposer.model.TextEditorState
 import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.wysiwyg.link.Link
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.collections.immutable.persistentListOf
 import timber.log.Timber
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun MessagesView(
@@ -225,181 +227,185 @@ fun MessagesView(
     val syncReadMarkerAndReceipt = ScPrefs.SYNC_READ_RECEIPT_AND_MARKER.value()
 
     val expandableState = rememberExpandableBottomSheetLayoutState()
-    ExpandableBottomSheetLayout(
-        modifier = modifier
-            .fillMaxSize()
-            .imePadding()
-            .systemBarsPadding()
-            .onSizeChanged { size ->
-                // Let the composer takes at max half of the available height.
-                // The value will be different if the soft keyboard is displayed
-                // or not.
-                maxComposerHeightPx = (size.height * 0.5f).toInt()
-            },
-        content = {
-            Scaffold(
-                contentWindowInsets = scaffoldScrollableContentInsets,
-                topBar = {
-                    if (state.timelineState.timelineMode is Timeline.Mode.Thread) {
-                        ThreadTopBar(
-                            roomName = state.roomName,
-                            roomAvatarData = state.roomAvatar,
-                            heroes = state.heroes,
-                            isTombstoned = state.isTombstoned,
-                            onBackClick = onBackClick,
-                        )
-                    } else {
-                        Column {
-                            // SC wrong indention
-                        MessagesViewTopBar(
-                            state = state, // SC
-                            roomName = state.roomName,
-                            roomAvatar = state.roomAvatar,
-                            isTombstoned = state.isTombstoned,
-                            heroes = state.heroes,
-                            dmUserIdentityState = state.dmUserVerificationState,
-                            sharedHistoryIcon = state.topBarSharedHistoryIcon,
-                            dmUserStatus = state.dmUserStatus,
-                            onBackClick = { hidingKeyboard { onBackClick() } },
-                            onRoomDetailsClick = { hidingKeyboard { onRoomDetailsClick() } },
-                            menuActions = {
-                                MessagesMenuActions(
-                                    state = state, // SC
-                                    onViewAllPinnedMessagesClick = onViewAllPinnedMessagesClick, // SC
-                                    displayThreads = state.timelineState.timelineMode !is Timeline.Mode.Thread && state.threads.hasThreads,
-                                    roomCallState = state.roomCallState,
-                                    onJoinCallClick = onJoinCallClick,
-                                    onThreadsListClick = onThreadsListClick
-                                )
-                            }
-                        )
-                        ScReadMarkerDebug(state.timelineState.scReadState)
-                        } // SC wrong indention
-                    }
+    WallpaperBackground(modifier = modifier.fillMaxSize()) {
+        ExpandableBottomSheetLayout(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .systemBarsPadding()
+                .onSizeChanged { size ->
+                    // Let the composer takes at max half of the available height.
+                    // The value will be different if the soft keyboard is displayed
+                    // or not.
+                    maxComposerHeightPx = (size.height * 0.5f).toInt()
                 },
-                content = { padding ->
-                    Box(
-                        modifier = Modifier
-                            .padding(padding)
-                            .consumeWindowInsets(padding)
-                    ) {
-                        MessagesViewContent(
-                            state = state,
-                            onContentClick = ::onContentClick,
-                            onGalleryItemClick = { event, index ->
-                                val hideKeyboard = onGalleryEventItemClick(
-                                    state.timelineState.isLive,
-                                    event,
-                                    index,
-                                )
-                                if (hideKeyboard) {
-                                    localView.hideKeyboard()
+            content = {
+                Scaffold(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                    contentWindowInsets = scaffoldScrollableContentInsets,
+                    topBar = {
+                        if (state.timelineState.timelineMode is Timeline.Mode.Thread) {
+                            ThreadTopBar(
+                                roomName = state.roomName,
+                                roomAvatarData = state.roomAvatar,
+                                heroes = state.heroes,
+                                isTombstoned = state.isTombstoned,
+                                onBackClick = onBackClick,
+                            )
+                        } else {
+                            Column {
+                                // SC wrong indention
+                            MessagesViewTopBar(
+                                state = state, // SC
+                                roomName = state.roomName,
+                                roomAvatar = state.roomAvatar,
+                                isTombstoned = state.isTombstoned,
+                                heroes = state.heroes,
+                                dmUserIdentityState = state.dmUserVerificationState,
+                                sharedHistoryIcon = state.topBarSharedHistoryIcon,
+                                dmUserStatus = state.dmUserStatus,
+                                onBackClick = { hidingKeyboard { onBackClick() } },
+                                onRoomDetailsClick = { hidingKeyboard { onRoomDetailsClick() } },
+                                menuActions = {
+                                    MessagesMenuActions(
+                                        state = state, // SC
+                                        onViewAllPinnedMessagesClick = onViewAllPinnedMessagesClick, // SC
+                                        displayThreads = state.timelineState.timelineMode !is Timeline.Mode.Thread && state.threads.hasThreads,
+                                        roomCallState = state.roomCallState,
+                                        onJoinCallClick = onJoinCallClick,
+                                        onThreadsListClick = onThreadsListClick
+                                    )
                                 }
-                            },
-                            onMessageLongClick = ::onMessageLongClick,
-                            onUserDataClick = {
-                                hidingKeyboard {
-                                    state.eventSink(MessagesEvent.OnUserClicked(it))
-                                }
-                            },
-                            onLinkClick = { link, customTab ->
-                                if (customTab) {
-                                    onLinkClick(link.url, true)
-                                    // Do not check those links, they are internal link only
-                                } else {
-                                    state.linkState.eventSink(LinkEvent.OnLinkClick(link))
-                                }
-                            },
-                            onReactionClick = ::onEmojiReactionClick,
-                            onReactionLongClick = ::onEmojiReactionLongClick,
-                            onMoreReactionsClick = ::onMoreReactionsClick,
-                            onReadReceiptClick = { event ->
-                                state.readReceiptBottomSheetState.eventSink(ReadReceiptBottomSheetEvent.EventSelected(event))
-                            },
-                            onSendLocationClick = onSendLocationClick,
-                            onCreatePollClick = onCreatePollClick,
-                            onSwipeToReply = { targetEvent ->
-                                state.eventSink(MessagesEvent.HandleAction(TimelineItemAction.Reply, targetEvent))
-                            },
-                            onJoinCallClick = onJoinCallClick,
-                            forceJumpToBottomVisibility = forceJumpToBottomVisibility,
-                            onViewAllPinnedMessagesClick = onViewAllPinnedMessagesClick,
-                            knockRequestsBannerView = knockRequestsBannerView,
-                        )
-
-                        SuggestionsPickerView(
+                            )
+                            ScReadMarkerDebug(state.timelineState.scReadState)
+                            } // SC wrong indention
+                        }
+                    },
+                    content = { padding ->
+                        Box(
                             modifier = Modifier
-                                .shadow(10.dp)
-                                .background(ElementTheme.colors.bgCanvasDefault)
-                                .align(Alignment.BottomStart)
-                                .heightIn(max = 230.dp),
-                            roomId = state.roomId,
-                            roomName = state.roomName,
-                            roomAvatarData = state.roomAvatar,
-                            suggestions = state.composerState.suggestions,
-                            onSelectSuggestion = {
-                                state.composerState.eventSink(MessageComposerEvent.InsertSuggestion(it))
-                            }
+                                .padding(padding)
+                                .consumeWindowInsets(padding)
+                        ) {
+                            MessagesViewContent(
+                                state = state,
+                                onContentClick = ::onContentClick,
+                                onGalleryItemClick = { event, index ->
+                                    val hideKeyboard = onGalleryEventItemClick(
+                                        state.timelineState.isLive,
+                                        event,
+                                        index,
+                                    )
+                                    if (hideKeyboard) {
+                                        localView.hideKeyboard()
+                                    }
+                                },
+                                onMessageLongClick = ::onMessageLongClick,
+                                onUserDataClick = {
+                                    hidingKeyboard {
+                                        state.eventSink(MessagesEvent.OnUserClicked(it))
+                                    }
+                                },
+                                onLinkClick = { link, customTab ->
+                                    if (customTab) {
+                                        onLinkClick(link.url, true)
+                                        // Do not check those links, they are internal link only
+                                    } else {
+                                        state.linkState.eventSink(LinkEvent.OnLinkClick(link))
+                                    }
+                                },
+                                onReactionClick = ::onEmojiReactionClick,
+                                onReactionLongClick = ::onEmojiReactionLongClick,
+                                onMoreReactionsClick = ::onMoreReactionsClick,
+                                onReadReceiptClick = { event ->
+                                    state.readReceiptBottomSheetState.eventSink(ReadReceiptBottomSheetEvent.EventSelected(event))
+                                },
+                                onSendLocationClick = onSendLocationClick,
+                                onCreatePollClick = onCreatePollClick,
+                                onSwipeToReply = { targetEvent ->
+                                    state.eventSink(MessagesEvent.HandleAction(TimelineItemAction.Reply, targetEvent))
+                                },
+                                onJoinCallClick = onJoinCallClick,
+                                forceJumpToBottomVisibility = forceJumpToBottomVisibility,
+                                onViewAllPinnedMessagesClick = onViewAllPinnedMessagesClick,
+                                knockRequestsBannerView = knockRequestsBannerView,
+                            )
+
+                            SuggestionsPickerView(
+                                modifier = Modifier
+                                    .shadow(10.dp)
+                                    .background(ElementTheme.colors.bgCanvasDefault)
+                                    .align(Alignment.BottomStart)
+                                    .heightIn(max = 230.dp),
+                                roomId = state.roomId,
+                                roomName = state.roomName,
+                                roomAvatarData = state.roomAvatar,
+                                suggestions = state.composerState.suggestions,
+                                onSelectSuggestion = {
+                                    state.composerState.eventSink(MessageComposerEvent.InsertSuggestion(it))
+                                }
+                            )
+                        }
+                    },
+                    snackbarHost = {
+                        SnackbarHost(
+                            snackbarHostState,
+                            modifier = Modifier.navigationBarsPadding()
                         )
-                    }
-                },
-                snackbarHost = {
-                    SnackbarHost(
-                        snackbarHostState,
-                        modifier = Modifier.navigationBarsPadding()
-                    )
-                },
-            )
-        },
-        bottomSheetContent = {
-            MessagesViewComposerBottomSheetContents(
-                emojiPickerRenderer = emojiPickerRenderer,
-                state = state,
-                onLinkClick = { url, customTab -> onLinkClick(url, customTab) },
-                onRoomSuccessorClick = { roomId ->
-                    state.timelineState.eventSink(TimelineEvent.NavigateToPredecessorOrSuccessorRoom(roomId = roomId))
-                },
-                scBeforeSend = {
-                    state.timelineState.eventSink(TimelineEvent.ForceMarkAsRead)
-                }.takeIf { syncReadMarkerAndReceipt },
-            )
-        },
-        sheetDragHandle = @Composable { toggleAction ->
-            if (state.composerState.showTextFormatting) {
-                val expandA11yLabel = stringResource(CommonStrings.a11y_expand_message_text_field)
-                val collapseA11yLabel = stringResource(CommonStrings.a11y_collapse_message_text_field)
-                BottomSheetDragHandle(
-                    modifier = Modifier.semantics {
-                        role = Role.Button
-                        // Accessibility action to toggle the bottom sheet state
-                        val label = when (expandableState.position) {
-                            ExpandableBottomSheetLayoutState.Position.COLLAPSED, ExpandableBottomSheetLayoutState.Position.DRAGGING -> expandA11yLabel
-                            ExpandableBottomSheetLayoutState.Position.EXPANDED -> collapseA11yLabel
-                        }
-                        onClick(label) {
-                            toggleAction()
-                            true
-                        }
-                    }
+                    },
                 )
-            } else {
-                LaunchedEffect(Unit) {
-                    // Ensure that the bottom sheet is collapsed
-                    if (expandableState.position == ExpandableBottomSheetLayoutState.Position.EXPANDED) {
-                        toggleAction()
+            },
+            bottomSheetContent = {
+                MessagesViewComposerBottomSheetContents(
+                    emojiPickerRenderer = emojiPickerRenderer,
+                    state = state,
+                    onLinkClick = { url, customTab -> onLinkClick(url, customTab) },
+                    onRoomSuccessorClick = { roomId ->
+                        state.timelineState.eventSink(TimelineEvent.NavigateToPredecessorOrSuccessorRoom(roomId = roomId))
+                    },
+                    scBeforeSend = {
+                        state.timelineState.eventSink(TimelineEvent.ForceMarkAsRead)
+                    }.takeIf { syncReadMarkerAndReceipt },
+                )
+            },
+            sheetDragHandle = @Composable { toggleAction ->
+                if (state.composerState.showTextFormatting) {
+                    val expandA11yLabel = stringResource(CommonStrings.a11y_expand_message_text_field)
+                    val collapseA11yLabel = stringResource(CommonStrings.a11y_collapse_message_text_field)
+                    BottomSheetDragHandle(
+                        modifier = Modifier.semantics {
+                            role = Role.Button
+                            // Accessibility action to toggle the bottom sheet state
+                            val label = when (expandableState.position) {
+                                ExpandableBottomSheetLayoutState.Position.COLLAPSED, ExpandableBottomSheetLayoutState.Position.DRAGGING -> expandA11yLabel
+                                ExpandableBottomSheetLayoutState.Position.EXPANDED -> collapseA11yLabel
+                            }
+                            onClick(label) {
+                                toggleAction()
+                                true
+                            }
+                        }
+                    )
+                } else {
+                    LaunchedEffect(Unit) {
+                        // Ensure that the bottom sheet is collapsed
+                        if (expandableState.position == ExpandableBottomSheetLayoutState.Position.EXPANDED) {
+                            toggleAction()
+                        }
                     }
                 }
-            }
-        },
-        isSwipeGestureEnabled = state.composerState.showTextFormatting,
-        state = expandableState,
-        sheetShape = if (state.composerState.showTextFormatting || state.composerState.suggestions.isNotEmpty()) {
-            MaterialTheme.shapes.large
-        } else {
-            RectangleShape
-        },
-        maxBottomSheetContentHeight = maxComposerHeightPx.toDp(),
-    )
+            },
+            isSwipeGestureEnabled = state.composerState.showTextFormatting,
+            state = expandableState,
+            backgroundColor = (if (ScTheme.yes) MaterialTheme.colorScheme.background else ElementTheme.colors.bgCanvasDefault).bottomBarBackground(),
+            sheetShape = if (state.composerState.showTextFormatting || state.composerState.suggestions.isNotEmpty()) {
+                MaterialTheme.shapes.large
+            } else {
+                RectangleShape
+            },
+            maxBottomSheetContentHeight = maxComposerHeightPx.toDp(),
+        )
+    }
 
     var endPollConfirmingEvent: TimelineItem.Event? by remember { mutableStateOf(null) }
 
@@ -702,7 +708,7 @@ private fun CantSendMessageBanner(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(ScTheme.exposures.composerBlockBg ?: ElementTheme.colors.bgSubtleSecondary)
+            .background((ScTheme.exposures.composerBlockBg ?: ElementTheme.colors.bgSubtleSecondary).bottomBarBackground())
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center

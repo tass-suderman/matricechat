@@ -48,6 +48,10 @@ object ScTheme {
         @Composable
         get() = getUserThemedColor(ScPrefs.BUBBLE_BG_LIGHT_OUTGOING, ScPrefs.BUBBLE_BG_DARK_OUTGOING) ?: exposures.bubbleBgOutgoing
 
+    val chatAccentColor: Color?
+        @Composable
+        get() = if (ScPrefs.CUSTOM_COLORS.value()) ScPrefs.CHAT_ACCENT.userColor() else null
+
     val unreadNotificationColor: Color
         @Composable
         get() {

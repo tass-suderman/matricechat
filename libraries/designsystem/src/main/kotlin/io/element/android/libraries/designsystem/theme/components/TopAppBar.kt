@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.designsystem.components.button.BackButton
+import io.element.android.libraries.designsystem.components.topBarBackground
 import io.element.android.libraries.designsystem.preview.ElementThemedPreview
 import io.element.android.libraries.designsystem.preview.PreviewGroup
 import io.element.android.libraries.designsystem.theme.aliasScreenTitle
@@ -99,7 +100,10 @@ fun TopAppBar(
             }
         },
         windowInsets = windowInsets,
-        colors = colors,
+        colors = colors.copy(
+            containerColor = colors.containerColor.topBarBackground(),
+            scrolledContainerColor = colors.scrolledContainerColor.topBarBackground(),
+        ),
         scrollBehavior = scrollBehavior,
     )
 }
