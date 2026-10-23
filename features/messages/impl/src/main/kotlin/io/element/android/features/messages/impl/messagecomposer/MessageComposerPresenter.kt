@@ -286,6 +286,10 @@ class MessageComposerPresenter(
         fun handleEvent(event: MessageComposerEvent) {
             when (event) {
                 MessageComposerEvent.ToggleFullScreenState -> isFullScreen.value = !isFullScreen.value
+                MessageComposerEvent.ToggleReplyPing -> {
+                    val mode = messageComposerContext.composerMode as? MessageComposerMode.Reply
+                    if (mode != null) messageComposerContext.composerMode = mode.copy(pingReply = !mode.pingReply)
+                }
                 MessageComposerEvent.CloseSpecialMode -> {
                     if (messageComposerContext.composerMode.isEditing) {
                         localCoroutineScope.launch {
@@ -696,6 +700,7 @@ class MessageComposerPresenter(
                             htmlBody = message.html,
                             intentionalMentions = message.intentionalMentions,
                             repliedToEventId = eventId,
+                            replyPing = pingReply,
                         )
                     }
                 }
@@ -852,11 +857,10 @@ class MessageComposerPresenter(
                 )
                 timelineController.invokeOnCurrentTimeline {
                     val replyToDetails = loadReplyDetails(draftType.eventId).map(permalinkParser)
-                    messageComposerContext.composerMode = MessageComposerMode.Reply(
-                        replyToDetails = replyToDetails,
-                        // I guess it's fine to always render the image when restoring a draft
-                        hideImage = false
-                    )
+                    val mode = messageComposerContext.composerMode as? MessageComposerMode.Reply
+                    if (mode?.eventId == draftType.eventId) {
+                        messageComposerContext.composerMode = mode.copy(replyToDetails = replyToDetails)
+                    }
                 }
             }
         }

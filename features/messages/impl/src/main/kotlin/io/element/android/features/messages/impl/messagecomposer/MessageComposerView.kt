@@ -113,6 +113,7 @@ internal fun MessageComposerView(
         isInThreadTimeline = state.isInThreadTimeline,
         showTextFormatting = state.showTextFormatting,
         onResetComposerMode = ::onCloseSpecialMode,
+        onToggleReplyPing = { state.eventSink(MessageComposerEvent.ToggleReplyPing) },
         onAddAttachment = ::onAddAttachment,
         onDismissTextFormatting = ::onDismissTextFormatting,
         onVoiceRecorderEvent = onVoiceRecorderEvent,

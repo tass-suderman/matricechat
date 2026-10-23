@@ -166,6 +166,7 @@ private fun ReadReceiptsAvatars(
                         Avatar(
                             avatarData = readReceiptData.avatarData,
                             avatarType = AvatarType.User,
+                            showPresence = false,
                         )
                     }
                 }

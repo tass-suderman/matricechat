@@ -179,6 +179,7 @@ class FakeTimeline(
         intentionalMentions: List<IntentionalMention>,
         fromNotification: Boolean,
         msgType: MsgType,
+        replyPing: Boolean?,
     ): Result<Unit> = replyMessageLambda(
         repliedToEventId,
         body,

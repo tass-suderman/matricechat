@@ -47,9 +47,14 @@ fun Avatar(
     forcedAvatarSize: Dp? = null,
     // If true, will show initials even if avatarData.url is not null
     hideImage: Boolean = false,
+    showPresence: Boolean = true,
 ) {
-    val presenceUserId = avatarData.presenceUserId ?: avatarData.id.takeIf { it.startsWith("@") }
-        ?: (avatarType as? AvatarType.Room)?.heroes?.singleOrNull()?.id
+    val presenceUserId = if (showPresence) {
+        avatarData.presenceUserId ?: avatarData.id.takeIf { it.startsWith("@") }
+            ?: (avatarType as? AvatarType.Room)?.heroes?.singleOrNull()?.id
+    } else {
+        null
+    }
     val provider = LocalAvatarPresence.current
     val presence by remember(provider, presenceUserId) {
         presenceUserId?.let(provider) ?: kotlinx.coroutines.flow.flowOf(null)

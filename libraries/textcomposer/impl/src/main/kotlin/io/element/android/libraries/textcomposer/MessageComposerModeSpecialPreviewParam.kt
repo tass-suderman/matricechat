@@ -17,9 +17,8 @@ class MessageComposerModeSpecialPreviewParam : PreviewParameterProvider<MessageC
         aMessageComposerModeEdit()
     ) +
         // Keep only 3 values from InReplyToDetailsPreviewParam
-        InReplyToDetailsPreviewParam().values.take(3).map {
-            aMessageComposerModeReply(
-                replyToDetails = it
-            )
+        InReplyToDetailsPreviewParam().values.take(3).flatMap {
+            val reply = aMessageComposerModeReply(replyToDetails = it)
+            sequenceOf(reply, reply.copy(pingReply = false))
         }
 }

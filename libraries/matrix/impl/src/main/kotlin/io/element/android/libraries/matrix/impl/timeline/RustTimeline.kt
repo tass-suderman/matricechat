@@ -29,13 +29,18 @@ import io.element.android.libraries.matrix.api.timeline.MsgType
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.TimelineException
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
+import io.element.android.libraries.matrix.api.timeline.item.event.PollContent
+import io.element.android.libraries.matrix.api.timeline.item.event.StickerContent
 import io.element.android.libraries.matrix.impl.media.GalleryMediaUploadHandlerImpl
 import io.element.android.libraries.matrix.impl.media.MediaUploadHandlerImpl
 import io.element.android.libraries.matrix.impl.media.map
 import io.element.android.libraries.matrix.impl.poll.toInner
 import io.element.android.libraries.matrix.impl.room.RoomContentForwarder
+import io.element.android.libraries.matrix.impl.room.map
 import io.element.android.libraries.matrix.impl.room.location.into
 import io.element.android.libraries.matrix.impl.timeline.item.event.EventTimelineItemMapper
 import io.element.android.libraries.matrix.impl.timeline.item.event.TimelineEventContentMapper
@@ -409,6 +414,7 @@ class RustTimeline(
         intentionalMentions: List<IntentionalMention>,
         fromNotification: Boolean,
         msgType: MsgType,
+        replyPing: Boolean?,
     ): Result<Unit> = withContext(dispatcher) {
         runCatchingExceptions<Unit> {
             val msg = MessageEventContent.from(
@@ -418,10 +424,31 @@ class RustTimeline(
                 msgType = msgType,
                 asPlainText = plaintext, // SC
             )
-            inner.sendReply(
-                msg = msg,
-                eventId = repliedToEventId.value,
-            )
+            if (replyPing == null) {
+                inner.sendReply(msg = msg, eventId = repliedToEventId.value)
+            } else {
+                val target = loadReplyDetails(repliedToEventId) as? InReplyTo.Ready
+                    ?: error("Reply details are unavailable")
+                val threadInfo = when (val content = target.content) {
+                    is MessageContent -> content.threadInfo
+                    is StickerContent -> content.threadInfo
+                    is PollContent -> content.threadInfo
+                    else -> null
+                }
+                val threadRootId = (mode as? Timeline.Mode.Thread)?.threadRootId
+                    ?: (threadInfo as? EventThreadInfo.ThreadResponse)?.threadRootId
+                val mentions = if (replyPing) {
+                    intentionalMentions + IntentionalMention.User(target.senderId)
+                } else {
+                    intentionalMentions
+                }
+                // Use the live send queue so a thread timeline cannot infer a different reply or add a mention.
+                val liveTimeline = joinedRoom.liveTimeline as RustTimeline
+                liveTimeline.inner.sendWithExtraContent(
+                    msg = msg.withMentions(mentions.distinct().map()),
+                    extraContentJson = replyPingExtraContent(repliedToEventId, replyPing, threadRootId),
+                )
+            }
         }
     }
 

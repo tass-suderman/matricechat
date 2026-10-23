@@ -410,6 +410,24 @@ class MessageComposerPresenterTest : RobolectricTest() {
     }
 
     @Test
+    fun `reply ping defaults on and toggles without changing the reply target`() = runTest {
+        createPresenter().test {
+            var state = awaitFirstItem()
+            val mode = aReplyMode()
+            state.eventSink(MessageComposerEvent.SetMode(mode))
+            state = awaitItem()
+            assertThat((state.mode as MessageComposerMode.Reply).pingReply).isTrue()
+            state.eventSink(MessageComposerEvent.ToggleReplyPing)
+            state = awaitItem()
+            assertThat(state.mode).isEqualTo(mode.copy(pingReply = false))
+            state.eventSink(MessageComposerEvent.ToggleReplyPing)
+            state = awaitItem()
+            assertThat(state.mode).isEqualTo(mode)
+            backToNormalMode(state)
+        }
+    }
+
+    @Test
     fun `present - cancel reply`() = runTest {
         val presenter = createPresenter()
         presenter.test {

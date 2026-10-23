@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="rich_text_editor_open_emoji_picker">Open emoji and stickers</string>
+    <string name="screen_message_composer_reply_ping_on">\@ On</string>
+    <string name="screen_message_composer_reply_ping_off">\@ Off</string>
 </resources>

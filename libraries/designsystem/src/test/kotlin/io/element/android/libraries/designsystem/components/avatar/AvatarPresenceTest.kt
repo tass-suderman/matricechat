@@ -35,6 +35,27 @@ class AvatarPresenceTest {
         verifyBadgeGeometry(AvatarSize.CurrentRoomTopBar, constrained = true)
     }
 
+    @Test
+    fun `read receipt avatars can hide presence without requesting it`() {
+        var requestedPresence = false
+        compose.setContent {
+            ElementPreview {
+                CompositionLocalProvider(LocalAvatarPresence provides {
+                    requestedPresence = true
+                    flowOf("online")
+                }) {
+                    Avatar(
+                        anAvatarData(id = "@reader:example.org", size = AvatarSize.TimelineReadReceipt),
+                        AvatarType.User,
+                        showPresence = false,
+                    )
+                }
+            }
+        }
+        compose.onNodeWithContentDescription("Online", useUnmergedTree = true).assertDoesNotExist()
+        compose.runOnIdle { assertThat(requestedPresence).isFalse() }
+    }
+
     private fun verifyBadgeGeometry(size: AvatarSize, constrained: Boolean) {
         var pictureSizePx = 0f
         compose.setContent {

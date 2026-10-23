@@ -37,6 +37,7 @@ sealed interface MessageComposerMode {
     data class Reply(
         val replyToDetails: InReplyToDetails,
         val hideImage: Boolean,
+        val pingReply: Boolean = true,
     ) : Special {
         val eventId: EventId = replyToDetails.eventId()
     }

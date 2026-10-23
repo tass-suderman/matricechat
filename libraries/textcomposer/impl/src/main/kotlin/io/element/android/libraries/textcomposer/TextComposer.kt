@@ -103,11 +103,11 @@ import io.element.android.libraries.textcomposer.model.showCaptionCompatibilityW
 import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.wysiwyg.compose.RichTextEditor
 import io.element.android.wysiwyg.display.TextDisplay
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
 import uniffi.wysiwyg_composer.MenuAction
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * https://www.figma.com/design/G1xy0HDZKJf5TCRFmKb5d5/Compound-Android-Components?node-id=2012-39036
@@ -120,6 +120,7 @@ fun TextComposer(
     onRequestFocus: () -> Unit,
     onSendMessage: () -> Unit,
     onResetComposerMode: () -> Unit,
+    onToggleReplyPing: () -> Unit = {},
     onAddAttachment: () -> Unit,
     onDismissTextFormatting: () -> Unit,
     onVoiceRecorderEvent: (VoiceMessageRecorderEvent) -> Unit,
@@ -171,7 +172,7 @@ fun TextComposer(
         is TextEditorState.Rich -> {
             val coroutineScope = rememberCoroutineScope()
             val view = LocalView.current
-            remember(state.richTextEditorState, composerMode, onResetComposerMode, onError) {
+            remember(state.richTextEditorState, composerMode, onResetComposerMode, onToggleReplyPing, onError) {
                 @Composable {
                     TextInputBox(
                         modifier = Modifier
@@ -189,6 +190,7 @@ fun TextComposer(
                             },
                         composerMode = composerMode,
                         onResetComposerMode = onResetComposerMode,
+                        onToggleReplyPing = onToggleReplyPing,
                         isTextEmpty = state.richTextEditorState.messageHtml.isEmpty(),
                     ) {
                         RichTextEditor(
@@ -215,6 +217,7 @@ fun TextComposer(
                 TextInputBox(
                     composerMode = composerMode,
                     onResetComposerMode = onResetComposerMode,
+                    onToggleReplyPing = onToggleReplyPing,
                     isTextEmpty = state.state.text.value().isEmpty(),
                 ) {
                     MarkdownTextInput(
@@ -420,6 +423,7 @@ fun TextComposer(
             onDeleteVoiceMessage = onDeleteVoiceMessage,
             onVoiceRecorderEvent = onVoiceRecorderEvent,
             onResetComposerMode = onResetComposerMode,
+            onToggleReplyPing = onToggleReplyPing,
         )
     }
 
@@ -470,6 +474,7 @@ private fun StandardLayout(
     onDeleteVoiceMessage: () -> Unit,
     onVoiceRecorderEvent: (VoiceMessageRecorderEvent) -> Unit,
     onResetComposerMode: () -> Unit,
+    onToggleReplyPing: () -> Unit = {},
     onOpenEmojiPicker: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
@@ -542,6 +547,7 @@ private fun StandardLayout(
                     TextInputBox(
                         composerMode = composerMode,
                         onResetComposerMode = onResetComposerMode,
+                        onToggleReplyPing = onToggleReplyPing,
                         isTextEmpty = true,
                     ) {
                         movableVoiceRecording()
@@ -661,6 +667,7 @@ private fun TextFormattingLayout(
 private fun TextInputBox(
     composerMode: MessageComposerMode,
     onResetComposerMode: () -> Unit,
+    onToggleReplyPing: () -> Unit = {},
     isTextEmpty: Boolean,
     modifier: Modifier = Modifier,
     textInput: @Composable () -> Unit,
@@ -682,6 +689,7 @@ private fun TextInputBox(
             ComposerModeView(
                 composerMode = composerMode,
                 onResetComposerMode = onResetComposerMode,
+                onToggleReplyPing = onToggleReplyPing,
             )
         } else {
             // Top padding for the message composer box

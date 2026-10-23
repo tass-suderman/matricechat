@@ -183,6 +183,7 @@ interface Timeline : AutoCloseable {
      * @param intentionalMentions the users and rooms the reply deliberately mentions.
      * @param fromNotification whether the reply was written from a notification rather than from the timeline.
      * @param msgType the Matrix message type to use.
+     * @param replyPing explicit Discord reply ping choice, or `null` to keep the SDK default.
      */
     suspend fun replyMessage(
         repliedToEventId: EventId,
@@ -192,6 +193,7 @@ interface Timeline : AutoCloseable {
         intentionalMentions: List<IntentionalMention>,
         fromNotification: Boolean = false,
         msgType: MsgType = MsgType.MSG_TYPE_TEXT,
+        replyPing: Boolean? = null,
     ): Result<Unit>
 
     /**

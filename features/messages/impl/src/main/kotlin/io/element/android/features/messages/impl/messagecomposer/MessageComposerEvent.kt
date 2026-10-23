@@ -22,6 +22,7 @@ sealed interface MessageComposerEvent {
     data object SendMessage : MessageComposerEvent
     data class SendUri(val uri: Uri) : MessageComposerEvent
     data object CloseSpecialMode : MessageComposerEvent
+    data object ToggleReplyPing : MessageComposerEvent
     data class SetMode(val composerMode: MessageComposerMode) : MessageComposerEvent
     data object AddAttachment : MessageComposerEvent
     data object DismissAttachmentMenu : MessageComposerEvent

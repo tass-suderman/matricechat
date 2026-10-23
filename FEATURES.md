@@ -96,3 +96,7 @@ Note that following list of changes compared to Element X is likely incomplete, 
 - An optional Timeline setting shows normal timestamps for sender/device mismatch warnings from bridges; other encryption warnings retain their existing display.
 
 - Filter chip backgrounds and their scrolling container follow top-bar opacity. The Chat colours section adds one shared accent for new-message dividers, fading highlights and the typing cursor in both light and dark themes.
+
+- Text replies offer a per-reply `@ On` / `@ Off` control (on by default), using `fi.mau.discord.reply_ping` for the Discord bridge while preserving deliberate mentions and thread references.
+
+- Read receipt avatars omit presence indicators. The reply mention toggle overlays the preview below its close button without reserving message space.

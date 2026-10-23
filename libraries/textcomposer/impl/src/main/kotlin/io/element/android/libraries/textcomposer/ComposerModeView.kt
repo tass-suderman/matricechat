@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.semantics.Role
+import chat.schildi.theme.ScTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -52,6 +54,7 @@ import io.element.android.libraries.ui.strings.CommonStrings
 internal fun ComposerModeView(
     composerMode: MessageComposerMode.Special,
     onResetComposerMode: () -> Unit,
+    onToggleReplyPing: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) = CompositionLocalProvider(LocalIsInComposer provides true) {
     when (composerMode) {
@@ -76,6 +79,8 @@ internal fun ComposerModeView(
                 modifier = modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp),
                 replyToDetails = composerMode.replyToDetails,
                 hideImage = composerMode.hideImage,
+                pingReply = composerMode.pingReply,
+                onToggleReplyPing = onToggleReplyPing,
                 onResetComposerMode = onResetComposerMode,
             )
         }
@@ -139,6 +144,8 @@ private const val MAX_SCALING_VALUE = 3.5f
 private fun ReplyToModeView(
     replyToDetails: InReplyToDetails,
     hideImage: Boolean,
+    pingReply: Boolean,
+    onToggleReplyPing: () -> Unit,
     onResetComposerMode: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -174,6 +181,19 @@ private fun ReplyToModeView(
             maxLines = maxReplyContentLines,
             modifier = Modifier.fillMaxWidth(),
         )
+        // Overlay the control so it cannot change the reply content's width or height.
+        Box(Modifier.matchParentSize()) {
+            Text(
+                text = stringResource(if (pingReply) R.string.screen_message_composer_reply_ping_on else R.string.screen_message_composer_reply_ping_off),
+                color = if (pingReply) ScTheme.chatAccentColor ?: ElementTheme.colors.textActionAccent else ElementTheme.colors.textSecondary,
+                style = ElementTheme.typography.fontBodyXsRegular,
+                textAlign = TextAlign.End,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 20.dp, end = 4.dp)
+                    .clickable(role = Role.Button, onClick = onToggleReplyPing),
+            )
+        }
         Icon(
             imageVector = CompoundIcons.Close(),
             contentDescription = stringResource(CommonStrings.action_close),
