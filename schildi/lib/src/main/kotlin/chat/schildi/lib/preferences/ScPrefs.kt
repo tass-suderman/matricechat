@@ -219,6 +219,8 @@ object ScPrefs {
     val JUMP_TO_UNREAD = ScBoolPref("JUMP_TO_UNREAD", false, R.string.sc_pref_jump_to_unread_title, R.string.sc_pref_jump_to_unread_option_summary, authorsChoice = true, upstreamChoice = false)
     //val RENDER_INLINE_IMAGES = ScBoolPref("RENDER_INLINE_IMAGES", true, R.string.sc_pref_render_inline_images_title, R.string.sc_pref_render_inline_images_summary, authorsChoice = true, upstreamChoice = false)
     val URL_PREVIEWS = ScBoolPref("URL_PREVIEWS", false, R.string.sc_url_previews_title, R.string.sc_url_previews_summary, authorsChoice = true, upstreamChoice = false)
+    val YOUTUBE_PREVIEWS = ScBoolPref("YOUTUBE_PREVIEWS", false, R.string.screen_settings_youtube_previews_title,
+        R.string.screen_settings_youtube_previews_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
     val URL_PREVIEWS_IN_E2EE_ROOMS = ScBoolPref("URL_PREVIEWS_IN_E2EE_ROOMS", false, R.string.sc_url_previews_in_e2ee_rooms_title, R.string.sc_url_previews_in_e2ee_rooms_summary, authorsChoice = true, upstreamChoice = false, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
     val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, R.string.sc_url_previews_require_explicit_links_title, R.string.sc_url_previews_require_explicit_links_summary, authorsChoice = true, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
     val REPLY_PREVIEW_LINE_COUNT = ScIntPref("REPLY_PREVIEW_LINE_COUNT", 4, R.string.sc_reply_preview_line_count_title, R.string.sc_reply_preview_line_count_summary, minValue = 1, authorsChoice = 4, upstreamChoice = 2)
@@ -362,6 +364,7 @@ object ScPrefs {
             )),
             ScPrefCategory(R.string.sc_url_previews_title, null, listOf(
                 URL_PREVIEWS,
+                YOUTUBE_PREVIEWS,
                 URL_PREVIEWS_IN_E2EE_ROOMS,
                 URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS,
             )),
@@ -497,6 +500,7 @@ object ScPrefs {
         )),
         ScPrefCategory(R.string.sc_pref_screen_experimental_title, null, listOf(
             URL_PREVIEWS,
+            YOUTUBE_PREVIEWS,
             URL_PREVIEWS_IN_E2EE_ROOMS.copy(titleRes = R.string.sc_url_previews_in_e2ee_rooms_title_short),
             URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS.copy(titleRes = R.string.sc_url_previews_require_explicit_links_title_short),
             PL_DISPLAY_NAME,

@@ -100,3 +100,5 @@ Note that following list of changes compared to Element X is likely incomplete, 
 - Text replies offer a per-reply `@ On` / `@ Off` control (on by default), using `fi.mau.discord.reply_ping` for the Discord bridge while preserving deliberate mentions and thread references.
 
 - Read receipt avatars omit presence indicators. The reply mention toggle overlays the preview below its close button without reserving message space.
+
+- Optional YouTube video cards in Link previews show a title, thumbnail and clean video link without a player. Requests discard video URL tracking parameters and follow the existing encrypted-room and explicit-link settings.

@@ -5,6 +5,11 @@ import dev.zacsweers.metro.Inject
 import io.element.android.libraries.di.annotations.ApplicationContext
 import io.element.android.libraries.matrix.api.MatrixClient
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.util.concurrent.TimeUnit
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -34,6 +39,8 @@ data class UrlPreview(
     val description: String? = null,
     @SerialName("og:site_name")
     val siteName: String? = null,
+    @kotlinx.serialization.Transient
+    val videoUrl: String? = null,
 ) : UrlPreviewLookup
 
 @Serializable
@@ -50,8 +57,17 @@ const val DEBUG_URL_PREVIEWS = true
 class UrlPreviewProvider(
     @ApplicationContext
     private val context: Context,
-    private val client: MatrixClient
+    private val client: MatrixClient,
+    httpClient: OkHttpClient,
 ) {
+    // Message links and titles must not reach the application's HTTP logging interceptors.
+    private val youtubeClient = httpClient.newBuilder().apply {
+        interceptors().clear()
+        networkInterceptors().clear()
+        followRedirects(false)
+        followSslRedirects(false)
+        callTimeout(15, TimeUnit.SECONDS)
+    }.build()
     private val coder = Json { ignoreUnknownKeys = true }
     private val logger = Timber.tag("UrlPreview")
     private val fileCacheLock = ReentrantLock()
@@ -71,7 +87,7 @@ class UrlPreviewProvider(
                 stream = file.inputStream()
                 coder.decodeFromStream<UrlPreviewFileCache>(stream)
             } catch (t: Throwable) {
-                logger.e(t, "Failed to read persisted url preview from file cache")
+                logger.w("Failed to read persisted url preview from file cache: ${t.javaClass.canonicalName}")
                 null
             } finally {
                 try {
@@ -103,21 +119,34 @@ class UrlPreviewProvider(
     }
 
     suspend fun fetchPreview(url: String, publishPreview: (UrlPreview?) -> Unit) {
-        val cacheFile = getPreviewCacheFile(url)
+        val videoUrl = youtubeVideoUrl(url)
+        val requestUrl = videoUrl ?: url
+        val cacheFile = getPreviewCacheFile(if (videoUrl != null) "youtube:$requestUrl" else requestUrl)
         val previewFromCache = fetchPreviewFromFileCache(cacheFile)
         if (previewFromCache != null) {
-            val preview = previewFromCache.data.decodeUrlPreview()
+            val preview = previewFromCache.data.decodeUrlPreview(videoUrl)
             publishPreview(preview)
-            if (previewFromCache.url == url && previewFromCache.ts + PREVIEW_CACHE_LIFETIME_MILLIS > System.currentTimeMillis()) {
+            if (previewFromCache.url == requestUrl && previewFromCache.ts + PREVIEW_CACHE_LIFETIME_MILLIS > System.currentTimeMillis()) {
                 if (DEBUG_URL_PREVIEWS) logger.d("Cache hit for ts=${previewFromCache.ts}")
                 // No need to re-lookup
                 return
             } else {
-                if (DEBUG_URL_PREVIEWS) logger.d("Preliminary cache hit for ts=${previewFromCache.ts}, url match=${previewFromCache.url == url}")
+                if (DEBUG_URL_PREVIEWS) logger.d("Preliminary cache hit for ts=${previewFromCache.ts}, url match=${previewFromCache.url == requestUrl}")
             }
         }
         val previewData = try {
-            client.getUrlPreviewJson(url)
+            if (videoUrl != null) {
+                val preview = withContext(Dispatchers.IO) {
+                    val request = Request.Builder().url(youtubeMetadataUrl(videoUrl)).build()
+                    youtubeClient.newCall(request).execute().use { response ->
+                        check(response.isSuccessful) { "YouTube metadata request failed" }
+                        decodeYouTubePreview(videoUrl, response.body.string())
+                    }
+                }
+                coder.encodeToString(preview)
+            } else {
+                client.getUrlPreviewJson(requestUrl)
+            }
         } catch (e: CancellationException) {
             // Happens when scope is cancelled, e.g. composable moved out of screen
             logger.i("Cancelled fetching url preview")
@@ -127,17 +156,17 @@ class UrlPreviewProvider(
             logger.w("Failed to fetch url preview: ${t.javaClass.canonicalName}")
             return
         }
-        val preview = previewData.decodeUrlPreview()
+        val preview = previewData.decodeUrlPreview(videoUrl)
         if (DEBUG_URL_PREVIEWS) logger.d("Fetched new url preview, decoded: ${preview != null}")
         publishPreview(preview)
-        persistPreviewToFileCache(cacheFile, url, previewData)
+        persistPreviewToFileCache(cacheFile, requestUrl, previewData)
     }
 
-    private fun String.decodeUrlPreview(): UrlPreview? {
+    private fun String.decodeUrlPreview(videoUrl: String?): UrlPreview? {
         return try {
-            coder.decodeFromString<UrlPreview>(this)
+            coder.decodeFromString<UrlPreview>(this).copy(videoUrl = videoUrl)
         } catch (t: Throwable) {
-            Timber.tag("UrlPreviewProvider").e(t, "Failed to decode url preview")
+            Timber.tag("UrlPreviewProvider").w("Failed to decode url preview: ${t.javaClass.canonicalName}")
             null
         }
     }

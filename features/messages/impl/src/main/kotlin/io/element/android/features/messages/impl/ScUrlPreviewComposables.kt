@@ -41,6 +41,7 @@ import chat.schildi.lib.compose.thenIf
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.matrixsdk.urlpreview.UrlPreview
+import chat.schildi.matrixsdk.urlpreview.youtubeVideoUrl
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewStateHolder
 import chat.schildi.theme.scBubbleFont
@@ -53,6 +54,8 @@ import io.element.android.features.messages.impl.timeline.model.event.TimelineIt
 import io.element.android.features.messages.impl.timeline.model.event.TimelineItemTextBasedContent
 import io.element.android.libraries.androidutils.system.openUrlInExternalApp
 import io.element.android.libraries.core.data.tryOrNull
+import io.element.android.libraries.designsystem.preview.ElementPreview
+import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.BaseRoom
@@ -62,7 +65,8 @@ import io.element.android.wysiwyg.view.spans.CustomMentionSpan
 
 @Composable
 fun <T>T.takeIfUrlPreviewsEnabledForRoom(room: BaseRoom): T? {
-    val allowed = if (room.info().isEncrypted != false) {
+    val previewsEnabled = ScPrefs.URL_PREVIEWS.value()
+    val allowed = previewsEnabled && if (room.info().isEncrypted != false) {
         ScPrefs.URL_PREVIEWS_IN_E2EE_ROOMS.value()
     } else {
         ScPrefs.URL_PREVIEWS.value()
@@ -117,7 +121,9 @@ fun resolveUrlPreview(content: TimelineItemTextBasedContent): UrlPreviewInfo? {
     var previewStateHolder by remember { mutableStateOf<UrlPreviewStateHolder?>(null) }
     // Whether to only linkify links that explicitly contain "https://" at the beginning.
     val requireExplicitHttps = ScPrefs.URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS.value()
-    LaunchedEffect(content, requireExplicitHttps) {
+    val youtubeEnabled = ScPrefs.YOUTUBE_PREVIEWS.value()
+    LaunchedEffect(content, requireExplicitHttps, youtubeEnabled, urlPreviewStateProvider) {
+        previewStateHolder = null
         val formattedBody = content.formattedBody as? Spanned
         if (formattedBody == null) {
             previewStateHolder = null
@@ -144,7 +150,9 @@ fun resolveUrlPreview(content: TimelineItemTextBasedContent): UrlPreviewInfo? {
             // Sort by link start position
             it.second
         }.mapNotNull { (urlSpan, _) ->
-            urlSpan.url.toPreviewableUrl(requireExplicitHttps)
+            val url = urlSpan.url.toPreviewableUrl(requireExplicitHttps) ?: return@mapNotNull null
+            val videoUrl = youtubeVideoUrl(url)
+            if (videoUrl != null && !youtubeEnabled) null else videoUrl ?: url
         }
         urls.firstOrNull()?.let { url ->
             previewStateHolder = urlPreviewStateProvider.getStateHolder(url)
@@ -155,7 +163,7 @@ fun resolveUrlPreview(content: TimelineItemTextBasedContent): UrlPreviewInfo? {
     LaunchedEffect(previewStateHolder) {
         previewStateHolder?.onRender()
     }
-    return previewStateHolder?.let { stateHolder ->
+    return previewStateHolder?.takeUnless { !youtubeEnabled && youtubeVideoUrl(it.url) != null }?.let { stateHolder ->
         stateHolder.state.collectAsState().value?.let {
             UrlPreviewInfo(stateHolder.url, it)
         }
@@ -218,7 +226,7 @@ fun UrlPreviewView(
             urlPreview.imageUrl?.let { imageUrl ->
                 SubcomposeAsyncImage(
                     modifier = Modifier.align(Alignment.Top),
-                    model = MediaRequestData(MediaSource(imageUrl), MediaRequestData.Kind.Content),
+                    model = if (urlPreview.videoUrl != null) imageUrl else MediaRequestData(MediaSource(imageUrl), MediaRequestData.Kind.Content),
                     contentScale = ContentScale.Fit,
                     alignment = Alignment.Center,
                     contentDescription = null,
@@ -265,6 +273,16 @@ fun UrlPreviewView(
                 }
             }
         }
+        urlPreview.videoUrl?.let { videoUrl ->
+            Text(
+                text = videoUrl,
+                style = ElementTheme.typography.scBubbleFont,
+                color = ElementTheme.colors.textActionAccent,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+            )
+        }
         urlPreview.description?.let { description ->
             val sanitized = description.replace("\n\n", "\n").replace("\n", " ").trim()
             var expanded by remember { mutableStateOf(false) }
@@ -296,5 +314,20 @@ fun UrlPreviewViewPreview() {
         ),
         PaddingValues(8.dp),
         null
+    ) {}
+}
+
+@PreviewsDayNight
+@Composable
+internal fun YouTubePreviewViewPreview() = ElementPreview {
+    UrlPreviewView(
+        UrlPreview(
+            imageUrl = "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+            title = "YouTube video title",
+            siteName = "YouTube",
+            videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        ),
+        PaddingValues(8.dp),
+        null,
     ) {}
 }

@@ -58,4 +58,6 @@
     <string name="screen_settings_color_unread">Unread notification colour</string>
     <string name="screen_settings_color_muted_unread">Silent and muted unread badge colour</string>
     <string name="screen_settings_color_mentions">Mention badge colour</string>
+    <string name="screen_settings_youtube_previews_title">YouTube video previews</string>
+    <string name="screen_settings_youtube_previews_summary">Fetch titles and thumbnails directly from YouTube using links without tracking parameters. No video player is loaded. Follows your link preview and encrypted room settings.</string>
 </resources>
