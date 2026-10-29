@@ -14,8 +14,8 @@ android {
 }
 
 dependencies {
+    api(projects.libraries.matrix.api)
     implementation(projects.libraries.architecture)
-    implementation(projects.libraries.matrix.api)
 
     implementation(libs.kotlinx.collections.immutable)
     api(libs.matrix.emojibase.bindings)

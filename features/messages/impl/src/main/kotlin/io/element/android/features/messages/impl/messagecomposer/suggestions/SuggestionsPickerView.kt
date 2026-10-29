@@ -48,8 +48,8 @@ import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.getBestName
 import io.element.android.libraries.matrix.ui.components.DisplayNameWithStatus
 import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
-import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.matrix.ui.model.getAvatarData
+import io.element.android.libraries.matrixmedia.api.MediaRequestData
 import io.element.android.libraries.slashcommands.api.SlashCommandSuggestion
 import io.element.android.libraries.textcomposer.mentions.ResolvedSuggestion
 import kotlinx.collections.immutable.ImmutableList

@@ -35,7 +35,7 @@ import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.emoji.api.packs.CustomImage
 import io.element.android.libraries.emoji.impl.R
 import io.element.android.libraries.matrix.api.media.MediaSource
-import io.element.android.libraries.matrix.ui.media.MediaRequestData
+import io.element.android.libraries.matrixmedia.api.MediaRequestData
 
 @Composable
 internal fun CustomEmojiGrid(

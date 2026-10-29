@@ -8,6 +8,7 @@
 
 package io.element.android.libraries.matrix.test.room
 
+import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.libraries.core.bool.orFalse
 import io.element.android.libraries.matrix.api.core.DeviceId
 import io.element.android.libraries.matrix.api.core.EventId
@@ -106,7 +107,10 @@ class FakeJoinedRoom(
         baseRoom.givenRoomInfo(roomInfo)
     }
 
-    override suspend fun createTimeline(createTimelineParams: CreateTimelineParams): Result<Timeline> = simulateLongTask {
+    override suspend fun createTimeline(
+        createTimelineParams: CreateTimelineParams,
+        scTimelineFilterSettings: ScTimelineFilterSettings,
+    ): Result<Timeline> = simulateLongTask {
         createTimelineResult(createTimelineParams)
     }
 

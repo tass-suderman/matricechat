@@ -248,6 +248,7 @@ internal fun TestScope.createTimelineController(
     liveTimeline: Timeline = FakeTimeline(name = "live"),
 ): TimelineController {
     return TimelineController(
+        scPreferencesStore = chat.schildi.lib.preferences.PreviewScPreferencesStore,
         room = room,
         liveTimeline = liveTimeline,
         roomCoroutineScope = backgroundScope,

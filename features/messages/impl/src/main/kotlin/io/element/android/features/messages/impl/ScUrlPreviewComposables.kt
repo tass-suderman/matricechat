@@ -59,7 +59,7 @@ import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.BaseRoom
-import io.element.android.libraries.matrix.ui.media.MediaRequestData
+import io.element.android.libraries.matrixmedia.api.MediaRequestData
 import io.element.android.libraries.textcomposer.mentions.MentionSpan
 import io.element.android.wysiwyg.view.spans.CustomMentionSpan
 

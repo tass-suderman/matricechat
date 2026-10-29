@@ -81,15 +81,15 @@ import io.element.android.libraries.designsystem.text.toPx
 import io.element.android.libraries.designsystem.theme.unreadIndicator
 import io.element.android.libraries.designsystem.utils.OnLifecycleEvent
 import io.element.android.libraries.matrix.api.core.RoomId
-import kotlin.math.absoluteValue
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.math.absoluteValue
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 @Composable
 fun SpacesPager(
@@ -136,7 +136,6 @@ fun SpacesPager(
         )
     }
 }
-
 
 @Composable
 private fun ColumnScope.SpacesPager(
@@ -267,7 +266,9 @@ private fun ColumnScope.SpacesPager(
                 val swipeProgress = min(1f, offsetX.absoluteValue / indicatorThreshold)
                 if (canSwipeDown) {
                     SwipeIndicator(
-                        if (selectedTab > 1) spacesList[selectedSpaceIndex-1] else defaultSpace, false, swipeProgress,
+                        if (selectedTab > 1) spacesList[selectedSpaceIndex - 1] else defaultSpace,
+                        false,
+                        swipeProgress,
                         Modifier
                             .align(Alignment.CenterStart)
                             .offset {
@@ -279,7 +280,9 @@ private fun ColumnScope.SpacesPager(
                 // Swipe up indicator
                 if (canSwipeUp) {
                     SwipeIndicator(
-                        spacesList[selectedSpaceIndex+1], true, swipeProgress,
+                        spacesList[selectedSpaceIndex + 1],
+                        true,
+                        swipeProgress,
                         Modifier
                             .align(Alignment.CenterEnd)
                             .offset {
@@ -300,10 +303,11 @@ private fun ColumnScope.SpacesPager(
     val canExpandSelectedTab = !spacesList.getOrNull(selectedSpaceIndex)?.spaces.isNullOrEmpty()
     val renderExpandableIndicatorInTabs = !ScPrefs.COMPACT_ROOT_SPACES.value()
     val tabIndicatorColor = animateColorAsState(
-        targetValue = if (expandSpaceChildren || (!canExpandSelectedTab && !renderExpandableIndicatorInTabs))
+        targetValue = if (expandSpaceChildren || (!canExpandSelectedTab && !renderExpandableIndicatorInTabs)) {
             MaterialTheme.colorScheme.secondary
-        else
-            MaterialTheme.colorScheme.primary,
+        } else {
+            MaterialTheme.colorScheme.primary
+        },
         label = "tabIndicatorColor"
     ).value
     val selectedTabRendered = selectedTab.correctDownIfNot(allowAllRooms)
@@ -384,7 +388,7 @@ private fun selectSpaceIndex(
     if (index == 0) {
         selectSpace(null, parentSelection)
     } else {
-        selectSpace(spacesList[index-1], parentSelection)
+        selectSpace(spacesList[index - 1], parentSelection)
     }
 }
 
@@ -527,7 +531,7 @@ private fun AbstractSpaceIcon(
     color: Color = MaterialTheme.colorScheme.primary,
     shape: Shape = CircleShape,
 ) {
-    when(space) {
+    when (space) {
         is SpaceListDataSource.SpaceHierarchyItem -> Avatar(space.info.avatarData.copy(size = size), avatarType = AvatarType.Sc(shape), modifier = modifier)
         is SpaceListDataSource.PseudoSpaceItem -> PseudoSpaceIcon(imageVector = space.icon, size = size, color = color, modifier = modifier)
         else -> PseudoSpaceIcon(Icons.Filled.Home, AvatarSize.SpaceSwipeIndicator, color = color, modifier = modifier)
@@ -593,7 +597,7 @@ private fun UnreadCountBox(unreadCounts: SpaceUnreadCountsDataSource.SpaceUnread
         }
         unreadCounts.markedUnreadChats > 0 -> {
             count = unreadCounts.markedUnreadChats
-            badgeColor = ElementTheme.colors.unreadIndicator
+            badgeColor = ElementTheme.colors.textActionAccent
             outlinedBadge = true
         }
         unreadCounts.unreadMessages > 0 && ScPrefs.RENDER_SILENT_UNREAD.value() -> {
@@ -612,12 +616,13 @@ private fun UnreadCountBox(unreadCounts: SpaceUnreadCountsDataSource.SpaceUnread
             modifier = Modifier
                 .offset(offset, -offset)
                 .let {
-                    if (outlinedBadge)
+                    if (outlinedBadge) {
                         it
                             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), RoundedCornerShape(8.dp))
                             .border(1.dp, badgeColor, RoundedCornerShape(8.dp))
-                    else
+                    } else {
                         it.background(badgeColor.copy(alpha = 0.9f), RoundedCornerShape(8.dp))
+                    }
                 }
                 .sizeIn(minWidth = 16.dp, minHeight = 16.dp)
                 .align(Alignment.TopEnd)
@@ -638,7 +643,8 @@ private fun UnreadCountBox(unreadCounts: SpaceUnreadCountsDataSource.SpaceUnread
             Modifier
                 .width(offset)
                 .offset(-offset, -offset)
-                .align(Alignment.TopStart))
+                .align(Alignment.TopStart)
+        )
     }
 }
 

@@ -44,7 +44,7 @@ import io.element.android.compound.theme.ElementTheme
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.matrix.api.media.MediaSource
-import io.element.android.libraries.matrix.ui.media.MediaRequestData
+import io.element.android.libraries.matrixmedia.api.MediaRequestData
 import io.element.android.libraries.testtags.TestTags
 import io.element.android.libraries.textcomposer.ElementRichTextEditorStyle
 import io.element.android.libraries.textcomposer.mentions.LocalMentionSpanUpdater

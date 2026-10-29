@@ -50,7 +50,7 @@ internal fun aMessageEvent(
     ),
     inReplyTo: InReplyToDetails? = null,
     threadInfo: TimelineItemThreadInfo? = null,
-    sendState: LocalEventSendState = LocalEventSendState.Sent(AN_EVENT_ID),
+    sendState: LocalEventSendState? = LocalEventSendState.Sent(AN_EVENT_ID),
     debugInfoProvider: TimelineItemDebugInfoProvider = TimelineItemDebugInfoProvider { aTimelineItemDebugInfo() },
     messageShieldProvider: MessageShieldProvider = MessageShieldProvider { null },
     sendHandleProvider: SendHandleProvider = SendHandleProvider { FakeSendHandle() }
@@ -69,6 +69,8 @@ internal fun aMessageEvent(
     reactionsState = aTimelineItemReactions(count = 0),
     readReceiptState = TimelineItemReadReceipts(emptyList<ReadReceiptData>().toImmutableList()),
     localSendState = sendState,
+    editSendState = null,
+    redactionSendState = null,
     inReplyTo = inReplyTo,
     threadInfo = threadInfo,
     origin = null,

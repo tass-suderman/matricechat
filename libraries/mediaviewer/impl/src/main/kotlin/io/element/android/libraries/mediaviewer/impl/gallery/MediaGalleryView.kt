@@ -34,16 +34,15 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -102,7 +101,6 @@ import io.element.android.libraries.mediaviewer.impl.model.id
 import io.element.android.libraries.voiceplayer.api.VoiceMessageState
 import kotlinx.collections.immutable.ImmutableList
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaGalleryView(
     state: MediaGalleryState,
@@ -431,9 +429,9 @@ private fun MediaGalleryImageGrid(
             var spoilerRevealed by remember(source) { mutableStateOf(false) }
             if (source?.isSpoiler == true && ScPrefs.MEDIA_SPOILERS.value() && !spoilerRevealed) {
                 io.element.android.libraries.matrix.ui.components.MediaSpoilerPreview(
-                    model = io.element.android.libraries.matrix.ui.media.MediaRequestData(
+                    model = io.element.android.libraries.matrixmedia.api.MediaRequestData(
                         source = if (item is MediaItem.Video) item.thumbnailSource else source,
-                        kind = io.element.android.libraries.matrix.ui.media.MediaRequestData.Kind.Thumbnail(320L, 320L),
+                        kind = io.element.android.libraries.matrixmedia.api.MediaRequestData.Kind.Thumbnail(320L, 320L),
                     ),
                     onReveal = { spoilerRevealed = true },
                     modifier = Modifier.aspectRatio(1f),

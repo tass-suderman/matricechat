@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import io.element.android.features.messages.impl.timeline.TimelineRoomInfo
 import io.element.android.features.messages.impl.timeline.aTimelineRoomInfo
 import io.element.android.features.messages.impl.timeline.model.TimelineItem
+import io.element.android.features.messages.impl.timeline.model.TimelineItemSelectionData
 import io.element.android.features.messages.impl.timeline.protection.TimelineProtectionState
 import io.element.android.features.messages.impl.timeline.protection.aTimelineProtectionState
 import io.element.android.libraries.matrix.api.timeline.Timeline
@@ -26,9 +27,11 @@ internal fun ATimelineItemEventRow(
     timelineProtectionState: TimelineProtectionState = aTimelineProtectionState(),
     displayThreadSummaries: Boolean = false,
     flatLayout: Boolean = false,
+    selectionData: TimelineItemSelectionData = TimelineItemSelectionData(),
 ) = TimelineItemEventRow(
     event = event,
     flatLayout = flatLayout,
+    selectionData = selectionData,
     timelineMode = timelineMode,
     timelineRoomInfo = timelineRoomInfo,
     timelineProtectionState = timelineProtectionState,

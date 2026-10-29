@@ -29,6 +29,12 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.test.v2.runAndroidComposeUiTest
 import androidx.compose.ui.text.AnnotatedString
+import chat.schildi.lib.preferences.LocalScPreferencesStore
+import chat.schildi.lib.preferences.NotExactlyACompositionLocal
+import chat.schildi.lib.preferences.PreviewScPreferencesStore
+import chat.schildi.lib.preferences.ScPref
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import io.element.android.emojibasebindings.Emoji
 import io.element.android.emojibasebindings.EmojibaseCategory
 import io.element.android.features.messages.impl.actionlist.ActionListEvent
@@ -57,6 +63,7 @@ import io.element.android.features.messages.impl.timeline.model.TimelineItem
 import io.element.android.features.messages.impl.timeline.model.event.aTimelineItemTextContent
 import io.element.android.features.messages.impl.timeline.sendfailure.SendFailureDialogState
 import io.element.android.features.roomcall.api.aStandByCallState
+import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.emoji.impl.picker.DefaultEmojiPickerRenderer
 import io.element.android.libraries.emoji.impl.picker.anEmojiPickerState
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -86,6 +93,8 @@ import io.element.android.tests.testutils.robolectric.RobolectricTest
 import io.element.android.tests.testutils.setSafeContent
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Test
 import org.robolectric.annotation.Config
 import kotlin.time.Duration.Companion.milliseconds
@@ -606,7 +615,7 @@ class MessagesViewTest : RobolectricTest() {
         timelineEventsRecorder.clear()
 
         clickOn(CommonStrings.action_remove_message)
-        messagesEventsRecorder.assertSingle(MessagesEvent.HandleAction(TimelineItemAction.Redact, timelineItem))
+        messagesEventsRecorder.assertSingle(MessagesEvent.HandleAction(TimelineItemAction.AbortSending, timelineItem))
         timelineEventsRecorder.assertSingle(TimelineEvent.HideSendFailureDialog)
     }
 
@@ -688,7 +697,7 @@ class MessagesViewTest : RobolectricTest() {
                 ),
             ),
         )
-        setMessagesView(state = state)
+        setMessagesView(state = state, showPinnedBanner = true)
         // Clear initial 'LoadMore' event emitted when setting the state
         eventsRecorder.clear()
 
@@ -787,6 +796,7 @@ class MessagesViewTest : RobolectricTest() {
 
 private fun AndroidComposeUiTest<ComponentActivity>.setMessagesView(
     state: MessagesState,
+    showPinnedBanner: Boolean = false,
     onBackClick: () -> Unit = EnsureNeverCalled(),
     onRoomDetailsClick: () -> Unit = EnsureNeverCalled(),
     onEventClick: (isLive: Boolean, event: TimelineItem.Event) -> Boolean = EnsureNeverCalledWithTwoParamsAndResult(),
@@ -800,34 +810,44 @@ private fun AndroidComposeUiTest<ComponentActivity>.setMessagesView(
     onThreadsListClicked: () -> Unit = EnsureNeverCalled(),
 ) {
     val emojiPickerRenderer = DefaultEmojiPickerRenderer()
+    val preferences = object : ScPreferencesStore by PreviewScPreferencesStore {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T> getCachedOrDefaultValue(scPref: ScPref<T>): T =
+            if (scPref == ScPrefs.PINNED_MESSAGE_OVERLAY) showPinnedBanner as T else scPref.defaultValue
+        override fun <T> settingFlow(scPref: ScPref<T>): Flow<T> =
+            flowOf(getCachedOrDefaultValue(scPref))
+    }
     setSafeContent {
-        // Cannot use the RichTextEditor, so simulate a LocalInspectionMode
-        CompositionLocalProvider(LocalInspectionMode provides true) {
-            MessagesView(
-                state = state,
-                onBackClick = onBackClick,
-                onRoomDetailsClick = onRoomDetailsClick,
-                onEventContentClick = onEventClick,
-                onGalleryEventItemClick = onGalleryEventItemClick,
-                onUserDataClick = onUserDataClick,
-                onLinkClick = onLinkClick,
-                onSendLocationClick = onSendLocationClick,
-                onCreatePollClick = onCreatePollClick,
-                onJoinCallClick = onJoinCallClick,
-                onViewAllPinnedMessagesClick = onViewAllPinnedMessagesClick,
-                knockRequestsBannerView = {},
-                customReactionBottomSheet = {
-                    CustomReactionBottomSheet(
-                        state = state.customReactionState,
-                        onSelectEmoji = { uniqueId, emoji ->
-                            state.eventSink(MessagesEvent.ToggleReaction(emoji.unicode, uniqueId))
-                        },
-                        emojiPickerRenderer = emojiPickerRenderer,
-                        onSelectCustomEmoji = { _, _ -> }
-                    )
-                },
-                onThreadsListClick = onThreadsListClicked,
-            )
+        ElementPreview {
+            LocalScPreferencesStore = NotExactlyACompositionLocal(preferences)
+            // Cannot use the RichTextEditor, so simulate a LocalInspectionMode
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                MessagesView(
+                    state = state,
+                    onBackClick = onBackClick,
+                    onRoomDetailsClick = onRoomDetailsClick,
+                    onEventContentClick = onEventClick,
+                    onGalleryEventItemClick = onGalleryEventItemClick,
+                    onUserDataClick = onUserDataClick,
+                    onLinkClick = onLinkClick,
+                    onSendLocationClick = onSendLocationClick,
+                    onCreatePollClick = onCreatePollClick,
+                    onJoinCallClick = onJoinCallClick,
+                    onViewAllPinnedMessagesClick = onViewAllPinnedMessagesClick,
+                    knockRequestsBannerView = {},
+                    customReactionBottomSheet = {
+                        CustomReactionBottomSheet(
+                            state = state.customReactionState,
+                            onSelectEmoji = { uniqueId, emoji ->
+                                state.eventSink(MessagesEvent.ToggleReaction(emoji.unicode, uniqueId))
+                            },
+                            emojiPickerRenderer = emojiPickerRenderer,
+                            onSelectCustomEmoji = { _, _ -> }
+                        )
+                    },
+                    onThreadsListClick = onThreadsListClicked,
+                )
+            }
         }
     }
 }

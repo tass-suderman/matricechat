@@ -304,7 +304,7 @@ private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomListRoomSummary, isI
                 modifier = Modifier.size(16.dp),
                 imageVector = CompoundIcons.VideoCallSolid(),
                 contentDescription = null,
-                tint = ElementTheme.colors.unreadIndicator,
+                tint = ElementTheme.colors.textActionAccent,
             )
         }
         ScUnreadCounter(room, isInviteSeen)
@@ -349,7 +349,7 @@ private fun ScUnreadCounter(room: RoomListRoomSummary, isInviteSeen: Boolean) {
         }
         room.isMarkedUnread -> {
             count = "!"
-            badgeColor = ElementTheme.colors.unreadIndicator
+            badgeColor = ElementTheme.colors.textActionAccent
             outlinedBadge = true
         }
         unreadCount > 0 -> {

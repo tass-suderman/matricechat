@@ -21,6 +21,7 @@ fun MatrixUser.getAvatarData(size: AvatarSize) = AvatarData(
     name = displayName,
     url = avatarUrl,
     size = size,
+    thumbnail = avatarThumbnail,
 )
 
 fun MatrixUser.getBestName(): String {
