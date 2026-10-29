@@ -182,7 +182,13 @@ class TimelinePresenter(
             when (event) {
                 // SC start
                 is TimelineEvent.OnUnreadLineVisible -> timelineController.scReadState.sawUnreadLine.value = true
-                is TimelineEvent.ForceMarkAsRead -> forceSetReceipts(context, sessionCoroutineScope, room, timelineController.scReadState, sessionPreferencesStore)
+                is TimelineEvent.ForceMarkAsRead -> forceSetReceipts(
+                    context,
+                    sessionCoroutineScope,
+                    room,
+                    timelineController.scReadState,
+                    sessionPreferencesStore
+                )
                 // SC end
                 is TimelineEvent.LoadMore -> {
                     if (event.direction == Timeline.PaginationDirection.FORWARDS) {
@@ -455,7 +461,8 @@ class TimelinePresenter(
                 val eventId = currentFocusRequestState.eventId
                 if (timelineItemIndexer.isKnown(eventId)) {
                     val index = timelineItemIndexer.indexOf(eventId).offsetForUnreadMarkerFocus(currentFocusRequestState.forReadMarker)
-                    focusRequestState.value = FocusRequestState.Success(eventId = eventId, index = index, forReadMarker = currentFocusRequestState.forReadMarker)
+                    focusRequestState.value =
+                        FocusRequestState.Success(eventId = eventId, index = index, forReadMarker = currentFocusRequestState.forReadMarker)
                 } else {
                     Timber.w("Unknown timeline item for focused item, can't render focus")
                 }

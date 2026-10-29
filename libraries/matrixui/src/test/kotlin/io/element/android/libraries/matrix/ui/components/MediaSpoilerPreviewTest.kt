@@ -2,12 +2,12 @@ package io.element.android.libraries.matrix.ui.components
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import coil3.size.Size
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import coil3.size.Size
 
 @org.robolectric.annotation.Config(sdk = [36])
 @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)

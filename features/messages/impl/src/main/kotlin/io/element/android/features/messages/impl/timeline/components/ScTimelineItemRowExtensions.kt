@@ -10,8 +10,12 @@ fun scMessageHighlightColors(): List<Color>? {
     ScTheme.chatAccentColor?.let { colour ->
         return listOf(colour.copy(alpha = colour.alpha * 0.5f), Color.Transparent)
     }
-    return if (ScTheme.yes) listOf(
+    return if (ScTheme.yes) {
+        listOf(
         ScTheme.exposures.messageHighlightBg ?: ElementTheme.colors.textActionAccent.copy(alpha = 0.5f),
         Color.Transparent,
-    ) else null
+    )
+    } else {
+        null
+    }
 }

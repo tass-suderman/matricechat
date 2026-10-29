@@ -7,10 +7,11 @@ import chat.schildi.theme.ScTheme
 import io.element.android.features.messages.impl.timeline.model.bubble.BubbleState
 
 @Composable
-fun scMessageBubbleShape() = if (ScTheme.yes)
+fun scMessageBubbleShape() = if (ScTheme.yes) {
     RoundedCornerShape(ScTheme.exposures.bubbleRadius)
-else
+} else {
     null
+}
 
 @Composable
 fun scMessageBubbleBg(state: BubbleState) = when {

@@ -9,9 +9,7 @@
 package io.element.android.features.messages.impl.attachments.preview
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import chat.schildi.theme.ForcedDarkScTheme
 import com.bumble.appyx.core.modality.BuildContext
@@ -20,8 +18,6 @@ import com.bumble.appyx.core.plugin.Plugin
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.annotations.ContributesNode
-import io.element.android.compound.colors.SemanticColorsLightDark
-import io.element.android.compound.theme.ForcedDarkElementTheme
 import io.element.android.features.enterprise.api.EnterpriseService
 import io.element.android.features.messages.impl.attachments.Attachment
 import io.element.android.libraries.architecture.NodeInputs
@@ -71,7 +67,7 @@ class AttachmentsPreviewNode(
         ForcedDarkElementTheme(
             colors = colors,
         ) {
-        */
+         */
         ForcedDarkScTheme {
             val state = presenter.present()
             AttachmentsPreviewView(

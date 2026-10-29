@@ -68,7 +68,6 @@ internal fun showMarkAsReadQuickAction(): Boolean = LocalScPreferencesStore.curr
 @Composable
 internal fun moveCallButtonToOverflow(): Boolean = showMarkAsReadQuickAction()
 
-
 @Composable fun ScReadMarkerDebug(scReadState: ScReadState?) {
     if (ScPrefs.READ_MARKER_DEBUG.value()) {
         Column(Modifier.fillMaxWidth()) {
@@ -128,15 +127,15 @@ fun UnclippedIconButton(
         modifier = modifier
             .minimumInteractiveComponentSize()
             .size(40.dp) // IconButtonTokens.StateLayerSize
-            //.clip(IconButtonTokens.StateLayerShape.value)
-            //.background(color = colors.containerColor(enabled))
+            // .clip(IconButtonTokens.StateLayerShape.value)
+            // .background(color = colors.containerColor(enabled))
             .clickable(
                 onClick = onClick,
                 role = Role.Button,
                 interactionSource = interactionSource,
                 indication = androidx.compose.material.ripple.rememberRipple(
                     bounded = false,
-                    //radius = IconButtonTokens.StateLayerSize / 2
+                    // radius = IconButtonTokens.StateLayerSize / 2
                     radius = 20.dp
                 )
             ),

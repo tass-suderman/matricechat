@@ -21,10 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.element.android.compound.theme.ElementTheme
-import io.element.android.features.messages.impl.timeline.TimelineState
 import io.element.android.features.messages.impl.timeline.effectiveVisibleTimelineItemIndex
 import io.element.android.features.messages.impl.timeline.model.TimelineItem
-import io.element.android.features.messages.impl.timeline.model.virtual.TimelineItemDaySeparatorModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -50,7 +48,7 @@ fun BoxScope.FloatingDateHeader(
                     when (item) {
                         is TimelineItem.Event -> item.sentDate
                         is TimelineItem.GroupedEvents -> item.events.firstOrNull()?.sentDate
-                        //is TimelineItem.Virtual -> (item.model as? TimelineItemDaySeparatorModel)?.formattedDate
+                        // is TimelineItem.Virtual -> (item.model as? TimelineItemDaySeparatorModel)?.formattedDate
                         else -> null
                     }
                 } else {

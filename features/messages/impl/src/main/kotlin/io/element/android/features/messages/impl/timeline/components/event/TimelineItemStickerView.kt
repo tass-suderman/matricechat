@@ -44,7 +44,7 @@ import io.element.android.libraries.matrix.ui.media.contentvalidation.NoopConten
 import io.element.android.libraries.matrix.ui.media.contentvalidation.collectOverallState
 import io.element.android.libraries.ui.strings.CommonStrings
 
-//private const val STICKER_SIZE_IN_DP = 128
+// private const val STICKER_SIZE_IN_DP = 128
 
 @Composable
 fun TimelineItemStickerView(

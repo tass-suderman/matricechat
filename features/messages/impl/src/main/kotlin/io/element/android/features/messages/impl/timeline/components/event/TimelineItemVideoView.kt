@@ -80,7 +80,10 @@ fun TimelineItemVideoView(
         TimelineItemAspectRatioBox(modifier = modifier, aspectRatio = content.aspectRatio) {
             ProtectedView(hideContent = hideMediaContent, onShowClick = onShowContentClick) {
                 io.element.android.libraries.matrix.ui.components.MediaSpoilerPreview(
-                    model = MediaRequestData(source = content.thumbnailSource, kind = MediaRequestData.Kind.Thumbnail(MAX_THUMBNAIL_WIDTH, MAX_THUMBNAIL_HEIGHT)),
+                    model = MediaRequestData(
+                        source = content.thumbnailSource,
+                        kind = MediaRequestData.Kind.Thumbnail(MAX_THUMBNAIL_WIDTH, MAX_THUMBNAIL_HEIGHT)
+                    ),
                     onReveal = { spoilerRevealed = true },
                     modifier = Modifier.matchParentSize(),
                 )
@@ -129,10 +132,14 @@ fun TimelineItemVideoView(
                         ),
                     model = MediaRequestData(
                         source = if (showGifPreview) content.mediaSource else content.thumbnailSource,
-                        kind = if (showGifPreview) MediaRequestData.Kind.File(content.filename, content.mimeType) else MediaRequestData.Kind.Thumbnail(
+                        kind = if (showGifPreview) {
+                            MediaRequestData.Kind.File(content.filename, content.mimeType)
+                        } else {
+                            MediaRequestData.Kind.Thumbnail(
                             width = content.thumbnailWidth?.toLong() ?: MAX_THUMBNAIL_WIDTH,
                             height = content.thumbnailHeight?.toLong() ?: MAX_THUMBNAIL_HEIGHT,
                         )
+                        }
                     ),
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.Center,

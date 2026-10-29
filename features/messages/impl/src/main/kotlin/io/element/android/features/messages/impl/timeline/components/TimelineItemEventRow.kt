@@ -768,9 +768,12 @@ private fun MessageEventBubbleContent(
                         modifier = Modifier
                             .scOrElse(
                                 forSc = Modifier
-                                    .background(ScTheme.exposures.timestampOverlayBg,
-                                        RoundedCornerShape(ScTheme.exposures.timestampRadius, 0.dp, ScTheme.exposures.bubbleRadius, 0.dp))
-                            ) { this
+                                    .background(
+                                        ScTheme.exposures.timestampOverlayBg,
+                                        RoundedCornerShape(ScTheme.exposures.timestampRadius, 0.dp, ScTheme.exposures.bubbleRadius, 0.dp)
+                                    )
+                            ) {
+                                this
                             // Outer padding
                             .padding(horizontal = 4.dp, vertical = 4.dp)
                             .background(ElementTheme.colors.bgSubtleSecondary, RoundedCornerShape(10.0.dp))
@@ -853,7 +856,8 @@ private fun MessageEventBubbleContent(
         val topPadding = if (inReplyToDetails != null) 0.dp else 8.dp
         val contentModifier = if (flatLayout && paddingBehaviour == ContentPadding.Textual) {
             Modifier.padding(vertical = 2.dp)
-        } else when (paddingBehaviour) {
+        } else {
+            when (paddingBehaviour) {
             ContentPadding.Textual ->
                 Modifier.padding(start = 12.dp, end = 12.dp, top = topPadding, bottom = 8.dp)
             ContentPadding.Media -> {
@@ -866,6 +870,7 @@ private fun MessageEventBubbleContent(
             ContentPadding.CaptionedMedia ->
                 Modifier.padding(start = 8.dp, end = 8.dp, top = topPadding, bottom = 8.dp)
             ContentPadding.InvalidContent -> Modifier.padding(top = topPadding, bottom = 8.dp)
+        }
         }
 
         val threadDecoration = @Composable {

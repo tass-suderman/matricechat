@@ -164,7 +164,7 @@ class DefaultActionListPresenter(
                 verifiedUserSendFailure = verifiedUserSendFailure,
                 actions = actions.toImmutableList(),
                 // Merge suggested and recent emojis, removing duplicates and returning at most 100
-                //recentEmojis = (suggestedEmojis + recentEmojis).distinct()
+                // recentEmojis = (suggestedEmojis + recentEmojis).distinct()
                 recentEmojis = (recentEmojis + suggestedEmojis.takeIf { recentEmojis.size < 100 }?.filter { it !in recentEmojis }.orEmpty()).distinct()
                     .take(100)
                     .toImmutableList()

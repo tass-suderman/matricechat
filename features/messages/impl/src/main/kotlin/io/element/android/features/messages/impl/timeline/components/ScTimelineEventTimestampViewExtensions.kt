@@ -29,6 +29,4 @@ internal fun RowScope.ScTimestampIcon(
             tint = MaterialTheme.colorScheme.secondary,
         )
     }
-
 }
-

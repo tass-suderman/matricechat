@@ -76,7 +76,7 @@ fun TimelineItemEventContentView(
     onContentClick: (() -> Unit)?,
     onGalleryItemClick: ((Int) -> Unit),
     timelineProtectionState: TimelineProtectionState,
-    onLongClick:(() -> Unit), // SC: non-null
+    onLongClick: (() -> Unit), // SC: non-null
     onLinkClick: (Link) -> Unit,
     onLinkLongClick: (Link) -> Unit,
     eventSink: (TimelineEvent.TimelineItemEvent) -> Unit,

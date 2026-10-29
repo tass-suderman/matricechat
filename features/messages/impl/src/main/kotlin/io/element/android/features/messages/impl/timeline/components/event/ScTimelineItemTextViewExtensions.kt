@@ -28,12 +28,12 @@ import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.matrixsdk.containsOnlyEmojis
 import chat.schildi.theme.scBubbleFont
-import coil3.request.ImageRequest
-import coil3.request.SuccessResult
-import coil3.size.Size
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.size.Size
 import com.beeper.android.messageformat.InlineImageInfo
 import com.beeper.android.messageformat.MatrixBodyAnnotations
 import com.beeper.android.messageformat.MatrixBodyParseResult
@@ -263,4 +263,5 @@ fun AnnotatedString.containsOnlyEmojis(
     }
 }
 
-fun String.containsOnlyEmojisOrIsEmpty(maxEmojis: Int = Integer.MAX_VALUE, throwOnError: Boolean = false) = isEmpty() || containsOnlyEmojis(maxEmojis, throwOnError)
+fun String.containsOnlyEmojisOrIsEmpty(maxEmojis: Int = Integer.MAX_VALUE, throwOnError: Boolean = false) =
+    isEmpty() || containsOnlyEmojis(maxEmojis, throwOnError)

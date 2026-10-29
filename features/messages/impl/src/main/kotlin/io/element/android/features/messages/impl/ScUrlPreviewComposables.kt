@@ -41,9 +41,9 @@ import chat.schildi.lib.compose.thenIf
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.matrixsdk.urlpreview.UrlPreview
-import chat.schildi.matrixsdk.urlpreview.youtubeVideoUrl
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewStateHolder
+import chat.schildi.matrixsdk.urlpreview.youtubeVideoUrl
 import chat.schildi.theme.scBubbleFont
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
@@ -64,7 +64,7 @@ import io.element.android.libraries.textcomposer.mentions.MentionSpan
 import io.element.android.wysiwyg.view.spans.CustomMentionSpan
 
 @Composable
-fun <T>T.takeIfUrlPreviewsEnabledForRoom(room: BaseRoom): T? {
+fun <T> T.takeIfUrlPreviewsEnabledForRoom(room: BaseRoom): T? {
     val previewsEnabled = ScPrefs.URL_PREVIEWS.value()
     val allowed = previewsEnabled && if (room.info().isEncrypted != false) {
         ScPrefs.URL_PREVIEWS_IN_E2EE_ROOMS.value()
@@ -307,7 +307,7 @@ fun UrlPreviewView(
 fun UrlPreviewViewPreview() {
     UrlPreviewView(
         UrlPreview(
-            //imageUrl = "asdf",
+            // imageUrl = "asdf",
             title = "Title",
             description = "Description",
             siteName = "Site",
