@@ -11,20 +11,23 @@ import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.assertThrows
+import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import org.junit.Assert.assertThrows
-import org.junit.Test
 
 class SettingsBackupFormatTest {
     @Test
     fun `all preference types and binary assets survive a round trip`() {
         val prefs = preferencesOf(
-            booleanPreferencesKey("boolean") to true, intPreferencesKey("argb") to 0xff123456.toInt(),
-            longPreferencesKey("large") to Long.MAX_VALUE, floatPreferencesKey("float") to 0.125f,
-            doublePreferencesKey("double") to 1.23456789, stringPreferencesKey("unicode") to "🐢 café",
+            booleanPreferencesKey("boolean") to true,
+            intPreferencesKey("argb") to 0xff123456.toInt(),
+            longPreferencesKey("large") to Long.MAX_VALUE,
+            floatPreferencesKey("float") to 0.125f,
+            doublePreferencesKey("double") to 1.23456789,
+            stringPreferencesKey("unicode") to "🐢 café",
             stringSetPreferencesKey("set") to setOf("one", "two"),
         )
         val archive = SettingsArchive(
@@ -53,7 +56,8 @@ class SettingsBackupFormatTest {
 
     @Test
     fun `missing optional fields and unknown additions do not block older format imports`() {
-        val archive = manifest("""{"format":"matrix-client-settings","version":1,"futureField":{},"stores":{
+        val archive =
+            manifest("""{"format":"matrix-client-settings","version":1,"futureField":{},"stores":{
             "future_store":{"future":{}},
             "elementx_preferences":{"theme":{"type":"string","value":"dark"},"future":{"type":"future","value":{}}}
         }}""")
@@ -61,6 +65,18 @@ class SettingsBackupFormatTest {
         assertThat(restored.stores.keys).containsExactly("elementx_preferences")
         assertThat(restored.stores.getValue("elementx_preferences")[stringPreferencesKey("theme")]).isEqualTo("dark")
         assertThat(restored.assets).isEmpty()
+    }
+
+    @Test
+    fun `private friend profiles are not included in portable settings`() {
+        val store = "session_0123456789abcdef_preferences"
+        val preferences = preferencesOf(
+            stringPreferencesKey("friendProfiles") to "private local nicknames",
+            booleanPreferencesKey("sendPublicReadReceipts") to false,
+        )
+        val restored = roundTrip(SettingsArchive(mapOf(store to preferences)))
+        assertThat(restored.stores.getValue(store)[stringPreferencesKey("friendProfiles")]).isNull()
+        assertThat(restored.stores.getValue(store)[booleanPreferencesKey("sendPublicReadReceipts")]).isFalse()
     }
 
     @Test
@@ -81,7 +97,8 @@ class SettingsBackupFormatTest {
         val archive = SettingsArchive(mapOf(
             "pin_code_store" to preferencesOf(stringPreferencesKey("encoded_pin_code") to "secret", booleanPreferencesKey("biometric_unlock_enabled") to true),
             "vector_analytics" to preferencesOf(stringPreferencesKey("analytics_id") to "identity", booleanPreferencesKey("user_consent") to false),
-            "push_store_0123456789abcdef" to preferencesOf(stringPreferencesKey("currentPushKey") to "secret", booleanPreferencesKey("notificationEnabled") to false),
+            "push_store_0123456789abcdef" to
+                preferencesOf(stringPreferencesKey("currentPushKey") to "secret", booleanPreferencesKey("notificationEnabled") to false),
         ))
         val restored = roundTrip(archive)
         assertThat(restored.stores.values.flatMap { it.asMap().keys.map { key -> key.name } })
@@ -115,7 +132,11 @@ class SettingsBackupFormatTest {
     fun `excess ZIP entry counts and oversized reads are rejected`() {
         val out = ByteArrayOutputStream()
         ZipOutputStream(out).use { zip ->
-            repeat(17) { index -> zip.putNextEntry(ZipEntry("entry-$index")); zip.write(0); zip.closeEntry() }
+            repeat(17) { index ->
+                zip.putNextEntry(ZipEntry("entry-$index"))
+                zip.write(0)
+                zip.closeEntry()
+            }
         }
         assertThrows(IllegalArgumentException::class.java) { readSettingsArchive(out.toByteArray().inputStream()) }
         assertThrows(IllegalArgumentException::class.java) { ByteArrayInputStream(ByteArray(11)).readBounded(10) }
@@ -168,7 +189,11 @@ class SettingsBackupFormatTest {
 
     private fun manifest(json: String): ByteArray {
         val out = ByteArrayOutputStream()
-        ZipOutputStream(out).use { zip -> zip.putNextEntry(ZipEntry("settings.json")); zip.write(json.toByteArray()); zip.closeEntry() }
+        ZipOutputStream(out).use { zip ->
+            zip.putNextEntry(ZipEntry("settings.json"))
+            zip.write(json.toByteArray())
+            zip.closeEntry()
+        }
         return out.toByteArray()
     }
 }

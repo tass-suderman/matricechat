@@ -18,8 +18,8 @@ import io.element.android.libraries.designsystem.components.avatar.AvatarSize
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.model.getAvatarData
-import io.element.android.libraries.matrix.ui.model.getBestName
 
 @Composable
 fun MatrixUserRow(
@@ -28,21 +28,25 @@ fun MatrixUserRow(
     avatarSize: AvatarSize = AvatarSize.UserListItem,
     verticalSpaceWidth: Dp = 12.dp,
     trailingContent: @Composable (() -> Unit)? = null,
-) = UserRow(
-    avatarData = matrixUser.getAvatarData(avatarSize),
-    nameContent = {
-        DisplayNameWithStatus(
-            name = matrixUser.getBestName(),
-            status = matrixUser.displayedStatus,
-            nameColor = ElementTheme.colors.textPrimary,
-            style = ElementTheme.typography.fontBodyLgRegular,
-        )
-    },
-    subtext = if (matrixUser.displayName.isNullOrEmpty()) null else matrixUser.userId.value,
-    modifier = modifier,
-    verticalSpaceWidth = verticalSpaceWidth,
-    trailingContent = trailingContent,
-)
+    roomSpecificName: Boolean = false,
+) {
+    val displayName = LocalFriendProfiles.current.name(matrixUser.userId.value, matrixUser.displayName, roomSpecificName)
+    UserRow(
+        avatarData = matrixUser.getAvatarData(avatarSize),
+        nameContent = {
+            DisplayNameWithStatus(
+                name = displayName ?: matrixUser.userId.value,
+                status = matrixUser.displayedStatus,
+                nameColor = ElementTheme.colors.textPrimary,
+                style = ElementTheme.typography.fontBodyLgRegular,
+            )
+        },
+        subtext = if (displayName.isNullOrEmpty()) null else matrixUser.userId.value,
+        modifier = modifier,
+        verticalSpaceWidth = verticalSpaceWidth,
+        trailingContent = trailingContent,
+    )
+}
 
 @PreviewsDayNight
 @Composable

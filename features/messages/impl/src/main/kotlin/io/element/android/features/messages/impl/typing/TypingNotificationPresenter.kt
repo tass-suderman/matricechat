@@ -23,6 +23,8 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.roomMembers
+import io.element.android.libraries.matrix.ui.friends.FriendProfiles
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.preferences.api.store.SessionPreferencesStore
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -42,9 +44,10 @@ class TypingNotificationPresenter(
         val renderTypingNotifications by remember {
             sessionPreferencesStore.isRenderTypingNotificationsEnabled()
         }.collectAsState(initial = true)
-        val typingMembersState by produceState(initialValue = persistentListOf(), key1 = renderTypingNotifications) {
+        val friends = LocalFriendProfiles.current
+        val typingMembersState by produceState(initialValue = persistentListOf(), key1 = renderTypingNotifications, key2 = friends) {
             if (renderTypingNotifications) {
-                observeRoomTypingMembers()
+                observeRoomTypingMembers(friends)
             } else {
                 value = persistentListOf<TypingRoomMember>()
             }
@@ -65,13 +68,18 @@ class TypingNotificationPresenter(
         )
     }
 
-    private fun ProduceStateScope<ImmutableList<TypingRoomMember>>.observeRoomTypingMembers() {
+    private fun ProduceStateScope<ImmutableList<TypingRoomMember>>.observeRoomTypingMembers(
+        friends: FriendProfiles,
+    ) {
         combine(room.roomTypingMembersFlow, room.membersStateFlow) { typingMembers, membersState ->
             typingMembers
                 .map { userId ->
                     membersState.roomMembers()
                         ?.firstOrNull { roomMember -> roomMember.userId == userId }
-                        ?.toTypingRoomMember()
+                        ?.let { member ->
+                            val name = friends.name(userId.value, member.displayName, roomSpecific = true)
+                            if (name == member.displayName) member.toTypingRoomMember() else TypingRoomMember(name ?: userId.value)
+                        }
                         ?: createDefaultRoomMemberForTyping(userId)
                 }
         }

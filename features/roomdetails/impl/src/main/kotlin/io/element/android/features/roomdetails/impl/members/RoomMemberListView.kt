@@ -302,6 +302,7 @@ private fun RoomMemberListItem(
     MatrixUserRow(
         modifier = modifier.clickable(onClick = onClick),
         matrixUser = roomMemberWithIdentity.roomMember.toMatrixUser(),
+        roomSpecificName = true,
         avatarSize = AvatarSize.UserListItem,
         trailingContent = {
             Row(

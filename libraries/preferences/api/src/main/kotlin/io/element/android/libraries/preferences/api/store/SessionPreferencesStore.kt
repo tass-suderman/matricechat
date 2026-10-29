@@ -8,6 +8,7 @@
 
 package io.element.android.libraries.preferences.api.store
 
+import chat.schildi.lib.preferences.FriendProfile
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -17,6 +18,9 @@ import kotlinx.coroutines.flow.Flow
  * The default each preference falls back to when it has never been set is given on the getter.
  */
 interface SessionPreferencesStore {
+    fun getFriendProfiles(): Flow<Map<String, FriendProfile>>
+    suspend fun setFriendProfile(userId: String, profile: FriendProfile)
+
     /**
      * @param enabled true to let the homeserver share this user's presence with others.
      */

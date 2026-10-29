@@ -9,6 +9,7 @@
 package io.element.android.libraries.usersearch.impl
 
 import app.cash.turbine.test
+import chat.schildi.lib.preferences.FriendProfile
 import com.google.common.truth.Truth.assertThat
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
@@ -17,6 +18,7 @@ import io.element.android.libraries.matrix.test.A_USER_ID
 import io.element.android.libraries.matrix.test.A_USER_NAME
 import io.element.android.libraries.matrix.test.FakeMatrixClient
 import io.element.android.libraries.matrix.ui.components.aMatrixUserList
+import io.element.android.libraries.preferences.test.InMemorySessionPreferencesStore
 import io.element.android.libraries.usersearch.api.UserSearchResult
 import io.element.android.libraries.usersearch.test.FakeUserListDataSource
 import kotlinx.coroutines.test.runTest
@@ -28,7 +30,7 @@ internal class MatrixUserRepositoryTest {
     @Test
     fun `search - emits nothing if the search query is too short`() = runTest {
         val dataSource = FakeUserListDataSource()
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search("x")
 
@@ -40,7 +42,7 @@ internal class MatrixUserRepositoryTest {
     @Test
     fun `search - returns empty list if no results are found`() = runTest {
         val dataSource = FakeUserListDataSource()
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search("some query")
 
@@ -61,7 +63,7 @@ internal class MatrixUserRepositoryTest {
     fun `search - returns users if results are found`() = runTest {
         val dataSource = FakeUserListDataSource()
         dataSource.givenSearchResult(aMatrixUserList())
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search("some query")
 
@@ -81,7 +83,7 @@ internal class MatrixUserRepositoryTest {
     @Test
     fun `search - immediately returns placeholder if search is mxid`() = runTest {
         val dataSource = FakeUserListDataSource()
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search(A_USER_ID.value)
 
@@ -97,7 +99,7 @@ internal class MatrixUserRepositoryTest {
     @Test
     fun `search - doesn't return placeholder if search is the local user's mxid`() = runTest {
         val dataSource = FakeUserListDataSource()
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search(SESSION_ID.value)
 
@@ -115,7 +117,7 @@ internal class MatrixUserRepositoryTest {
         val searchResults = aMatrixUserList() + MatrixUser(userId = SESSION_ID, displayName = A_USER_NAME)
         val dataSource = FakeUserListDataSource()
         dataSource.givenSearchResult(searchResults)
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search("some text")
 
@@ -131,7 +133,7 @@ internal class MatrixUserRepositoryTest {
         val searchResults = aMatrixUserListWithoutUserId(A_USER_ID) + MatrixUser(userId = A_USER_ID, displayName = A_USER_NAME)
         val dataSource = FakeUserListDataSource()
         dataSource.givenSearchResult(searchResults)
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search(A_USER_ID.value)
 
@@ -150,7 +152,7 @@ internal class MatrixUserRepositoryTest {
         val dataSource = FakeUserListDataSource()
         dataSource.givenSearchResult(searchResults)
         dataSource.givenUserProfile(userProfile)
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search(A_USER_ID.value)
 
@@ -169,7 +171,7 @@ internal class MatrixUserRepositoryTest {
         val dataSource = FakeUserListDataSource()
         dataSource.givenSearchResult(searchResults)
         dataSource.givenUserProfile(userProfile)
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search(SESSION_ID.value)
 
@@ -187,13 +189,39 @@ internal class MatrixUserRepositoryTest {
         val dataSource = FakeUserListDataSource()
         dataSource.givenSearchResult(searchResults)
         dataSource.givenUserProfile(null)
-        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource)
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), dataSource, InMemorySessionPreferencesStore())
 
         val result = repository.search(A_USER_ID.value)
 
         result.test {
             skipItems(1)
             assertThat(awaitItem().results).isEqualTo(listOf(placeholderResult(isUnresolved = true)) + searchResults.toUserSearchResults())
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `private nickname search uses Matrix id profile lookup and never server directory search`() = runTest {
+        val preferences = InMemorySessionPreferencesStore()
+        preferences.setFriendProfile(A_USER_ID.value, FriendProfile("Best friend", globalName = A_USER_NAME))
+        var requestedId: UserId? = null
+        val source = object : io.element.android.libraries.usersearch.api.UserListDataSource {
+            override suspend fun search(query: String, count: Long): List<MatrixUser> = error("Private nickname sent to server")
+            override suspend fun getProfile(userId: UserId): MatrixUser? {
+                requestedId = userId
+                return null
+            }
+        }
+        val repository = MatrixUserRepository(FakeMatrixClient(SESSION_ID), source, preferences)
+        repository.search("BEST").test {
+            val result = awaitItem()
+            assertThat(result.results.single().matrixUser.userId).isEqualTo(A_USER_ID)
+            assertThat(result.results.single().matrixUser.displayName).isEqualTo(A_USER_NAME)
+            assertThat(requestedId).isEqualTo(A_USER_ID)
+            awaitComplete()
+        }
+        repository.search("be").test {
+            assertThat(awaitItem().results.single().matrixUser.userId).isEqualTo(A_USER_ID)
             awaitComplete()
         }
     }

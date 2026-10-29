@@ -89,6 +89,7 @@ import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.messages.reply.map
 import io.element.android.libraries.matrix.ui.model.dmUserStatus
 import io.element.android.libraries.matrix.ui.model.getAvatarData
@@ -315,10 +316,15 @@ class MessagesPresenter(
                             navigator.close()
                             return@launch
                         }
-                        val latestEventId = event.scReadState.readMarkerToSet.value ?: if (syncMarkers) null else room.liveTimeline.getLatestEventId().getOrElse {
+                        val latestEventId =
+                            event.scReadState.readMarkerToSet.value ?: if (syncMarkers) {
+                                null
+                            } else {
+                                room.liveTimeline.getLatestEventId().getOrElse {
                             Timber.w(it, "Failed to get latest event id to mark as fully read")
                             null
                         }
+                            }
                         latestEventId?.let { eventId ->
                             sessionCoroutineScope.launch {
                                 // SC start
@@ -328,10 +334,11 @@ class MessagesPresenter(
                                     markAsFullyRead(
                                         room.roomId,
                                         eventId,
-                                        if (isSendPublicReadReceiptsEnabled)
+                                        if (isSendPublicReadReceiptsEnabled) {
                                             ReceiptType.READ
-                                        else
-                                            ReceiptType.READ_PRIVATE,
+                                        } else {
+                                            ReceiptType.READ_PRIVATE
+                                        },
                                     )
                                     return@launch
                                 }
@@ -349,7 +356,7 @@ class MessagesPresenter(
 
         return MessagesState(
             roomId = room.roomId,
-            roomName = roomInfo.scRoomDisplayNameOverride() ?: roomInfo.name,
+            roomName = roomInfo.scRoomDisplayNameOverride() ?: LocalFriendProfiles.current.roomName(roomInfo),
             roomAvatar = roomAvatar.copy(presenceUserId = dmRoomMember?.userId?.value),
             heroes = heroes,
             userEventPermissions = userEventPermissions,

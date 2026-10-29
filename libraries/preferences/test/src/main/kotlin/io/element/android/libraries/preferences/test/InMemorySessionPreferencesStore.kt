@@ -8,6 +8,7 @@
 
 package io.element.android.libraries.preferences.test
 
+import chat.schildi.lib.preferences.FriendProfile
 import io.element.android.libraries.preferences.api.store.SessionPreferencesStore
 import io.element.android.libraries.preferences.api.store.VideoCompressionPreset
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,16 @@ class InMemorySessionPreferencesStore(
     private val videoCompressionPreset = MutableStateFlow(videoCompressionPreset)
     var clearCallCount = 0
         private set
+
+    private val friendProfiles = kotlinx.coroutines.flow.MutableStateFlow<Map<String, FriendProfile>>(emptyMap())
+    override fun getFriendProfiles() = friendProfiles
+    override suspend fun setFriendProfile(userId: String, profile: FriendProfile) {
+        friendProfiles.value = if (profile.nickname.isBlank() && profile.color == null) {
+            friendProfiles.value - userId
+        } else {
+            friendProfiles.value + (userId to profile.copy(nickname = profile.nickname.trim()))
+        }
+    }
 
     override suspend fun setSharePresence(enabled: Boolean) {
         isSharePresenceEnabled.tryEmit(enabled)
@@ -85,6 +96,7 @@ class InMemorySessionPreferencesStore(
     }
 
     override suspend fun clear() {
+        friendProfiles.value = emptyMap()
         clearCallCount++
         isSendPublicReadReceiptsEnabled.tryEmit(true)
     }

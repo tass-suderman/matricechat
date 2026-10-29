@@ -94,7 +94,9 @@ import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.sync.SyncService
 import io.element.android.libraries.matrix.api.verification.SessionVerificationServiceListener
 import io.element.android.libraries.matrix.api.verification.VerificationRequest
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.preferences.api.store.AppPreferencesStore
+import io.element.android.libraries.preferences.api.store.SessionPreferencesStore
 import io.element.android.libraries.push.api.notifications.conversations.NotificationConversationService
 import io.element.android.libraries.ui.common.nodes.EmptyState
 import io.element.android.libraries.ui.common.nodes.emptyNode
@@ -161,6 +163,7 @@ class LoggedInFlowNode(
     private val createRoomEntryPoint: CreateRoomEntryPoint,
     private val activeLiveLocationShareManager: ActiveLiveLocationShareManager,
     private val customMapTilerConfigProvider: CustomMapTilerConfigProvider,
+    private val sessionPreferencesStore: SessionPreferencesStore,
 ) : BaseFlowNode<LoggedInFlowNode.NavTarget>(
     backstack = BackStack(
         initialElement = NavTarget.Placeholder,
@@ -703,6 +706,7 @@ class LoggedInFlowNode(
         ) {
             CompositionLocalProvider(
                 LocalMapTilerConfig provides updatedMapTilerConfig,
+                LocalFriendProfiles provides friendProfiles(matrixClient, sessionPreferencesStore),
                 io.element.android.libraries.designsystem.components.avatar.LocalAvatarPresence provides remember(presenceProvider) {
                     { userId -> presenceProvider(userId).map { it?.presence } }
                 },

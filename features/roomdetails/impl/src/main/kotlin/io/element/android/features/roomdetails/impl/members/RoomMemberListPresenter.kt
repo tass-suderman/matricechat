@@ -35,6 +35,7 @@ import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.powerlevels.permissionsAsState
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.room.toMatrixUser
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.room.PowerLevelRoomMemberComparator
 import io.element.android.libraries.matrix.ui.room.roomMemberIdentityStateChange
 import kotlinx.collections.immutable.ImmutableList
@@ -57,6 +58,7 @@ class RoomMemberListPresenter(
 
     @Composable
     override fun present(): RoomMemberListState {
+        val friends = LocalFriendProfiles.current
         val searchQuery = rememberTextFieldState()
         val membersState by room.membersStateFlow.collectAsState()
         val roomInfo by room.roomInfoFlow.collectAsState()
@@ -85,7 +87,7 @@ class RoomMemberListPresenter(
             room.updateMembers()
         }
 
-        LaunchedEffect(membersState, roomMemberIdentityStates, activeCallParticipants) {
+        LaunchedEffect(membersState, roomMemberIdentityStates, activeCallParticipants, friends) {
             if (membersState is RoomMembersState.Unknown) {
                 return@LaunchedEffect
             }
@@ -96,7 +98,9 @@ class RoomMemberListPresenter(
                 return@LaunchedEffect
             }
             withContext(coroutineDispatchers.io) {
-                val members = membersState.roomMembers().orEmpty().groupBy { it.membership }
+                val members = membersState.roomMembers().orEmpty()
+                    .map { it.copy(displayName = friends.name(it.userId.value, it.displayName, roomSpecific = true)) }
+                    .groupBy { it.membership }
                 if (members.getOrDefault(RoomMembershipState.JOIN, emptyList()).size < roomInfo.joinedMembersCount / 2) {
                     // Don't display initial room member list if we have less than half of the joined members:
                     // This result will come from the timeline loading membership events, and it'll be wrong.

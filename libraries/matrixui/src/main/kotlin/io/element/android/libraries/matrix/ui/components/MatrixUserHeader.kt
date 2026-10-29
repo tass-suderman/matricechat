@@ -29,8 +29,8 @@ import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.model.getAvatarData
-import io.element.android.libraries.matrix.ui.model.getBestName
 
 @Composable
 fun MatrixUserHeader(
@@ -58,13 +58,14 @@ fun MatrixUserHeader(
         ) {
             // Name
             DisplayNameWithStatus(
-                name = matrixUser.getBestName(),
+                name = LocalFriendProfiles.current.name(matrixUser.userId.value, matrixUser.displayName) ?: matrixUser.userId.value,
                 status = matrixUser.displayedStatus,
                 nameColor = ElementTheme.colors.textPrimary,
                 style = ElementTheme.typography.fontHeadingMdRegular,
             )
             // Id
-            if (matrixUser.displayName.isNullOrEmpty().not()) {
+            if (matrixUser.displayName.isNullOrEmpty().not() ||
+                LocalFriendProfiles.current.profiles[matrixUser.userId.value]?.nickname?.isNotBlank() == true) {
                 Text(
                     text = matrixUser.userId.value,
                     style = ElementTheme.typography.fontBodyMdRegular,

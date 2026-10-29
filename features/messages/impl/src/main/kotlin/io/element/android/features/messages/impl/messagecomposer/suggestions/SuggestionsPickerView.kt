@@ -47,6 +47,7 @@ import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.getBestName
 import io.element.android.libraries.matrix.ui.components.DisplayNameWithStatus
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.matrix.ui.model.getAvatarData
 import io.element.android.libraries.slashcommands.api.SlashCommandSuggestion
@@ -124,7 +125,11 @@ private fun SuggestionItemView(
         }
         val title: String? = when (suggestion) {
             is ResolvedSuggestion.AtRoom -> stringResource(R.string.screen_room_mentions_at_room_title)
-            is ResolvedSuggestion.Member -> suggestion.roomMember.getBestName()
+            is ResolvedSuggestion.Member -> LocalFriendProfiles.current.name(
+                suggestion.roomMember.userId.value,
+                suggestion.roomMember.displayName,
+                roomSpecific = true,
+            ) ?: suggestion.roomMember.getBestName()
             is ResolvedSuggestion.Alias -> suggestion.roomName
             is ResolvedSuggestion.Command -> suggestion.command.command
             is ResolvedSuggestion.Emoji -> suggestion.name

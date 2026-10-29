@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import io.element.android.libraries.designsystem.components.avatar.AvatarData
 import io.element.android.libraries.designsystem.components.avatar.AvatarSize
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.ui.strings.CommonStrings
 
 fun MatrixUser.getAvatarData(size: AvatarSize) = AvatarData(
@@ -28,7 +29,7 @@ fun MatrixUser.getBestName(): String {
 
 @Composable
 fun MatrixUser.getFullName(): String {
-    return displayName.let { name ->
+    return LocalFriendProfiles.current.name(userId.value, displayName).let { name ->
         if (name.isNullOrBlank()) {
             userId.value
         } else {

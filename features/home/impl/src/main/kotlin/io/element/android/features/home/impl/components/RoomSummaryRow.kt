@@ -45,6 +45,7 @@ import io.element.android.features.home.impl.model.LatestEvent
 import io.element.android.features.home.impl.model.RoomListRoomSummary
 import io.element.android.features.home.impl.model.RoomListRoomSummaryPreviewParam
 import io.element.android.features.home.impl.model.RoomSummaryDisplayType
+import io.element.android.features.home.impl.model.friendName
 import io.element.android.features.home.impl.model.hasNewContent
 import io.element.android.features.home.impl.roomlist.RoomListEvent
 import io.element.android.libraries.core.extensions.orEmpty
@@ -97,7 +98,7 @@ internal fun RoomSummaryRow(
                         Timber.d("Long click on invite room")
                     },
                 ) {
-                    InviteNameAndIndicatorRow(name = room.name, isInviteSeen = isInviteSeen)
+                    InviteNameAndIndicatorRow(name = room.friendName(), isInviteSeen = isInviteSeen)
                     InviteSubtitle(isDm = room.isDm, inviteSender = room.inviteSender)
                     if (!room.isDm && room.inviteSender != null) {
                         Spacer(modifier = Modifier.height(4.dp))
@@ -127,7 +128,7 @@ internal fun RoomSummaryRow(
                     },
                 ) {
                     NameAndTimestampRow(
-                        name = room.name,
+                        name = room.friendName(),
                         timestamp = room.timestamp,
                         isHighlighted = room.isHighlighted,
                         dmUserStatus = room.dmUserStatus,
@@ -144,7 +145,7 @@ internal fun RoomSummaryRow(
                     },
                 ) {
                     NameAndTimestampRow(
-                        name = room.name,
+                        name = room.friendName(),
                         timestamp = null,
                         isHighlighted = room.isHighlighted,
                         dmUserStatus = null,

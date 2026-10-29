@@ -20,8 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.architecture.Presenter
-import io.element.android.libraries.core.meta.BuildMeta
-import io.element.android.libraries.core.meta.isGplayBuild
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
 
@@ -40,8 +39,9 @@ class RoomListSearchPresenter(
         val coroutineScope = rememberCoroutineScope()
         val dataSource = remember { dataSourceFactory.create(coroutineScope) }
 
-        LaunchedEffect(searchQuery.text) {
-            dataSource.setSearchQuery(searchQuery = searchQuery.text.toString(), additionalFilters = null)
+        val friends = LocalFriendProfiles.current
+        LaunchedEffect(searchQuery.text, friends.profiles, friends.globalNames) {
+            dataSource.setSearchQuery(searchQuery = searchQuery.text.toString(), additionalFilters = null, friends = friends)
         }
 
         fun handleEvent(event: RoomListSearchEvent) {

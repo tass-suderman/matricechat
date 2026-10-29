@@ -48,6 +48,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.isMediaContent
 import io.element.android.libraries.matrix.ui.components.AttachmentThumbnailType
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.messages.toPlainText
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -102,7 +103,8 @@ class GlobalSearchPresenter(
             }
         }
 
-        LaunchedEffect(queryState.text) {
+        val friends = LocalFriendProfiles.current
+        LaunchedEffect(queryState.text, friends.profiles, friends.globalNames) {
             // Add a delay to avoid performing too many searches in a short period of time, which can be expensive
             delay(200.milliseconds)
 
@@ -117,6 +119,7 @@ class GlobalSearchPresenter(
                 roomListSearchDataSource.setSearchQuery(
                     searchQuery = queryState.text.toString(),
                     additionalFilters = RoomListFilter.Joined,
+                    friends = friends,
                 )
             }
             // Apply the query to the message search too

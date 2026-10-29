@@ -20,8 +20,8 @@ import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.preview.USER_NAME_JOHN_DOE
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.model.getAvatarData
-import io.element.android.libraries.matrix.ui.model.getBestName
 
 @Composable
 fun SelectedUser(
@@ -33,9 +33,9 @@ fun SelectedUser(
     SelectedItem(
         avatarData = matrixUser.getAvatarData(size = AvatarSize.SelectedUser),
         avatarType = AvatarType.User,
-        text = matrixUser.getBestName(),
+        text = LocalFriendProfiles.current.name(matrixUser.userId.value, matrixUser.displayName) ?: matrixUser.userId.value,
         maxLines = 2,
-        a11yContentDescription = matrixUser.getBestName(),
+        a11yContentDescription = LocalFriendProfiles.current.name(matrixUser.userId.value, matrixUser.displayName) ?: matrixUser.userId.value,
         canRemove = canRemove,
         onRemoveClick = { onUserRemove(matrixUser) },
         modifier = modifier,

@@ -64,6 +64,8 @@ import io.element.android.libraries.matrix.api.user.UserStatus
 import io.element.android.libraries.matrix.ui.components.DisplayNameWithStatus
 import io.element.android.libraries.matrix.ui.components.aMatrixUserList
 import io.element.android.libraries.matrix.ui.components.rememberUserStatusMessage
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
+import io.element.android.libraries.matrix.ui.messages.sender.LocalDiscordRoles
 import io.element.android.libraries.matrix.ui.model.getAvatarData
 import io.element.android.libraries.ui.strings.CommonStrings
 import kotlinx.collections.immutable.ImmutableList
@@ -186,7 +188,8 @@ private fun RoomAvatarAndNameRow(
                 name = roomName ?: stringResource(CommonStrings.common_no_room_name),
                 status = dmUserStatus.takeIf { statusMessage == null || it is DisplayedStatus.InCall },
                 style = ElementTheme.typography.fontBodyLgMedium,
-                nameColor = ElementTheme.colors.textPrimary,
+                nameColor = dmUserId?.let { LocalFriendProfiles.current.nameColor(it, LocalDiscordRoles.current[it]?.color) }
+                    ?: ElementTheme.colors.textPrimary,
                 nameFontStyle = FontStyle.Italic.takeIf { roomName == null },
             )
             if (statusMessage != null) {

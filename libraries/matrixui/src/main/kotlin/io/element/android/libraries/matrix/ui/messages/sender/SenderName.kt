@@ -28,6 +28,7 @@ import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.model.toEmojiText
 
 // https://www.figma.com/file/Ni6Ii8YKtmXCKYNE90cC67/Timeline-(new)?type=design&node-id=917-80169&mode=design&t=A0CJCBbMqR8NOwUQ-0
@@ -40,9 +41,11 @@ fun SenderName(
     discordRoleUserId: String? = null,
     showRoleLabel: Boolean = false,
 ) {
+    val friends = LocalFriendProfiles.current
     val role = LocalDiscordRoles.current[discordRoleUserId ?: senderId.value]
-    val nameMode = if (role != null && senderNameMode is SenderNameMode.Timeline) {
-        SenderNameMode.Timeline(Color(role.color))
+    val nameColor = friends.nameColor(senderId.value, role?.color)
+    val nameMode = if (nameColor != null && senderNameMode is SenderNameMode.Timeline) {
+        SenderNameMode.Timeline(nameColor)
     } else {
         senderNameMode
     }
@@ -55,12 +58,12 @@ fun SenderName(
             is ProfileDetails.Error,
             ProfileDetails.Pending,
             ProfileDetails.Unavailable -> {
-                MainText(text = senderId.value, mode = nameMode)
+                MainText(text = friends.name(senderId.value, null) ?: senderId.value, mode = nameMode)
             }
             is ProfileDetails.Ready -> {
-                val displayName = senderProfile.displayName
+                val displayName = friends.name(senderId.value, senderProfile.displayName, roomSpecific = true)
                 if (displayName.isNullOrEmpty()) {
-                    MainText(text = senderId.value, mode = nameMode)
+                    MainText(text = friends.name(senderId.value, null) ?: senderId.value, mode = nameMode)
                 } else {
                     MainText(text = displayName, mode = nameMode)
                     if (senderProfile.displayNameAmbiguous) {

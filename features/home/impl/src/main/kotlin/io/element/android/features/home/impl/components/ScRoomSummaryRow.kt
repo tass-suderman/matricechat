@@ -62,6 +62,7 @@ import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.features.home.impl.model.LatestEvent
 import io.element.android.features.home.impl.model.RoomListRoomSummary
 import io.element.android.features.home.impl.model.RoomSummaryDisplayType
+import io.element.android.features.home.impl.model.friendName
 import io.element.android.features.home.impl.roomlist.RoomListEvent
 import io.element.android.libraries.designsystem.components.avatar.Avatar
 import io.element.android.libraries.designsystem.components.avatar.AvatarData
@@ -166,7 +167,6 @@ private fun ScRoomSummaryRealRow(
                     }
                 }
             }
-
         }
         Column(
             modifier = Modifier
@@ -185,7 +185,7 @@ private fun ScRoomSummaryRealRow(
 
 @Composable
 private fun RowScope.ScNameAndTimestampRow(room: RoomListRoomSummary) {
-    val primaryName = room.privateRoomName ?: room.name ?: stringResource(id = CommonStrings.common_no_room_name)
+    val primaryName = room.friendName() ?: stringResource(id = CommonStrings.common_no_room_name)
     val secondaryName = if (room.privateRoomName != null && room.name != null && room.name != room.privateRoomName) {
         room.name
     } else {
@@ -365,13 +365,14 @@ private fun ScUnreadCounter(room: RoomListRoomSummary, isInviteSeen: Boolean) {
             return
         }
     }
-    Box (
+    Box(
         modifier = Modifier
             .let {
-                if (outlinedBadge)
+                if (outlinedBadge) {
                     it.border(2.dp, badgeColor, RoundedCornerShape(30.dp))
-                else
+                } else {
                     it.background(badgeColor, RoundedCornerShape(30.dp))
+                }
             }
             .sizeIn(minWidth = 24.dp, minHeight = 24.dp)
     ) {

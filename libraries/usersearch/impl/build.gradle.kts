@@ -21,6 +21,8 @@ setupDependencyInjection()
 
 dependencies {
     implementation(projects.libraries.core)
+    implementation(projects.libraries.preferences.api)
+    testImplementation(projects.libraries.preferences.test)
     implementation(projects.libraries.architecture)
     implementation(projects.libraries.di)
     implementation(projects.libraries.matrixui)

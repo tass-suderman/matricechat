@@ -17,8 +17,9 @@ import io.element.android.libraries.matrix.api.notification.CallIntent
 import io.element.android.libraries.matrix.api.room.BridgeState
 import io.element.android.libraries.matrix.api.room.MatrixSpaceChildInfo
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
-import io.element.android.libraries.matrix.api.user.DisplayedStatus
 import io.element.android.libraries.matrix.api.room.SpaceCatchAllInfo
+import io.element.android.libraries.matrix.api.user.DisplayedStatus
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.model.InviteSender
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -82,4 +83,11 @@ data class RoomListRoomSummary(
         roomName = name ?: roomId.value,
         isDm = isDm,
     )
+}
+
+@androidx.compose.runtime.Composable
+internal fun RoomListRoomSummary.friendName(): String? {
+    if (!isDm || !rawRoomName.isNullOrBlank() || !privateRoomName.isNullOrBlank()) return privateRoomName ?: name
+    val hero = heroes.singleOrNull() ?: return name
+    return LocalFriendProfiles.current.name(hero.id, hero.name, roomSpecific = true) ?: name
 }

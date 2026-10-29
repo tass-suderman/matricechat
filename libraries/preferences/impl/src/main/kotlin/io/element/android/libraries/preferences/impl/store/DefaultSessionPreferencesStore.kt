@@ -15,6 +15,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
+import chat.schildi.lib.preferences.FriendProfile
+import chat.schildi.lib.preferences.decodeFriendProfiles
+import chat.schildi.lib.preferences.encodeFriendProfiles
 import io.element.android.libraries.androidutils.hash.hash
 import io.element.android.libraries.core.data.tryOrNull
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
@@ -58,6 +61,25 @@ class DefaultSessionPreferencesStore(
             )
         ),
     ) { dataStoreFile }
+
+    override fun getFriendProfiles() = store.data.map {
+        decodeFriendProfiles(it[stringPreferencesKey("friendProfiles")] ?: "{}")
+    }
+
+    override suspend fun setFriendProfile(userId: String, profile: FriendProfile) {
+        require(userId.startsWith("@") && ':' in userId)
+        require(profile.nickname.length <= 100 && profile.nickname.none { it == '\n' || it == '\r' })
+        store.edit { values ->
+            val key = stringPreferencesKey("friendProfiles")
+            val profiles = decodeFriendProfiles(values[key] ?: "{}").toMutableMap()
+            if (profile.nickname.isBlank() && profile.color == null) {
+                profiles.remove(userId)
+            } else {
+                profiles[userId] = profile.copy(nickname = profile.nickname.trim())
+            }
+            values[key] = encodeFriendProfiles(profiles)
+        }
+    }
 
     override suspend fun setSharePresence(enabled: Boolean) {
         update(sharePresenceKey, enabled)

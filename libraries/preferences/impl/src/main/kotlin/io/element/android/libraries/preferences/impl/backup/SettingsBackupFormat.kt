@@ -12,12 +12,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.forEachPreference
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.io.OutputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
@@ -30,13 +24,25 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 internal const val MAX_BACKUP_BYTES = 80 * 1024 * 1024
 internal val SESSION_STORE = Regex("session_[a-f0-9]{16}_preferences")
 private val PUSH_STORE = Regex("push_store_[a-f0-9]{16}")
 internal val GLOBAL_STORES = setOf(
-    "schildinext-preferences", "schildinext-appstate", "elementx_preferences", "elementx_featureflag",
-    "elementx_rageshake", "elementx_voice_player", "vector_analytics", "pin_code_store",
+    "schildinext-preferences",
+    "schildinext-appstate",
+    "elementx_preferences",
+    "elementx_featureflag",
+    "elementx_rageshake",
+    "elementx_voice_player",
+    "vector_analytics",
+    "pin_code_store",
 )
 internal val ASSET_TARGETS = mapOf(
     "wallpaper" to ("schildinext-preferences" to "CHAT_WALLPAPER"),
@@ -62,7 +68,7 @@ internal fun allowedKey(store: String, key: String): Boolean = when {
     store == "vector_analytics" -> key in setOf("user_consent", "did_ask_user_consent")
     store == "pin_code_store" -> key == "biometric_unlock_enabled"
     PUSH_STORE.matches(store) -> key in setOf("notificationEnabled", "pushProviderName")
-    SESSION_STORE.matches(store) -> key != "skipSessionVerification"
+    SESSION_STORE.matches(store) -> key !in setOf("skipSessionVerification", "friendProfiles")
     else -> true
 }
 
@@ -78,7 +84,10 @@ internal fun encodeValue(value: Any): JsonObject {
         else -> error("Unsupported setting type")
     }
     val encoded = if (value is Set<*>) JsonArray(value.map { JsonPrimitive(it as String) }.sortedBy { it.content }) else JsonPrimitive(value.toString())
-    return buildJsonObject { put("type", type); put("value", encoded) }
+    return buildJsonObject {
+        put("type", type)
+        put("value", encoded)
+    }
 }
 
 internal fun decodePreferences(values: JsonObject): Preferences = mutablePreferencesOf().apply {
@@ -109,7 +118,10 @@ internal fun SettingsArchive.writeTo(output: OutputStream) {
                 put(name, buildJsonObject {
                     preferences.asMap().forEach { (key, value) -> if (allowedKey(name, key.name)) put(key.name, encodeValue(value)) }
                     unsetKeys[name].orEmpty().filter { allowedKey(name, it) }.forEach { key ->
-                        put(key, buildJsonObject { put("type", "unset"); put("value", JsonNull) })
+                        put(key, buildJsonObject {
+                            put("type", "unset")
+                            put("value", JsonNull)
+                        })
                     }
                 })
             }
@@ -197,8 +209,18 @@ internal fun validateTypes(name: String, imported: Preferences, current: Prefere
         listOf("developerMode", "hideInviteAvatars", "otherAccountsExpanded").forEach { expected[it] = "boolean" }
         listOf("liveLocationMinimumDistanceUpdate", "notificationMessageSoundChannelVersion", "notificationCallRingtoneChannelVersion")
             .forEach { expected[it] = "int" }
-        listOf("elementCallBaseUrl", "theme", "timelineMediaPreviewValue", "logLevel", "traceLogPacks", "homeserverHistory",
-            "notificationMessageSoundUri", "notificationMessageSoundDisplayName", "notificationCallRingtoneUri", "notificationCallRingtoneDisplayName")
+        listOf(
+            "elementCallBaseUrl",
+            "theme",
+            "timelineMediaPreviewValue",
+            "logLevel",
+            "traceLogPacks",
+            "homeserverHistory",
+            "notificationMessageSoundUri",
+            "notificationMessageSoundDisplayName",
+            "notificationCallRingtoneUri",
+            "notificationCallRingtoneDisplayName"
+        )
             .forEach { expected[it] = "string" }
     }
     imported.asMap().forEach { (key, value) ->

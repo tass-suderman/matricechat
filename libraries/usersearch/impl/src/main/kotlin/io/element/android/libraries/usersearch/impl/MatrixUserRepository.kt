@@ -14,20 +14,34 @@ import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.MatrixPatterns
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import io.element.android.libraries.preferences.api.store.SessionPreferencesStore
 import io.element.android.libraries.usersearch.api.UserListDataSource
 import io.element.android.libraries.usersearch.api.UserRepository
 import io.element.android.libraries.usersearch.api.UserSearchResult
 import io.element.android.libraries.usersearch.api.UserSearchResultState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
 @ContributesBinding(SessionScope::class)
 class MatrixUserRepository(
     private val client: MatrixClient,
-    private val dataSource: UserListDataSource
+    private val dataSource: UserListDataSource,
+    private val preferences: SessionPreferencesStore
 ) : UserRepository {
     override fun search(query: String): Flow<UserSearchResultState> = flow {
+        val localMatches = preferences.getFriendProfiles().first().filter { (id, profile) ->
+            query.isNotBlank() && profile.nickname.contains(query, ignoreCase = true) && !client.isMe(UserId(id))
+        }
+        if (localMatches.isNotEmpty()) {
+            val results = localMatches.entries.take(MAXIMUM_SEARCH_RESULTS.toInt()).map { (id, profile) ->
+                val user = dataSource.getProfile(UserId(id)) ?: MatrixUser(UserId(id), displayName = profile.globalName)
+                UserSearchResult(user)
+            }
+            emit(UserSearchResultState(results = results, isSearching = false))
+            return@flow
+        }
         val shouldQueryProfile = MatrixPatterns.isUserId(query) && !client.isMe(UserId(query))
         val shouldFetchSearchResults = query.length >= MINIMUM_SEARCH_LENGTH
         // If the search term is a MXID that's not ours, we'll show a 'fake' result for that user, then update it when we get search results.

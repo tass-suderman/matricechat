@@ -45,6 +45,7 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.notification.CallIntent
 import io.element.android.libraries.matrix.ui.components.CreateDmConfirmationBottomSheet
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.ui.strings.CommonStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +77,7 @@ fun UserProfileView(
             UserProfileHeaderSection(
                 avatarUrl = state.avatarUrl,
                 userId = state.userId,
-                userName = state.userName,
+                userName = LocalFriendProfiles.current.name(state.userId.value, state.userName, roomSpecific = true),
                 verificationState = state.verificationState,
                 displayedStatus = state.displayedStatus,
                 openAvatarPreview = { avatarUrl ->
@@ -96,6 +97,7 @@ fun UserProfileView(
             )
             Spacer(modifier = Modifier.height(26.dp))
             if (!state.isCurrentUser) {
+                FriendProfileSection(state.userId.value)
                 VerifyUserSection(state, onVerifyClick = { onVerifyClick(state.userId) })
                 BlockUserSection(state)
                 BlockUserDialogs(state)

@@ -27,6 +27,7 @@ import io.element.android.libraries.designsystem.components.avatar.AvatarSize
 import io.element.android.libraries.designsystem.preview.ElementThemedPreview
 import io.element.android.libraries.designsystem.theme.components.Checkbox
 import io.element.android.libraries.designsystem.theme.components.HorizontalDivider
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.model.getAvatarData
 
 @Composable
@@ -51,7 +52,7 @@ fun CheckableUserRow(
                 UserRow(
                     modifier = rowModifier,
                     avatarData = data.avatarData,
-                    name = AnnotatedString(data.name),
+                    name = AnnotatedString(LocalFriendProfiles.current.name(data.avatarData.id, data.name) ?: data.name),
                     subtext = data.subtext,
                     enabled = enabled,
                 )

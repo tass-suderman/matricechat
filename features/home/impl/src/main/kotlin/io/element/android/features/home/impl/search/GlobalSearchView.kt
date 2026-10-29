@@ -83,6 +83,7 @@ import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.ui.components.AttachmentThumbnail
 import io.element.android.libraries.matrix.ui.components.AttachmentThumbnailInfo
+import io.element.android.libraries.matrix.ui.friends.LocalFriendProfiles
 import io.element.android.libraries.matrix.ui.model.getAvatarData
 import io.element.android.libraries.ui.strings.CommonStrings
 import kotlinx.collections.immutable.ImmutableList
@@ -335,7 +336,7 @@ private fun LazyListScope.searchHistory(
 
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = result.roomInfo.name.orEmpty(),
+                            text = LocalFriendProfiles.current.roomName(result.roomInfo).orEmpty(),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = ElementTheme.typography.fontBodyLgRegular,
@@ -478,7 +479,7 @@ private fun LazyListScope.messageSearchResults(
                     heroes = result.roomInfo.heroes.map { it.getAvatarData(AvatarSize.RoomListItem) }.toImmutableList(),
                     isTombstoned = result.roomInfo.successorRoom != null
                 ),
-                roomName = result.roomInfo.name ?: result.roomInfo.id.value,
+                roomName = LocalFriendProfiles.current.roomName(result.roomInfo) ?: result.roomInfo.id.value,
                 body = result.body,
                 formattedTimestamp = result.formattedTimestamp,
             )
@@ -490,7 +491,7 @@ private fun LazyListScope.messageSearchResults(
                         heroes = result.roomInfo.heroes.map { it.getAvatarData(AvatarSize.RoomListItem) }.toImmutableList(),
                         isTombstoned = result.roomInfo.successorRoom != null
                     ),
-                    roomName = result.roomInfo.name ?: result.roomInfo.id.value,
+                    roomName = LocalFriendProfiles.current.roomName(result.roomInfo) ?: result.roomInfo.id.value,
                     content = result.mediaContent,
                     formattedTimestamp = result.formattedTimestamp,
                 )
