@@ -40,8 +40,15 @@ class DefaultImageLoaderFactory(
 
     override fun newImageLoader(): ImageLoader = newImageLoaderBuilder().build()
 
-    private fun newImageLoaderBuilder(): ImageLoader.Builder = ImageLoader.Builder(context)
+    private fun newImageLoaderBuilder(matrixMediaLoader: MatrixMediaLoader? = null): ImageLoader.Builder = ImageLoader.Builder(context)
         .components {
+            // Coil replaces the registry on each components call, so register session fetchers and decoders together.
+            if (matrixMediaLoader != null) {
+                add(AvatarDataKeyer())
+                add(MediaRequestDataKeyer())
+                add(AvatarDataFetcherFactory(matrixMediaLoader))
+                add(MediaRequestDataFetcherFactory(matrixMediaLoader))
+            }
             add(okHttpNetworkFetcherFactory)
             add(LottieDecoder.Factory())
             add(GifVideoDecoder.Factory())
@@ -53,14 +60,5 @@ class DefaultImageLoaderFactory(
             }
         }
 
-    override fun newImageLoader(matrixMediaLoader: MatrixMediaLoader): ImageLoader {
-        return newImageLoaderBuilder()
-            .components {
-                add(AvatarDataKeyer())
-                add(MediaRequestDataKeyer())
-                add(AvatarDataFetcherFactory(matrixMediaLoader))
-                add(MediaRequestDataFetcherFactory(matrixMediaLoader))
-            }
-            .build()
-    }
+    override fun newImageLoader(matrixMediaLoader: MatrixMediaLoader): ImageLoader = newImageLoaderBuilder(matrixMediaLoader).build()
 }
