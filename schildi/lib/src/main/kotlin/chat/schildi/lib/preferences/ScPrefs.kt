@@ -577,6 +577,12 @@ object ScPrefs {
             upstreamChoice = true,
             dependencies = SC_DANGER_ZONE.asDependencies()
         )
+    val HIDE_CHAT_TITLE_ICONS = ScBoolPref(
+        "HIDE_CHAT_TITLE_ICONS",
+        false,
+        R.string.screen_settings_hide_chat_title_icons,
+        R.string.screen_settings_hide_chat_title_icons_summary,
+    )
     val VERBOSE_CONVERSATION_ICONS =
         ScBoolPref(
             "VERBOSE_CONVERSATION_ICONS",
@@ -598,6 +604,7 @@ object ScPrefs {
     val BUBBLE_BG_DARK_INCOMING = ScColorPref("BUBBLE_BG_DARK_INCOMING", R.string.sc_pref_bubble_color_incoming_title)
 
     // Tests to be removed before release
+
     /*
     val SC_TEST = ScStringListPref("TEST", "b", arrayOf("a", "b", "c"), arrayOf("A", "B", "C"), null, R.string.test)
      */
@@ -712,6 +719,7 @@ object ScPrefs {
             FLOATING_DATE,
             HIDE_CALL_TOOLBAR_ACTION,
             VERBOSE_CONVERSATION_ICONS,
+            HIDE_CHAT_TITLE_ICONS,
             SHOW_DISCORD_ROLE_LABELS,
             REPLY_PREVIEW_LINE_COUNT,
             ScPrefCategory(R.string.sc_pref_category_timeline_event_visibility, null, listOf(
@@ -788,7 +796,8 @@ object ScPrefs {
     )
 
     val devQuickTweaksOverview = listOf(
-        ELEMENT_ROOM_LIST_FILTERS, // Used to be: ScUpstreamFeatureFlagAliasPref(FeatureFlags.RoomListFilters, R.string.sc_upstream_feature_flag_room_list_filters),
+        // Previously configured through the RoomListFilters upstream feature flag.
+        ELEMENT_ROOM_LIST_FILTERS,
         SNC_FAB.copy(titleRes = R.string.sc_pref_snc_fab_title_short),
         RENDER_SILENT_UNREAD,
         INDICATE_UNREAD_COUNT_UNDERESTIMATES.copy(titleRes = R.string.sc_pref_indicate_unread_count_underestimates_title_short),
@@ -844,6 +853,7 @@ object ScPrefs {
         SC_TIMELINE_LAYOUT.copy(titleRes = R.string.sc_pref_sc_layout_title),
         HIDE_CALL_TOOLBAR_ACTION,
         VERBOSE_CONVERSATION_ICONS,
+        HIDE_CHAT_TITLE_ICONS,
         PINNED_MESSAGE_OVERLAY.copy(titleRes = R.string.sc_pref_pinned_message_overlay_title_short),
         PINNED_MESSAGE_TOOLBAR_ACTION.copy(titleRes = R.string.sc_pref_pinned_message_toolbar_title_short),
         // RENDER_INLINE_IMAGES,

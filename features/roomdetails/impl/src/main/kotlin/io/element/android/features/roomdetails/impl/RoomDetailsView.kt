@@ -249,9 +249,9 @@ fun RoomDetailsView(
                     pinnedMessagesCount = state.pinnedMessagesCount,
                     onPinnedMessagesClick = onPinnedMessagesClick
                 )
-                PollsItem(
-                    openPollHistory = openPollHistory
-                )
+                if (!chat.schildi.lib.BuildConfig.MATRICE_TRIMMED) {
+                    PollsItem(openPollHistory = openPollHistory)
+                }
             }
             when (state.roomType) {
                 is RoomDetailsType.Room -> {
@@ -371,7 +371,7 @@ private fun RoomDetailsTopBar(
     var showMenu by remember { mutableStateOf(false) }
 
     TopAppBar(
-        //title = { },
+        // title = { },
         navigationIcon = { BackButton(onClick = goBack) },
         actions = {
             if (showEdit) {

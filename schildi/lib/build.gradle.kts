@@ -1,3 +1,4 @@
+import extension.isMatriceTrimmed
 import extension.setupDependencyInjection
 
 plugins {
@@ -8,6 +9,7 @@ plugins {
 
 android {
     namespace = "chat.schildi.lib"
+    defaultConfig.buildConfigField("boolean", "MATRICE_TRIMMED", isMatriceTrimmed.toString())
 
     buildFeatures {
         buildConfig = true

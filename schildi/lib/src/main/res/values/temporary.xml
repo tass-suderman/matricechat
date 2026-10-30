@@ -65,4 +65,7 @@
     <string name="screen_friend_profile_nickname">Friend nickname</string>
     <string name="screen_friend_profile_color">Friend colour</string>
     <string name="error_friend_profile_save">Could not save friend appearance. Please try again.</string>
+    <string name="screen_settings_hide_chat_title_icons">Hide bridge and unencrypted icons</string>
+    <string name="screen_settings_hide_chat_title_icons_summary">Hide the bridge logo and unlocked padlock beside chat titles.</string>
+    <string name="common_feature_unavailable_trimmed">This feature is not included in this build.</string>
 </resources>

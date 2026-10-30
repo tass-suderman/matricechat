@@ -34,6 +34,7 @@ class RoomCallStatePresenter(
 ) : Presenter<RoomCallState> {
     @Composable
     override fun present(): RoomCallState {
+        if (chat.schildi.lib.BuildConfig.MATRICE_TRIMMED) return RoomCallState.Unavailable
         val isAvailable by produceState(false) {
             value = sessionEnterpriseService.isElementCallAvailable()
         }

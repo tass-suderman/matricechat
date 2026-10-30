@@ -1,5 +1,5 @@
-import extension.testCommonDependencies
 import extension.setupDependencyInjection
+import extension.testCommonDependencies
 
 plugins {
     id("io.element.android-compose-library")
@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.network.okhttp)
     testCommonDependencies(libs)
     implementation(libs.androidx.emoji2)
+    implementation(libs.sigpwned.emoji4j)
     implementation(project(":libraries:matrix:api"))
     implementation(project(":annotations"))
 }

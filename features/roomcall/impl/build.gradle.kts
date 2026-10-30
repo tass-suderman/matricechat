@@ -20,6 +20,7 @@ android {
 setupDependencyInjection()
 
 dependencies {
+    implementation(projects.schildi.lib)
     api(projects.features.roomcall.api)
     implementation(libs.kotlinx.collections.immutable)
     implementation(projects.features.call.api)

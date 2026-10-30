@@ -1,6 +1,9 @@
 package chat.schildi.matrixsdk
 
 import androidx.emoji2.text.EmojiCompat
+import com.sigpwned.emoji4j.core.Grapheme.Type.EMOJI
+import com.sigpwned.emoji4j.core.Grapheme.Type.PICTOGRAPHIC
+import com.sigpwned.emoji4j.core.GraphemeMatcher
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -41,7 +44,6 @@ data class RecentEmojiContent(
     @SerialName("recent_emoji")
     val recentEmoji: List<List<JsonPrimitive>>,
 ) {
-
     fun toRecentEmojiItems(): List<RecentEmojiItem> {
         return recentEmoji.mapNotNull {
             try {
@@ -107,6 +109,7 @@ fun poorMansIsValidRecentEmoji(someString: String): Boolean {
 
 fun String.containsOnlyEmojis(maxEmojis: Int = Integer.MAX_VALUE, throwOnError: Boolean = false): Boolean {
     if (maxEmojis <= 0) return false
+    if (!EmojiCompat.isConfigured()) return containsOnlyEmojiGraphemes(maxEmojis)
     val emojiCompat = try {
         EmojiCompat.get()
     } catch (e: IllegalStateException) {
@@ -132,7 +135,7 @@ fun String.containsOnlyEmojis(maxEmojis: Int = Integer.MAX_VALUE, throwOnError: 
             true
         } else {
             if (end < length) {
-                substring(end).containsOnlyEmojis(maxEmojis = maxEmojis-1)
+                substring(end).containsOnlyEmojis(maxEmojis = maxEmojis - 1)
             } else {
                 // error, return false for safety
                 Timber.e("EmojiCompat returned unexpected end index")
@@ -141,4 +144,18 @@ fun String.containsOnlyEmojis(maxEmojis: Int = Integer.MAX_VALUE, throwOnError: 
             }
         }
     }
+}
+
+internal fun String.containsOnlyEmojiGraphemes(maxEmojis: Int): Boolean {
+    if (isEmpty() || maxEmojis <= 0) return false
+    val matcher = GraphemeMatcher(this)
+    var count = 0
+    var end = 0
+    while (matcher.find()) {
+        val match = matcher.toMatchResult()
+        val isEmoji = match.grapheme().type == EMOJI || match.grapheme().type == PICTOGRAPHIC && match.group() in "🌍".."🗺"
+        if (!isEmoji || match.start() != end || ++count > maxEmojis) return false
+        end = match.end()
+    }
+    return end == length && count > 0
 }

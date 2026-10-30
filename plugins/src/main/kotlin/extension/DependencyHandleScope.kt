@@ -175,6 +175,11 @@ private fun DependencyHandlerScope.addAll(
 ) {
     val subProjects = project.rootProject.subprojects.filter { it.path.startsWith(modulePrefix) && it.path.endsWith(moduleSuffix) }
     for (p in subProjects) {
+        if (modulePrefix == ":features" && moduleSuffix == ":impl") {
+            val optionalFeatures = setOf(":features:call:impl", ":features:callnative:impl", ":features:location:impl", ":features:poll:impl")
+            if (project.isMatriceTrimmed && p.path in optionalFeatures) continue
+            if (!project.isMatriceTrimmed && p.path == ":features:trimmed:impl") continue
+        }
         add("implementation", p)
     }
 }

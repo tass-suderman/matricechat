@@ -181,7 +181,7 @@ class TimelineItemContentMessageFactory(
             is LocationMessageType -> {
                 val location = Location.fromGeoUri(messageType.geoUri)
                 val body = messageType.body.trimEnd()
-                if (location == null) {
+                if (location == null || chat.schildi.lib.BuildConfig.MATRICE_TRIMMED) {
                     TimelineItemTextContent(
                         body = body,
                         htmlDocument = null,

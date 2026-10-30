@@ -22,6 +22,7 @@ import extension.allLibrariesImpl
 import extension.allServicesImpl
 import extension.buildConfigFieldStr
 import extension.environmentOrGradleValue
+import extension.isMatriceTrimmed
 import extension.locales
 import extension.setupDependencyInjection
 import extension.testCommonDependencies
@@ -77,7 +78,7 @@ android {
         }
 
         androidResources {
-            localeFilters += locales
+            localeFilters += if (isMatriceTrimmed) setOf("en", "en-rUS", "fr") else locales
         }
     }
 
@@ -207,6 +208,18 @@ android {
     }
 }
 
+extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
+    sourceSets.getByName("main").apply {
+        kotlin.directories.add(if (isMatriceTrimmed) "src/trimmed/kotlin" else "src/full/kotlin")
+        res.directories.add(if (isMatriceTrimmed) "src/trimmed/res" else "src/full/res")
+    }
+    if (isMatriceTrimmed) {
+        buildTypes.forEach { buildType ->
+            sourceSets.getByName(buildType.name).manifest.srcFile("src/trimmed/AndroidManifest.xml")
+        }
+    }
+}
+
 // SC: downstream package name and versioning, overriding Element default config while reducing merge conflicts
 val scVersionMajor = 0
 val scVersionMinor = 11
@@ -330,11 +343,12 @@ tasks.withType<SonarResolverTask>().configureEach {
 setupDependencyInjection()
 
 dependencies {
+    implementation(projects.features.callnative.api)
     implementation(projects.schildi.theme)
     implementation(projects.schildi.lib) // Needed for DI
     implementation(projects.schildi.matrixsdk) // Needed for DI
     implementation(libs.androidx.emoji2)
-    implementation(libs.androidx.emoji2.bundled)
+    if (!isMatriceTrimmed) implementation(libs.androidx.emoji2.bundled)
     allLibrariesImpl()
     allServicesImpl()
     if (isEnterpriseBuild) {
@@ -359,7 +373,7 @@ dependencies {
 
     // Google Play Services fused location backend. Discovered at runtime via ServiceLoader by the
     // location feature.
-    "gplayImplementation"(libs.maplibre.compose.location.runtime.gms)
+    if (!isMatriceTrimmed) "gplayImplementation"(libs.maplibre.compose.location.runtime.gms)
 
     implementation(libs.appyx.core)
     implementation(libs.androidx.splash)

@@ -81,6 +81,12 @@ class TimelineItemContentFactory(
         roomMembers: List<RoomMember> = emptyList(),
     ): TimelineItemEventContent {
         val isOutgoing = sessionId == sender
+        if (chat.schildi.lib.BuildConfig.MATRICE_TRIMMED &&
+            (itemContent is PollContent || itemContent is LiveLocationContent ||
+                itemContent is LegacyCallInviteContent || itemContent is CallNotifyContent)
+        ) {
+            return TimelineItemUnknownContent
+        }
         return when (itemContent) {
             is FailedToParseMessageLikeContent -> failedToParseMessageFactory.create(itemContent)
             is FailedToParseStateContent -> failedToParseStateFactory.create(itemContent)

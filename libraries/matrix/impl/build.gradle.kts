@@ -1,3 +1,4 @@
+import extension.isMatriceTrimmed
 import extension.setupDependencyInjection
 import extension.testCommonDependencies
 
@@ -16,6 +17,12 @@ plugins {
 
 android {
     namespace = "io.element.android.libraries.matrix.impl"
+}
+
+if (!isMatriceTrimmed) {
+    extensions.configure<com.android.build.api.dsl.LibraryExtension> {
+        sourceSets.getByName("main").kotlin.directories.add("src/full/kotlin")
+    }
 }
 
 setupDependencyInjection()
@@ -58,12 +65,14 @@ dependencies {
     implementation(variantOf(libs.rustls.platform.verifier) { artifactType("aar") })
 
     // The native call's Matrix transport. Only this module may hand it a raw SDK client.
-    implementation(platform("io.element.android:element-call-bom:$elementCallVersion"))
-    implementation(libs.element.call.api)
-    implementation(projects.features.callnative.api)
-    implementation(libs.element.call.matrix) {
-        if (usesLocalRustSdk || true) { // SC rustcomponents beats bundled from call
-            exclude(group = "org.matrix.rustcomponents", module = "sdk-android")
+    if (!isMatriceTrimmed) {
+        implementation(platform("io.element.android:element-call-bom:$elementCallVersion"))
+        implementation(libs.element.call.api)
+        implementation(projects.features.callnative.api)
+        implementation(libs.element.call.matrix) {
+            if (usesLocalRustSdk || true) { // SC rustcomponents beats bundled from call
+                exclude(group = "org.matrix.rustcomponents", module = "sdk-android")
+            }
         }
     }
 

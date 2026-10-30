@@ -137,7 +137,7 @@ private fun NotificationSettingsContentView(
         onNotificationsEnabledChange = onNotificationsEnabledChange,
     )
     if (systemSettings.appNotificationsEnabled) {
-        if (!state.fullScreenIntentPermissionsState.permissionGranted) {
+        if (!chat.schildi.lib.BuildConfig.MATRICE_TRIMMED && !state.fullScreenIntentPermissionsState.permissionGranted) {
             FullScreenPermissionNotGrantedItem(
                 onClick = {
                     state.fullScreenIntentPermissionsState.eventSink(FullScreenIntentPermissionsEvent.OpenSettings)
@@ -379,6 +379,8 @@ private fun SoundsPreferenceCategory(state: NotificationSettingsState) {
         if (state.showMessageSoundDialog) {
             MessageSoundDialog(state)
         }
+
+        if (chat.schildi.lib.BuildConfig.MATRICE_TRIMMED) return@PreferenceCategory
 
         val launchCallRingtonePicker = rememberSoundPickerOnClick(
             type = RingtoneManager.TYPE_RINGTONE,

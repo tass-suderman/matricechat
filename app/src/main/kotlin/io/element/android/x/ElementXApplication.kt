@@ -8,12 +8,9 @@
 
 package io.element.android.x
 
-import android.app.Application
 import android.os.StrictMode
 import androidx.compose.material3.ComposeMaterial3Flags.isAnchoredDraggableComponentsStrictOffsetCheckEnabled
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.emoji2.bundled.BundledEmojiCompatConfig
-import androidx.emoji2.text.EmojiCompat
 import androidx.startup.AppInitializer
 import androidx.work.Configuration
 import dev.zacsweers.metro.Inject
@@ -50,7 +47,7 @@ class ElementXApplication : ScApplication(), DependencyInjectionGraphOwner, Conf
             initializeComponent(CacheCleanerInitializer::class.java)
             initializeComponent(ScInitializer::class.java) // SC
         }
-        EmojiCompat.init(BundledEmojiCompatConfig(this)) // SC
+        initializeEmojiCompat(this)
 
         bindings<ApplicationBindings>().inject(this)
         logApplicationInfo(this, sdkMetadata.sdkGitSha)

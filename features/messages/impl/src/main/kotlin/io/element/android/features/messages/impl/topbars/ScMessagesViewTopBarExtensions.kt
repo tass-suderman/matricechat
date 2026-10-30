@@ -36,6 +36,7 @@ internal fun SharedHistoryIcon.scOverride() = when {
 
 @Composable
 internal fun ScTitleAdditions(state: io.element.android.features.messages.impl.MessagesState) {
+    if (ScPrefs.HIDE_CHAT_TITLE_ICONS.value()) return
     ScBridgeAvatar(state)
     ScNotEncryptedIndicator(state.isRoomEncrypted)
 }
